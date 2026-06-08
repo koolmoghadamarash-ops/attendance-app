@@ -183,21 +183,31 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <button class="logout-btn" onclick="doLogout()">⏏</button>
   </div>
   <div class="admin-content">
+    <div id="absence-alerts" style="display:none"></div>
     <div class="stats-grid" id="admin-stats"></div>
     <div class="tabs">
       <button class="tab active" onclick="adminTab('qr',this)">QR شعبه</button>
       <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
       <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="adminTab('settings',this)">تنظیمات</button>
+      <button class="tab" onclick="adminTab('messages',this)">پیام‌ها</button>
     </div>
 
     <!-- Tab QR -->
     <div id="tab-qr" class="tab-content">
-      <div style="margin-bottom:10px;background:var(--bg3);border-radius:12px;padding:12px;font-size:13px;color:var(--text2);text-align:center">
-        🔐 QR Code هر <strong style="color:var(--accent)">۳۰ دقیقه</strong> به صورت خودکار تغییر می‌کند<br>
-        تغییر بعدی: <span id="qr-countdown" style="color:var(--orange);font-weight:700">--:--</span>
+      <div class="qr-display-card">
+        <h3>🔐 QR Code عمومی</h3>
+        <p>یک QR برای همه شعب — هر ۳۰ دقیقه تغییر می‌کند</p>
+        <div style="margin-bottom:12px;background:var(--bg3);border-radius:10px;padding:10px;font-size:13px;color:var(--text2);text-align:center">
+          تغییر بعدی: <span id="qr-countdown" style="color:var(--orange);font-weight:700">--:--</span>
+        </div>
+        <div id="qr-universal-container" style="background:#fff;border-radius:16px;padding:16px;display:inline-block"></div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-direction:column">
+          <button class="btn btn-ghost" onclick="openUniversalFullscreen()">⛶ نمایش تمام‌صفحه</button>
+          <button class="btn btn-ghost" style="font-size:12px" onclick="copyUniversalQRLink()">📋 کپی لینک صفحه نمایش شعبه</button>
+        </div>
       </div>
-      <div id="all-qr-codes"></div>
     </div>
 
     <!-- Tab Locations -->
@@ -243,6 +253,43 @@ input[type=range]{accent-color:var(--accent);width:100%}
       </div>
       <div class="section-title">لیست پرسنل</div>
       <div id="personnel-list"></div>
+    </div>
+
+    <!-- Tab Settings -->
+    <div id="tab-settings" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">⏰ ساعت کاری</div>
+        <p style="font-size:13px;color:var(--text2);margin-bottom:12px">اگر پرسنل تا ساعت شروع کار ورود نزند، هشدار داخل برنامه نمایش داده می‌شود</p>
+        <div id="work-hours-list"></div>
+        <div class="divider"></div>
+        <div class="section-title">➕ تنظیم ساعت کاری شعبه</div>
+        <div class="field">
+          <label>شعبه</label>
+          <select id="wh-loc" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;outline:none"></select>
+        </div>
+        <div class="form-grid">
+          <div class="field"><label>شروع کار</label><input type="time" id="wh-start" value="08:00" style="color-scheme:dark"></div>
+          <div class="field"><label>پایان کار</label><input type="time" id="wh-end" value="17:00" style="color-scheme:dark"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveWorkHoursForLoc()">💾 ذخیره ساعت کاری</button>
+      </div>
+    </div>
+
+    <!-- Tab Messages -->
+    <div id="tab-messages" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">📨 ارسال پیام</div>
+        <div class="field">
+          <label>ارسال به</label>
+          <select id="msg-target" style="width:100%;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;outline:none">
+            <option value="all">همه پرسنل</option>
+          </select>
+        </div>
+        <div class="field"><label>متن پیام</label><textarea id="msg-text" rows="3" style="width:100%;padding:12px;background:var(--bg);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;outline:none;resize:none" placeholder="پیام خود را بنویسید..."></textarea></div>
+        <button class="btn btn-primary" onclick="sendMessage()">📤 ارسال پیام</button>
+      </div>
+      <div class="section-title">پیام‌های ارسال شده</div>
+      <div id="sent-messages-list"></div>
     </div>
 
     <!-- Tab Reports -->
@@ -318,6 +365,66 @@ input[type=range]{accent-color:var(--accent);width:100%}
 </div>
 
 <script>
+
+// ════ QR PAGE MODE ════
+// If URL has ?qr=main, show universal QR fullscreen
+(function(){
+  const params=new URLSearchParams(window.location.search);
+  const qrMode=params.get('qr');
+  if(qrMode){
+    document.addEventListener('DOMContentLoaded',()=>{
+      document.body.style.background='#0a1628';
+      document.body.style.display='flex';
+      document.body.style.flexDirection='column';
+      document.body.style.alignItems='center';
+      document.body.style.justifyContent='center';
+      document.body.style.minHeight='100vh';
+      document.body.style.fontFamily='Vazirmatn,sans-serif';
+      document.body.style.direction='rtl';
+      document.body.innerHTML=`
+        <div style="text-align:center;padding:20px">
+          <div style="font-size:22px;font-weight:800;color:#e8f4fd;margin-bottom:4px">📍 حضور و غیاب هوشمند</div>
+          <div style="font-size:13px;color:#7ea8c9;margin-bottom:20px">برای ثبت حضور، این QR را اسکن کنید</div>
+          <div id="qr-page-code" style="background:#fff;padding:16px;border-radius:20px;display:inline-block;box-shadow:0 8px 32px rgba(0,0,0,0.4)"></div>
+          <div style="margin-top:16px;font-size:14px;color:#7ea8c9">تغییر بعدی: <span id="qr-page-timer" style="color:#ff9800;font-weight:700;font-size:18px">--:--</span></div>
+          <div id="qr-page-clock" style="margin-top:8px;font-size:20px;font-weight:300;color:#00d4ff"></div>
+          <div id="qr-page-date" style="font-size:13px;color:#4a7a9b;margin-top:4px"></div>
+        </div>`;
+      const s=document.createElement('script');
+      s.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+      s.onload=()=>{
+        function getUniversalToken(){
+          const now=new Date();
+          const slot=Math.floor(now.getMinutes()/30);
+          const key=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${slot}`;
+          return btoa(`HG:UNIVERSAL:${key}`).replace(/=/g,'');
+        }
+        function drawQR(){
+          const div=document.getElementById('qr-page-code');
+          if(!div)return;
+          div.innerHTML='';
+          new QRCode(div,{text:getUniversalToken(),width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+        }
+        drawQR();
+        setInterval(()=>{
+          const now=new Date();
+          const mins=now.getMinutes()%30,secs=now.getSeconds();
+          const rem=(30-mins)*60-secs;
+          const m=Math.floor(rem/60),s=rem%60;
+          const timer=document.getElementById('qr-page-timer');
+          if(timer)timer.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+          const clock=document.getElementById('qr-page-clock');
+          if(clock)clock.textContent=now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+          const date=document.getElementById('qr-page-date');
+          if(date)date.textContent=now.toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+          if(mins===0&&secs===0)drawQR();
+        },1000);
+      };
+      document.head.appendChild(s);
+    });
+  }
+})();
+
 // ════ STATE ════
 let state={
   currentUser:null,
@@ -325,20 +432,28 @@ let state={
   locations:JSON.parse(localStorage.getItem('hg_locations')||'[]'),
   personnel:JSON.parse(localStorage.getItem('hg_personnel')||'[]'),
   logs:JSON.parse(localStorage.getItem('hg_logs')||'[]'),
+  workHours:JSON.parse(localStorage.getItem('hg_workhours')||'{}'),
+  messages:JSON.parse(localStorage.getItem('hg_messages')||'[]'),
 };
 let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
 function saveLocations(){localStorage.setItem('hg_locations',JSON.stringify(state.locations));}
+function saveWorkHours(){localStorage.setItem('hg_workhours',JSON.stringify(state.workHours));}
+function saveMessages(){localStorage.setItem('hg_messages',JSON.stringify(state.messages));}
 function savePersonnel(){localStorage.setItem('hg_personnel',JSON.stringify(state.personnel));}
 function saveLogs(){localStorage.setItem('hg_logs',JSON.stringify(state.logs));}
 
 // ════ QR TOKEN ════
 function getQRToken(locId){
-  // Token changes every 30 minutes
+  // Universal token - same for all locations, changes every 30 minutes
   const now=new Date();
   const slot=Math.floor(now.getMinutes()/30);
   const key=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${slot}`;
-  return btoa(`HG:${locId}:${key}`).replace(/=/g,'');
+  return btoa(`HG:UNIVERSAL:${key}`).replace(/=/g,'');
+}
+
+function getUniversalToken(){
+  return getQRToken('universal');
 }
 
 function getNextSlotSeconds(){
@@ -403,6 +518,30 @@ function initEmployee(){
   const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
   updateEmpStatus();renderTodayLogs();
+  // Show unread messages
+  showEmpMessages();
+}
+
+function showEmpMessages(){
+  const u=state.currentUser;
+  const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
+  if(!unread.length)return;
+  // Mark as read
+  unread.forEach(m=>{
+    const idx=state.messages.findIndex(x=>x.id===m.id);
+    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+      state.messages[idx].readBy.push(u.nationalId);
+    }
+  });
+  saveMessages();
+  // Show in UI
+  const msgHtml=unread.map(m=>`<div style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px">${m.text}<div style="font-size:11px;color:var(--text3);margin-top:4px">${m.date} ${m.time}</div></div>`).join('');
+  const box=document.createElement('div');
+  box.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:90%;max-width:360px;background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px;z-index:250;box-shadow:var(--shadow)';
+  box.innerHTML=`<div style="font-weight:700;margin-bottom:10px;font-size:14px">📬 ${toPersianNum(unread.length)} پیام جدید</div>${msgHtml}<button onclick="this.parentElement.remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;width:100%;margin-top:4px">متوجه شدم ✓</button>`;
+  document.body.appendChild(box);
+  setTimeout(()=>{if(box.parentElement)box.remove();},10000);
 }
 
 function updateEmpStatus(){
@@ -540,6 +679,30 @@ function processQRCode(data){
   document.getElementById('qr-scan-modal').classList.remove('open');
   showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
   updateEmpStatus();renderTodayLogs();
+  // Show unread messages
+  showEmpMessages();
+}
+
+function showEmpMessages(){
+  const u=state.currentUser;
+  const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
+  if(!unread.length)return;
+  // Mark as read
+  unread.forEach(m=>{
+    const idx=state.messages.findIndex(x=>x.id===m.id);
+    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+      state.messages[idx].readBy.push(u.nationalId);
+    }
+  });
+  saveMessages();
+  // Show in UI
+  const msgHtml=unread.map(m=>`<div style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px">${m.text}<div style="font-size:11px;color:var(--text3);margin-top:4px">${m.date} ${m.time}</div></div>`).join('');
+  const box=document.createElement('div');
+  box.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:90%;max-width:360px;background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px;z-index:250;box-shadow:var(--shadow)';
+  box.innerHTML=`<div style="font-weight:700;margin-bottom:10px;font-size:14px">📬 ${toPersianNum(unread.length)} پیام جدید</div>${msgHtml}<button onclick="this.parentElement.remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;width:100%;margin-top:4px">متوجه شدم ✓</button>`;
+  document.body.appendChild(box);
+  setTimeout(()=>{if(box.parentElement)box.remove();},10000);
 }
 
 function showResult(msg,type){
@@ -554,32 +717,32 @@ function renderQRLocSelect(){
 }
 
 function renderAllQRCodes(){
-  const container=document.getElementById('all-qr-codes');
+  const container=document.getElementById('qr-universal-container');
   if(!container)return;
-  if(!state.locations.length){
-    container.innerHTML='<div class="empty-state"><div class="icon">🏢</div>ابتدا شعبه اضافه کنید</div>';
-    return;
-  }
-  container.innerHTML=state.locations.map(l=>`
-    <div class="qr-display-card" style="margin-bottom:14px">
-      <h3>🏢 ${l.name}</h3>
-      <p style="font-size:11px;color:var(--text2);margin-bottom:12px">${l.address||''}</p>
-      <div id="qr-auto-${l.id}" style="background:#fff;border-radius:12px;padding:12px;display:inline-block"></div>
-      <br>
-      <button class="btn btn-ghost" style="margin-top:10px;font-size:13px" onclick="openFullscreenQR('${l.id}')">⛶ نمایش تمام‌صفحه</button>
-    </div>`).join('');
-  // Generate QR for each location
-  state.locations.forEach(l=>{
-    const div=document.getElementById('qr-auto-'+l.id);
-    if(!div)return;
-    div.innerHTML='';
-    new QRCode(div,{text:getQRToken(l.id),width:180,height:180,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-  });
+  container.innerHTML='';
+  new QRCode(container,{text:getUniversalToken(),width:200,height:200,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   // Update countdown
   const s=getNextSlotSeconds();
   const m=Math.floor(s/60),sec=s%60;
   const cd=document.getElementById('qr-countdown');
   if(cd) cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function openUniversalFullscreen(){
+  const fs=document.getElementById('fullscreen-qr');
+  fs.style.display='flex';
+  document.getElementById('fullscreen-loc-name').textContent='📍 حضور و غیاب هوشمند';
+  const container=document.getElementById('fullscreen-qr-code');
+  container.innerHTML='';
+  new QRCode(container,{text:getUniversalToken(),width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  currentFsLocId='universal';
+}
+
+function copyUniversalQRLink(){
+  const url=window.location.href.split('?')[0]+'?qr=main';
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>showToast('لینک صفحه نمایش کپی شد ✅','success'));
+  } else showToast(url,'info');
 }
 
 // Auto-refresh QR every 30 minutes
@@ -596,20 +759,11 @@ setInterval(()=>{
 let currentFsLocId=null;
 function openFullscreenQR(locId){
   currentFsLocId=locId;
-  const loc=state.locations.find(l=>l.id===locId);
-  if(!loc)return;
-  const token=getQRToken(locId);
-  const fs=document.getElementById('fullscreen-qr');
-  fs.style.display='flex';
-  document.getElementById('fullscreen-loc-name').textContent='🏢 '+loc.name;
-  const container=document.getElementById('fullscreen-qr-code');
-  container.innerHTML='';
-  new QRCode(container,{text:token,width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  openUniversalFullscreen();
 }
 
 function refreshFullscreenQR(){
-  if(!currentFsLocId)return;
-  openFullscreenQR(currentFsLocId);
+  openUniversalFullscreen();
 }
 
 function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
@@ -624,11 +778,28 @@ function adminTab(tab,el){
   if(tab==='reports'){loadReportFilters();loadReports();}
   if(tab==='locations')setTimeout(()=>{if(addMap)addMap.invalidateSize();},200);
   if(tab==='qr')renderQRLocSelect();
+  if(tab==='settings'){
+    const sel=document.getElementById('wh-loc');
+    if(sel) sel.innerHTML=state.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+    renderWorkHoursList();
+  }
+  if(tab==='messages'){renderMsgTarget();renderSentMessages();}
 }
 
 function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
 
 function renderAdminStats(){
+  // Check absence alerts
+  const alerts=checkAbsenceAlerts();
+  const alertDiv=document.getElementById('absence-alerts');
+  if(alertDiv){
+    if(alerts.length>0){
+      alertDiv.style.display='block';
+      alertDiv.innerHTML=`<div style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--red)">⚠️ غایبین: ${alerts.join(' | ')}</div>`;
+    } else alertDiv.style.display='none';
+  }
+}
+function _unusedStats(){
   const today=todayStr();
   const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
   document.getElementById('admin-stats').innerHTML=`
@@ -651,6 +822,7 @@ function renderLocationsList(){
         </div>
       </div>
       <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(p=>p.locations.includes(l.id)).length)} نفر</span></div>
+
     </div>`).join('');
 }
 
@@ -862,6 +1034,124 @@ function exportExcel(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='گزارش_حضور_غیاب.csv';a.click();
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
+}
+
+// ════ WORK HOURS ════
+function renderWorkHoursList(){
+  const list=document.getElementById('work-hours-list');
+  if(!list)return;
+  const entries=Object.entries(state.workHours);
+  if(!entries.length){list.innerHTML='<p style="font-size:13px;color:var(--text3)">هنوز ساعت کاری تنظیم نشده</p>';return;}
+  list.innerHTML=entries.map(([locId,wh])=>{
+    const loc=state.locations.find(l=>l.id===locId);
+    if(!loc)return '';
+    return `<div class="info-row"><span class="info-label">🏢 ${loc.name}</span><span class="info-val">${wh.start} تا ${wh.end}</span><button class="btn btn-ghost btn-xs" onclick="deleteWorkHours('${locId}')">🗑</button></div>`;
+  }).join('');
+}
+
+function saveWorkHoursForLoc(){
+  const locId=document.getElementById('wh-loc').value;
+  const start=document.getElementById('wh-start').value;
+  const end=document.getElementById('wh-end').value;
+  if(!locId){showToast('شعبه را انتخاب کنید','error');return;}
+  state.workHours[locId]={start,end};
+  saveWorkHours();renderWorkHoursList();
+  showToast('ساعت کاری ذخیره شد ✅','success');
+}
+
+function deleteWorkHours(locId){
+  delete state.workHours[locId];
+  saveWorkHours();renderWorkHoursList();
+}
+
+function checkAbsenceAlerts(){
+  const now=new Date();
+  const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  const today=new Date().toLocaleDateString('fa-IR');
+  const alerts=[];
+  for(const [locId,wh] of Object.entries(state.workHours)){
+    if(timeStr<wh.start) continue;
+    const locPersonnel=state.personnel.filter(p=>p.locations.includes(locId));
+    for(const p of locPersonnel){
+      const hasCheckedIn=state.logs.some(l=>l.userId===p.nationalId&&l.date===today&&l.type==='in');
+      if(!hasCheckedIn) alerts.push(`${p.fname} ${p.lname} هنوز ورود نزده`);
+    }
+  }
+  return alerts;
+}
+
+// ════ MESSAGES ════
+function renderMsgTarget(){
+  const sel=document.getElementById('msg-target');
+  if(!sel)return;
+  sel.innerHTML='<option value="all">همه پرسنل</option>'+
+    state.locations.map(l=>`<option value="loc:${l.id}">شعبه: ${l.name}</option>`).join('')+
+    state.personnel.map(p=>`<option value="user:${p.nationalId}">${p.fname} ${p.lname}</option>`).join('');
+}
+
+function sendMessage(){
+  const target=document.getElementById('msg-target').value;
+  const text=document.getElementById('msg-text').value.trim();
+  if(!text){showToast('متن پیام را وارد کنید','error');return;}
+  const now=new Date();
+  state.messages.push({
+    id:'msg_'+Date.now(),
+    target,
+    text,
+    date:now.toLocaleDateString('fa-IR'),
+    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),
+    timestamp:now.toISOString(),
+    readBy:[],
+  });
+  saveMessages();
+  document.getElementById('msg-text').value='';
+  renderSentMessages();
+  showToast('پیام ارسال شد ✅','success');
+}
+
+function renderSentMessages(){
+  const list=document.getElementById('sent-messages-list');
+  if(!list)return;
+  const msgs=[...state.messages].reverse();
+  if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div>هیچ پیامی ارسال نشده</div>';return;}
+  list.innerHTML=msgs.map(m=>{
+    let targetLabel='همه پرسنل';
+    if(m.target.startsWith('loc:')){
+      const loc=state.locations.find(l=>l.id===m.target.replace('loc:',''));
+      targetLabel='شعبه: '+(loc?.name||'—');
+    } else if(m.target.startsWith('user:')){
+      const p=state.personnel.find(x=>x.nationalId===m.target.replace('user:',''));
+      targetLabel=p?p.fname+' '+p.lname:'—';
+    }
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="font-size:13px;font-weight:600;margin-bottom:6px">${m.text}</div>
+      <div style="font-size:11px;color:var(--text2)">📤 ${targetLabel} | ${m.date} ${m.time} | خوانده شده: ${toPersianNum(m.readBy.length)} نفر</div>
+      <button class="btn btn-ghost btn-xs" style="margin-top:8px;color:var(--red)" onclick="deleteMessage('${m.id}')">🗑 حذف</button>
+    </div>`;
+  }).join('');
+}
+
+function deleteMessage(id){
+  state.messages=state.messages.filter(m=>m.id!==id);
+  saveMessages();renderSentMessages();
+}
+
+function getMyMessages(nationalId,locations){
+  return state.messages.filter(m=>{
+    if(m.target==='all')return true;
+    if(m.target===`user:${nationalId}`)return true;
+    if(locations.some(lid=>m.target===`loc:${lid}`))return true;
+    return false;
+  });
+}
+
+function copyQRLink(locId){
+  const url=window.location.href.split('?')[0]+'?qr='+locId;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(url).then(()=>showToast('لینک QR کپی شد ✅','success'));
+  } else {
+    showToast(url,'info');
+  }
 }
 
 // ════ UTILS ════
