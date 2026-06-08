@@ -2,38 +2,33 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<meta name="theme-color" content="#0f1923">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="حضور و غیاب">
 <title>حضور و غیاب هوشمند</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15)}
+:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
 .screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
-
-/* LOGIN */
 #screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
 .login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow),var(--glow)}
 .login-logo{text-align:center;margin-bottom:32px}
 .login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
 .login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
-
-/* FIELDS */
 .field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
-.field input,.field select,.field textarea{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;transition:border-color .2s,box-shadow .2s;outline:none}
+.field input,.field select,.field textarea{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;transition:border-color .2s;outline:none}
 .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
 .field select option{background:var(--bg3)}
-
-/* BUTTONS */
 .btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
 .btn-primary{background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
-.btn-primary:active{transform:scale(0.98);opacity:.9}
+.btn-primary:active{transform:scale(0.98)}
 .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
 .btn-ghost:active{background:var(--bg3)}
 .btn-green{background:linear-gradient(135deg,#00c853,#00e676);color:#001a08;box-shadow:0 4px 16px rgba(0,230,118,0.3)}
@@ -41,99 +36,94 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .btn-orange{background:linear-gradient(135deg,#e65c00,#ff9800);color:#fff}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .btn-xs{padding:5px 10px;font-size:12px;width:auto;border-radius:7px}
-
-/* TOPBAR */
 .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
 .topbar-title{font-size:16px;font-weight:700;flex:1}.topbar-sub{font-size:12px;color:var(--text2)}
 .avatar{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
 .logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;padding:4px}
-
-/* EMPLOYEE */
 #screen-emp{background:radial-gradient(ellipse at 50% -20%,#0d2a4a 0%,var(--bg) 60%)}
-.emp-content{flex:1;padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
-.clock-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;box-shadow:var(--shadow)}
-.clock-time{font-size:48px;font-weight:300;color:var(--accent);letter-spacing:-2px;line-height:1;margin-bottom:4px}
-.clock-date{font-size:14px;color:var(--text2)}
-.status-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
-.status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.emp-content{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding-bottom:24px}
+.clock-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;box-shadow:var(--shadow)}
+.clock-time{font-size:44px;font-weight:300;color:var(--accent);letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.clock-date{font-size:13px;color:var(--text2)}
+.status-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .status-title{font-size:14px;font-weight:600}
 .badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
 .badge-green{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3)}
 .badge-red{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
 .badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
 .badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
-.location-info{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px}
+.badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
+.location-info{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px}
 .location-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;animation:pulse 2s infinite}
 .location-dot.inactive{background:var(--text3);box-shadow:none;animation:none}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;box-shadow:var(--shadow)}
-.log-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.today-log,.week-summary{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
 .log-item:last-child{border-bottom:none}
 .log-type{display:flex;align-items:center;gap:8px;color:var(--text2)}
-.log-type .dot{width:6px;height:6px;border-radius:50%}
-
-/* ADMIN */
+.log-dot{width:6px;height:6px;border-radius:50%}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
+.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
+.week-day{text-align:center;padding:6px 2px;border-radius:8px;font-size:11px}
+.week-day .day-name{color:var(--text3);margin-bottom:4px}
+.week-day .day-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:10px;font-weight:700}
+.day-present{background:rgba(0,230,118,0.2);color:var(--green)}
+.day-absent{background:var(--bg3);color:var(--text3)}
+.day-today{border:2px solid var(--accent)}
 #screen-admin{background:var(--bg)}
-.admin-content{flex:1;padding:16px;overflow-y:auto}
-.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:20px}
-.tab{flex:1;padding:10px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
+.admin-content{flex:1;padding:14px;overflow-y:auto}
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
 .tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
-.section-title{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:12px;text-transform:uppercase;letter-spacing:1px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
-.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
 .card-title{font-size:15px;font-weight:700}.card-sub{font-size:12px;color:var(--text2);margin-top:3px}
 .card-actions{display:flex;gap:6px;flex-shrink:0}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:13px}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
 .info-label{color:var(--text2)}.info-val{font-weight:600}
-.form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:20px;margin-bottom:16px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;text-align:center}
-.stat-num{font-size:28px;font-weight:800;color:var(--accent)}.stat-label{font-size:12px;color:var(--text2);margin-top:4px}
-.report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:center;gap:12px}
-.report-avatar{width:40px;height:40px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
-.report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:12px;color:var(--text2);margin-top:2px}
-
-/* MAP */
-#map-container{height:240px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:12px;position:relative}
-#map-container .leaflet-container{background:#1a2d4a}
+.form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.stat-num{font-size:26px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+.report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
+#map-container{height:220px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
 .map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:1000;pointer-events:none}
 .map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--accent)}
 .map-crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
 .map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
-.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:12px;height:12px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none;box-shadow:0 0 8px var(--accent)}
-
-/* MODAL */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none;box-shadow:0 0 8px var(--accent)}
+.city-search{display:flex;gap:8px;margin-bottom:8px}
+.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none}
+.city-search input:focus{border-color:var(--accent)}
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:90dvh;overflow-y:auto}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 24px}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:8px}.modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px}
-.gps-anim{width:80px;height:80px;margin:0 auto 20px;position:relative;display:flex;align-items:center;justify-content:center}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}.modal-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
+.gps-anim{width:80px;height:80px;margin:0 auto 16px;position:relative;display:flex;align-items:center;justify-content:center}
 .gps-ring{position:absolute;border-radius:50%;border:2px solid var(--accent);animation:expand 2s ease-in-out infinite}
-.gps-ring:nth-child(1){width:80px;height:80px;animation-delay:0s}
-.gps-ring:nth-child(2){width:56px;height:56px;animation-delay:.5s}
-.gps-ring:nth-child(3){width:32px;height:32px;animation-delay:1s}
+.gps-ring:nth-child(1){width:80px;height:80px}.gps-ring:nth-child(2){width:56px;height:56px;animation-delay:.5s}.gps-ring:nth-child(3){width:32px;height:32px;animation-delay:1s}
 .gps-dot{width:16px;height:16px;background:var(--accent);border-radius:50%;box-shadow:0 0 16px var(--accent);z-index:1}
 @keyframes expand{0%{opacity:1;transform:scale(.8)}100%{opacity:0;transform:scale(1.2)}}
-.gps-status{text-align:center;font-size:14px;margin-bottom:20px;line-height:1.6}
+.gps-status{text-align:center;font-size:13px;margin-bottom:16px;line-height:1.7;white-space:pre-line}
 .gps-status.success{color:var(--green)}.gps-status.error{color:var(--red)}.gps-status.loading{color:var(--accent)}
-
-/* TOAST */
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;white-space:nowrap}
-.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:90vw;text-align:center}
+.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent)}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.empty-state{text-align:center;padding:40px 20px;color:var(--text3);font-size:14px}.empty-state .icon{font-size:40px;margin-bottom:12px}
-.divider{height:1px;background:var(--border);margin:16px 0}
-.report-filter{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}.empty-state .icon{font-size:36px;margin-bottom:10px}
+.report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 input[type=range]{accent-color:var(--accent);width:100%}
-.edit-modal{border-radius:24px 24px 0 0}
-
-/* Excel btn */
-.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:12px}
-.excel-btn:active{opacity:.9}
+.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
+.gps-debug{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.8}
+.override-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:10px;padding:10px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
 </style>
 </head>
 <body>
@@ -149,7 +139,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <div class="field"><label>نام کاربری</label><input type="text" id="login-user" placeholder="نام کاربری را وارد کنید" autocomplete="username"></div>
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
-    <p style="text-align:center;margin-top:16px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
+    <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
   </div>
 </div>
 
@@ -165,6 +155,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="clock-time" id="clock-display">--:--:--</div>
       <div class="clock-date" id="date-display">---</div>
     </div>
+
     <div class="status-card">
       <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
       <div class="location-info"><div class="location-dot inactive" id="gps-dot"></div><span id="gps-text" style="color:var(--text2)">موقعیت تایید نشده</span></div>
@@ -173,10 +164,17 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <button class="btn btn-red" onclick="openCheckin('out')">◎ خروج</button>
       </div>
     </div>
+
     <div class="today-log">
       <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
+      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap" id="today-summary"></div>
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
+    </div>
+
+    <div class="week-summary">
+      <div class="status-header" style="margin-bottom:0"><span class="status-title">خلاصه هفته</span><span class="badge badge-purple" id="week-hours">۰ ساعت</span></div>
+      <div class="week-grid" id="week-grid"></div>
     </div>
   </div>
 </div>
@@ -203,7 +201,11 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <div class="field"><label>نام مکان</label><input type="text" id="loc-name" placeholder="مثلاً: دفتر مرکزی"></div>
         <div class="field"><label>آدرس (اختیاری)</label><input type="text" id="loc-addr" placeholder="آدرس مکان"></div>
         <div class="field">
-          <label>انتخاب موقعیت روی نقشه — نقشه را جابجا کنید تا نشانگر (+) روی مکان موردنظر قرار گیرد</label>
+          <label>جستجوی شهر و انتخاب موقعیت روی نقشه</label>
+          <div class="city-search">
+            <input type="text" id="city-search-input" placeholder="نام شهر را بنویسید... (مثلاً: تهران، اصفهان)">
+            <button class="btn btn-primary btn-sm" onclick="searchCity()">🔍</button>
+          </div>
           <div id="map-container">
             <div id="add-map" style="width:100%;height:100%"></div>
             <div class="map-crosshair"></div>
@@ -212,12 +214,12 @@ input[type=range]{accent-color:var(--accent);width:100%}
           <div style="display:flex;gap:8px">
             <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
             <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">📍</button>
+            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()" title="موقعیت فعلی">📍</button>
           </div>
         </div>
         <div class="field">
-          <label>شعاع مجاز (متر): <span id="radius-val">50</span></label>
-          <input type="range" id="loc-radius" min="50" max="100" step="10" value="50" oninput="document.getElementById('radius-val').textContent=this.value">
+          <label>شعاع مجاز (متر): <span id="radius-val">100</span></label>
+          <input type="range" id="loc-radius" min="50" max="100" step="10" value="100" oninput="document.getElementById('radius-val').textContent=this.value">
         </div>
         <button class="btn btn-primary" onclick="addLocation()">💾 ذخیره مکان</button>
       </div>
@@ -235,10 +237,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
         <div class="field"><label>کد ملی (نام کاربری)</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
         <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز عبور" value="1234"></div>
-        <div class="field">
-          <label>مکان‌های مجاز</label>
-          <div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div>
-        </div>
+        <div class="field"><label>مکان‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
         <button class="btn btn-primary" onclick="addPersonnel()">💾 ذخیره پرسنل</button>
       </div>
       <div class="section-title">لیست پرسنل</div>
@@ -247,7 +246,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
-      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
+      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل (CSV)</button>
       <div class="report-filter">
         <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
           <option value="">همه پرسنل</option>
@@ -257,12 +256,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </select>
         <button class="btn btn-primary btn-sm" onclick="loadReports()">🔍</button>
       </div>
+      <div id="reports-summary" style="margin-bottom:12px"></div>
       <div id="reports-list"></div>
     </div>
   </div>
 </div>
 
-<!-- GPS CHECKIN MODAL -->
+<!-- GPS MODAL -->
 <div class="modal-overlay" id="checkin-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -270,39 +270,45 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <div class="modal-sub" id="modal-sub">در حال دریافت موقعیت GPS...</div>
     <div class="gps-anim"><div class="gps-ring"></div><div class="gps-ring"></div><div class="gps-ring"></div><div class="gps-dot"></div></div>
     <div class="gps-status loading" id="modal-status">در حال یافتن موقعیت...</div>
+    <div class="gps-debug" id="gps-debug" style="display:none"></div>
     <button class="btn btn-primary" id="modal-confirm-btn" onclick="confirmCheckin()" style="display:none;margin-top:8px">✅ تایید و ثبت</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="closeModal()">انصراف</button>
+    <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:11px;color:var(--text3)" onclick="retryGPS()">🔄 تلاش مجدد GPS</button>
   </div>
 </div>
 
 <!-- EDIT LOCATION MODAL -->
 <div class="modal-overlay" id="edit-loc-modal">
-  <div class="modal edit-modal">
+  <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">✏️ ویرایش مکان</div>
     <input type="hidden" id="edit-loc-id">
     <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
     <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
-    <div style="height:200px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:12px;position:relative">
+    <div class="city-search" style="margin-bottom:8px">
+      <input type="text" id="edit-city-search" placeholder="جستجوی شهر...">
+      <button class="btn btn-primary btn-sm" onclick="searchCityEdit()">🔍</button>
+    </div>
+    <div style="height:180px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative">
       <div id="edit-map" style="width:100%;height:100%"></div>
       <div class="map-crosshair"></div><div class="map-pin-dot"></div>
     </div>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div style="display:flex;gap:8px;margin-bottom:10px">
       <input type="number" id="edit-loc-lat" step="0.000001" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
       <input type="number" id="edit-loc-lng" step="0.000001" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
     </div>
     <div class="field">
-      <label>شعاع مجاز (متر): <span id="edit-radius-val">50</span></label>
-      <input type="range" id="edit-loc-radius" min="50" max="100" step="10" value="50" oninput="document.getElementById('edit-radius-val').textContent=this.value">
+      <label>شعاع مجاز (متر): <span id="edit-radius-val">100</span></label>
+      <input type="range" id="edit-loc-radius" min="50" max="100" step="10" value="100" oninput="document.getElementById('edit-radius-val').textContent=this.value">
     </div>
     <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره تغییرات</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="closeEditLocModal()">انصراف</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
   </div>
 </div>
 
 <!-- EDIT PERSONNEL MODAL -->
 <div class="modal-overlay" id="edit-per-modal">
-  <div class="modal edit-modal">
+  <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title">✏️ ویرایش پرسنل</div>
     <input type="hidden" id="edit-per-id">
@@ -324,52 +330,40 @@ let state = {
   currentUser: null,
   checkinType: 'in',
   currentCoords: null,
-  locations: JSON.parse(localStorage.getItem('hg_locations') || '[]'),
-  personnel: JSON.parse(localStorage.getItem('hg_personnel') || '[]'),
-  logs: JSON.parse(localStorage.getItem('hg_logs') || '[]'),
+  locations: JSON.parse(localStorage.getItem('hg_locations')||'[]'),
+  personnel: JSON.parse(localStorage.getItem('hg_personnel')||'[]'),
+  logs: JSON.parse(localStorage.getItem('hg_logs')||'[]'),
 };
+let addMap=null, editMap=null;
 
-let addMap = null, editMap = null;
-
-function saveLocations(){ localStorage.setItem('hg_locations', JSON.stringify(state.locations)); }
-function savePersonnel(){ localStorage.setItem('hg_personnel', JSON.stringify(state.personnel)); }
-function saveLogs(){ localStorage.setItem('hg_logs', JSON.stringify(state.logs)); }
+function saveLocations(){localStorage.setItem('hg_locations',JSON.stringify(state.locations));}
+function savePersonnel(){localStorage.setItem('hg_personnel',JSON.stringify(state.personnel));}
+function saveLogs(){localStorage.setItem('hg_logs',JSON.stringify(state.logs));}
 
 // ════ AUTH ════
 function doLogin(){
-  const user = document.getElementById('login-user').value.trim();
-  const pass = document.getElementById('login-pass').value.trim();
-  if(!user||!pass){ showToast('لطفاً نام کاربری و رمز را وارد کنید','error'); return; }
+  const user=document.getElementById('login-user').value.trim();
+  const pass=document.getElementById('login-pass').value.trim();
+  if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
   if(user==='admin'&&pass==='1234'){
-    state.currentUser={type:'admin',name:'مدیر سیستم'};
-    showScreen('admin'); renderAdmin(); return;
+    state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;
   }
-  const person = state.personnel.find(p=>p.nationalId===user&&p.password===pass);
-  if(person){
-    state.currentUser={type:'employee',...person};
-    showScreen('emp'); initEmployee(); return;
-  }
+  const p=state.personnel.find(x=>x.nationalId===user&&x.password===pass);
+  if(p){state.currentUser={type:'employee',...p};showScreen('emp');initEmployee();return;}
   showToast('نام کاربری یا رمز اشتباه است','error');
 }
-
-function doLogout(){
-  state.currentUser=null;
-  document.getElementById('login-user').value='';
-  document.getElementById('login-pass').value='';
-  showScreen('login');
-}
+function doLogout(){state.currentUser=null;document.getElementById('login-user').value='';document.getElementById('login-pass').value='';showScreen('login');}
 
 // ════ SCREENS ════
-function showScreen(name){
+function showScreen(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+name).classList.add('active');
-  if(name==='admin') setTimeout(initAddMap, 300);
+  document.getElementById('screen-'+n).classList.add('active');
+  if(n==='admin') setTimeout(initAddMap,400);
 }
 
 // ════ CLOCK ════
 setInterval(()=>{
-  const el=document.getElementById('clock-display');
-  if(!el)return;
+  const el=document.getElementById('clock-display');if(!el)return;
   el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
 },1000);
@@ -381,7 +375,7 @@ function initEmployee(){
   document.getElementById('emp-avatar').textContent=u.fname[0];
   const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
   document.getElementById('emp-location-name').textContent=locs||'بدون مکان';
-  updateEmpStatus(); renderTodayLogs();
+  updateEmpStatus();renderTodayLogs();renderWeekSummary();
 }
 
 function updateEmpStatus(){
@@ -394,20 +388,62 @@ function updateEmpStatus(){
   else{badge.className='badge badge-red';badge.textContent='✗ خارج شده';}
 }
 
+function calcTodayDuration(logs){
+  let total=0, lastIn=null;
+  for(const l of logs){
+    if(l.type==='in') lastIn=new Date(l.timestamp);
+    else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
+  }
+  if(lastIn) total+=Date.now()-lastIn;
+  const h=Math.floor(total/3600000), m=Math.floor((total%3600000)/60000);
+  return {total, text: h>0?`${toPersianNum(h)} ساعت ${toPersianNum(m)} دقیقه`:`${toPersianNum(m)} دقیقه`};
+}
+
 function renderTodayLogs(){
   const today=todayStr();
   const logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
   document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
+  const dur=calcTodayDuration(logs);
+  const summary=document.getElementById('today-summary');
+  if(logs.length>0){
+    summary.innerHTML=`<span class="duration-badge">⏱ ${dur.text}</span>`;
+  } else summary.innerHTML='';
   const list=document.getElementById('today-logs-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
   list.innerHTML=logs.map(l=>`
     <div class="log-item">
-      <div class="log-type"><div class="dot" style="background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
-      <div style="font-weight:600">${l.time}</div>
+      <div class="log-type"><div class="log-dot" style="background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
+      <div style="text-align:left"><div style="font-weight:600">${l.time}</div><div style="font-size:10px;color:var(--text3)">${l.lat?`${(+l.lat).toFixed(4)},${(+l.lng).toFixed(4)}`:''}</div></div>
     </div>`).join('');
 }
 
-// ════ CHECKIN MODAL ════
+function renderWeekSummary(){
+  const now=new Date();
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now); d.setDate(d.getDate()-i);
+    days.push(d);
+  }
+  let totalMs=0;
+  const grid=document.getElementById('week-grid');
+  grid.innerHTML=days.map(d=>{
+    const ds=d.toLocaleDateString('fa-IR');
+    const dayLogs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===ds);
+    const present=dayLogs.some(l=>l.type==='in');
+    const dur=calcTodayDuration(dayLogs);
+    totalMs+=dur.total;
+    const isToday=ds===todayStr();
+    const dayName=d.toLocaleDateString('fa-IR',{weekday:'short'});
+    return `<div class="week-day">
+      <div class="day-name">${dayName}</div>
+      <div class="day-dot ${present?'day-present':'day-absent'} ${isToday?'day-today':''}">${present?'✓':'—'}</div>
+    </div>`;
+  }).join('');
+  const th=Math.floor(totalMs/3600000);
+  document.getElementById('week-hours').textContent=toPersianNum(th)+' ساعت';
+}
+
+// ════ CHECKIN ════
 function openCheckin(type){
   state.checkinType=type; state.currentCoords=null;
   document.getElementById('modal-title').textContent=type==='in'?'🟢 ثبت ورود':'🔴 ثبت خروج';
@@ -415,48 +451,98 @@ function openCheckin(type){
   document.getElementById('modal-status').textContent='در حال یافتن موقعیت...';
   document.getElementById('modal-status').className='gps-status loading';
   document.getElementById('modal-confirm-btn').style.display='none';
+  document.getElementById('gps-debug').style.display='none';
   document.getElementById('checkin-modal').classList.add('open');
-  getGPS();
+  requestGPS();
 }
 
-function closeModal(){ document.getElementById('checkin-modal').classList.remove('open'); }
+function closeModal(){document.getElementById('checkin-modal').classList.remove('open');}
+function retryGPS(){
+  document.getElementById('modal-status').textContent='در حال یافتن موقعیت...';
+  document.getElementById('modal-status').className='gps-status loading';
+  document.getElementById('modal-confirm-btn').style.display='none';
+  document.getElementById('gps-debug').style.display='none';
+  requestGPS();
+}
 
-function getGPS(){
-  if(!navigator.geolocation){ setModalError('مرورگر شما از GPS پشتیبانی نمی‌کند'); return; }
+function requestGPS(){
+  if(!navigator.geolocation){
+    showGPSError('مرورگر شما از GPS پشتیبانی نمی‌کند');return;
+  }
+  // First try: high accuracy
   navigator.geolocation.getCurrentPosition(
-    pos=>checkLocation(pos.coords.latitude,pos.coords.longitude),
-    ()=>setModalError('دسترسی به GPS رد شد یا موقعیت یافت نشد — مطمئن شوید GPS فعال است'),
+    pos=>processGPS(pos),
+    err=>{
+      // Second try: lower accuracy
+      navigator.geolocation.getCurrentPosition(
+        pos=>processGPS(pos),
+        err2=>showGPSError(getGPSErrorMsg(err2)),
+        {enableHighAccuracy:false,timeout:15000,maximumAge:30000}
+      );
+    },
     {enableHighAccuracy:true,timeout:12000,maximumAge:0}
   );
 }
 
-function checkLocation(lat,lng){
+function getGPSErrorMsg(err){
+  switch(err.code){
+    case 1: return 'دسترسی به GPS رد شد\n\nلطفاً در تنظیمات مرورگر/گوشی دسترسی مکان را فعال کنید';
+    case 2: return 'موقعیت مکانی در دسترس نیست\n\nمطمئن شوید GPS گوشی فعال است';
+    case 3: return 'زمان دریافت GPS به پایان رسید\n\nدر فضای باز بودید؟ دوباره امتحان کنید';
+    default: return 'خطا در دریافت GPS';
+  }
+}
+
+function processGPS(pos){
+  const lat=pos.coords.latitude, lng=pos.coords.longitude;
+  const acc=Math.round(pos.coords.accuracy);
+  const debug=document.getElementById('gps-debug');
+  debug.style.display='block';
+  debug.innerHTML=`📡 موقعیت دریافت شد<br>عرض: ${lat.toFixed(6)} | طول: ${lng.toFixed(6)}<br>دقت: ${acc} متر`;
+  checkLocation(lat,lng,acc);
+}
+
+function checkLocation(lat,lng,acc){
   const u=state.currentUser;
-  let found=null;
+  if(!u.locations||u.locations.length===0){
+    showGPSError('هیچ مکانی برای شما تعریف نشده\nلطفاً با مدیر تماس بگیرید');return;
+  }
+  let found=null, minDist=Infinity;
   for(const locId of u.locations){
     const loc=state.locations.find(l=>l.id===locId);
     if(!loc)continue;
-    const dist=calcDistance(lat,lng,loc.lat,loc.lng);
+    const dist=calcDistance(lat,lng,+loc.lat,+loc.lng);
+    if(dist<minDist){minDist=dist;}
     if(dist<=loc.radius){found={loc,dist};break;}
   }
+  const debug=document.getElementById('gps-debug');
+  const allLocs=u.locations.map(id=>{
+    const l=state.locations.find(x=>x.id===id);
+    if(!l)return null;
+    const d=Math.round(calcDistance(lat,lng,+l.lat,+l.lng));
+    return `📍 ${l.name}: ${d}م (مجاز: ${l.radius}م)`;
+  }).filter(Boolean).join('\n');
+  debug.innerHTML+=`\n${allLocs}`;
+
   if(found){
     state.currentCoords={lat,lng,location:found.loc};
-    document.getElementById('modal-status').textContent=`✅ در محدوده "${found.loc.name}" هستید (${Math.round(found.dist)} متر)`;
+    document.getElementById('modal-status').textContent=`✅ در محدوده "${found.loc.name}" هستید\nفاصله: ${Math.round(found.dist)} متر`;
     document.getElementById('modal-status').className='gps-status success';
     document.getElementById('modal-confirm-btn').style.display='block';
     document.getElementById('gps-dot').classList.remove('inactive');
     document.getElementById('gps-text').textContent='📍 '+found.loc.name;
     document.getElementById('gps-text').style.color='var(--green)';
   } else {
-    const allLocs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-    setModalError(`❌ خارج از محدوده مجاز هستید\n\nمکان‌های مجاز شما:\n${allLocs||'—'}\n\nلطفاً در محل کار خود قرار بگیرید.`);
+    document.getElementById('modal-status').textContent=`❌ خارج از محدوده مجاز\n\nنزدیک‌ترین مکان: ${Math.round(minDist)} متر فاصله دارید`;
+    document.getElementById('modal-status').className='gps-status error';
+    document.getElementById('modal-confirm-btn').style.display='none';
     document.getElementById('gps-dot').classList.add('inactive');
     document.getElementById('gps-text').textContent='خارج از محدوده';
     document.getElementById('gps-text').style.color='var(--red)';
   }
 }
 
-function setModalError(msg){
+function showGPSError(msg){
   document.getElementById('modal-status').textContent=msg;
   document.getElementById('modal-status').className='gps-status error';
   document.getElementById('modal-confirm-btn').style.display='none';
@@ -465,7 +551,7 @@ function setModalError(msg){
 function confirmCheckin(){
   if(!state.currentCoords)return;
   const now=new Date();
-  state.logs.push({
+  const log={
     id:'log_'+Date.now(),
     userId:state.currentUser.nationalId,
     userName:state.currentUser.fname+' '+state.currentUser.lname,
@@ -477,18 +563,18 @@ function confirmCheckin(){
     timestamp:now.toISOString(),
     lat:state.currentCoords.lat,
     lng:state.currentCoords.lng,
-  });
-  saveLogs(); closeModal();
+  };
+  state.logs.push(log);saveLogs();closeModal();
   showToast(state.checkinType==='in'?'✅ ورود با موفقیت ثبت شد':'✅ خروج با موفقیت ثبت شد','success');
-  updateEmpStatus(); renderTodayLogs();
+  updateEmpStatus();renderTodayLogs();renderWeekSummary();
 }
 
 // ════ MAP ════
 function initAddMap(){
   if(addMap)return;
   const center=[35.6892,51.3890];
-  addMap=L.map('add-map',{zoomControl:true}).setView(center,13);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(addMap);
+  addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
   addMap.on('move',()=>{
     const c=addMap.getCenter();
     document.getElementById('loc-lat').value=c.lat.toFixed(6);
@@ -498,29 +584,62 @@ function initAddMap(){
   document.getElementById('loc-lng').value=center[1];
 }
 
+async function searchCity(){
+  const q=document.getElementById('city-search-input').value.trim();
+  if(!q)return;
+  showToast('در حال جستجو...','info');
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+    const d=await r.json();
+    if(d&&d[0]){
+      const lat=parseFloat(d[0].lat),lng=parseFloat(d[0].lon);
+      if(addMap){addMap.setView([lat,lng],15);}
+      document.getElementById('loc-lat').value=lat.toFixed(6);
+      document.getElementById('loc-lng').value=lng.toFixed(6);
+      showToast('شهر یافت شد ✅','success');
+    } else showToast('شهر پیدا نشد','error');
+  } catch(e){showToast('خطا در جستجو','error');}
+}
+
+async function searchCityEdit(){
+  const q=document.getElementById('edit-city-search').value.trim();
+  if(!q)return;
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+    const d=await r.json();
+    if(d&&d[0]){
+      const lat=parseFloat(d[0].lat),lng=parseFloat(d[0].lon);
+      if(editMap){editMap.setView([lat,lng],15);}
+      document.getElementById('edit-loc-lat').value=lat.toFixed(6);
+      document.getElementById('edit-loc-lng').value=lng.toFixed(6);
+      showToast('شهر یافت شد ✅','success');
+    } else showToast('شهر پیدا نشد','error');
+  } catch(e){showToast('خطا در جستجو','error');}
+}
+
 function initEditMap(lat,lng){
   setTimeout(()=>{
-    if(editMap){ editMap.setView([lat,lng],16); return; }
+    if(editMap){editMap.setView([lat,lng],16);return;}
     editMap=L.map('edit-map',{zoomControl:true}).setView([lat,lng],16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM'}).addTo(editMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(editMap);
     editMap.on('move',()=>{
       const c=editMap.getCenter();
       document.getElementById('edit-loc-lat').value=c.lat.toFixed(6);
       document.getElementById('edit-loc-lng').value=c.lng.toFixed(6);
     });
-  },300);
+  },350);
 }
 
 function useMyLocationForMap(){
   if(!navigator.geolocation){showToast('GPS در دسترس نیست','error');return;}
-  showToast('در حال دریافت موقعیت...','');
+  showToast('در حال دریافت موقعیت...','info');
   navigator.geolocation.getCurrentPosition(pos=>{
     const{latitude:lat,longitude:lng}=pos.coords;
-    if(addMap) addMap.setView([lat,lng],17);
+    if(addMap)addMap.setView([lat,lng],17);
     document.getElementById('loc-lat').value=lat.toFixed(6);
     document.getElementById('loc-lng').value=lng.toFixed(6);
     showToast('موقعیت فعلی دریافت شد ✅','success');
-  },()=>showToast('دسترسی به GPS رد شد','error'),{enableHighAccuracy:true});
+  },()=>showToast('دسترسی به GPS رد شد','error'),{enableHighAccuracy:true,timeout:10000});
 }
 
 // ════ ADMIN ════
@@ -529,24 +648,23 @@ function adminTab(tab,el){
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
   document.getElementById('tab-'+tab).style.display='block';
-  if(tab==='personnel') renderLocCheckboxes();
+  if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
   if(tab==='reports'){loadReportFilters();loadReports();}
-  if(tab==='locations') setTimeout(()=>{ if(addMap) addMap.invalidateSize(); },200);
+  if(tab==='locations')setTimeout(()=>{if(addMap)addMap.invalidateSize();},200);
 }
 
-function renderAdmin(){ renderAdminStats(); renderLocationsList(); renderPersonnelList(); }
+function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
 
 function renderAdminStats(){
   const today=todayStr();
   const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
   document.getElementById('admin-stats').innerHTML=`
     <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">مکان</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:#a78bfa">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--purple)">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
     <div class="stat-box"><div class="stat-num" style="color:var(--green)">${toPersianNum(presentToday)}</div><div class="stat-label">حاضر امروز</div></div>
     <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${toPersianNum(state.logs.filter(l=>l.date===today).length)}</div><div class="stat-label">ثبت امروز</div></div>`;
 }
 
-// ── Locations ──
 function renderLocationsList(){
   const list=document.getElementById('locations-list');
   if(!state.locations.length){list.innerHTML='<div class="empty-state"><div class="icon">🗺️</div>هیچ مکانی ثبت نشده</div>';return;}
@@ -573,7 +691,7 @@ function addLocation(){
   const radius=parseInt(document.getElementById('loc-radius').value);
   if(!name||isNaN(lat)||isNaN(lng)){showToast('نام مکان و موقعیت روی نقشه الزامی است','error');return;}
   state.locations.push({id:'loc_'+Date.now(),name,address:addr,lat,lng,radius});
-  saveLocations(); renderLocationsList(); renderAdminStats();
+  saveLocations();renderLocationsList();renderAdminStats();
   document.getElementById('loc-name').value='';
   document.getElementById('loc-addr').value='';
   showToast('مکان با موفقیت ذخیره شد ✅','success');
@@ -588,8 +706,7 @@ function deleteLocation(id){
 }
 
 function openEditLocation(id){
-  const loc=state.locations.find(l=>l.id===id);
-  if(!loc)return;
+  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
   document.getElementById('edit-loc-id').value=id;
   document.getElementById('edit-loc-name').value=loc.name;
   document.getElementById('edit-loc-addr').value=loc.address||'';
@@ -598,10 +715,8 @@ function openEditLocation(id){
   document.getElementById('edit-loc-radius').value=loc.radius;
   document.getElementById('edit-radius-val').textContent=loc.radius;
   document.getElementById('edit-loc-modal').classList.add('open');
-  initEditMap(loc.lat,loc.lng);
+  initEditMap(+loc.lat,+loc.lng);
 }
-
-function closeEditLocModal(){ document.getElementById('edit-loc-modal').classList.remove('open'); }
 
 function saveEditLocation(){
   const id=document.getElementById('edit-loc-id').value;
@@ -611,20 +726,18 @@ function saveEditLocation(){
   const lng=parseFloat(document.getElementById('edit-loc-lng').value);
   const radius=parseInt(document.getElementById('edit-loc-radius').value);
   if(!name||isNaN(lat)||isNaN(lng)){showToast('نام و موقعیت الزامی است','error');return;}
-  const idx=state.locations.findIndex(l=>l.id===id);
-  if(idx<0)return;
+  const idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
   state.locations[idx]={...state.locations[idx],name,address:addr,lat,lng,radius};
-  saveLocations(); renderLocationsList(); closeEditLocModal();
+  saveLocations();renderLocationsList();
+  document.getElementById('edit-loc-modal').classList.remove('open');
   showToast('مکان ویرایش شد ✅','success');
 }
 
-// ── Personnel ──
-function renderLocCheckboxes(targetDiv,selectedIds){
-  const div=document.getElementById(targetDiv||'loc-checkboxes');
-  const sel=selectedIds||[];
+function renderLocCheckboxes(divId,selectedIds){
+  const div=document.getElementById(divId);
   div.innerHTML=state.locations.map(l=>`
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">
-      <input type="checkbox" value="${l.id}" ${sel.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
+      <input type="checkbox" value="${l.id}" ${selectedIds.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
       <span style="font-size:13px">📍 ${l.name}</span>
     </label>`).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا مکان اضافه کنید</p>';
 }
@@ -636,13 +749,14 @@ function renderPersonnelList(){
   list.innerHTML=state.personnel.map(p=>{
     const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===today);
     const last=logs[logs.length-1];
+    const dur=calcTodayDuration(logs);
     const statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
     const locs=p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
     return `<div class="card">
       <div class="card-header">
-        <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:10px">
           <div class="report-avatar">${p.fname[0]}</div>
-          <div><div class="card-title">${p.fname} ${p.lname}</div><div class="card-sub">کد ملی: ${p.nationalId}</div></div>
+          <div><div class="card-title">${p.fname} ${p.lname}</div><div class="card-sub">${p.nationalId}</div></div>
         </div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           ${statusBadge}
@@ -652,6 +766,7 @@ function renderPersonnelList(){
           </div>
         </div>
       </div>
+      ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${dur.text}</span></div>`:''}
       <div class="info-row"><span class="info-label">مکان‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
     </div>`;
   }).join('');
@@ -666,18 +781,15 @@ function addPersonnel(){
   if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
   if(state.personnel.find(p=>p.nationalId===nid)){showToast('این کد ملی قبلاً ثبت شده','error');return;}
   state.personnel.push({id:'p_'+Date.now(),fname,lname,nationalId:nid,password:pass,locations:checked});
-  savePersonnel(); renderPersonnelList(); renderAdminStats();
-  document.getElementById('per-fname').value='';
-  document.getElementById('per-lname').value='';
-  document.getElementById('per-id').value='';
-  document.getElementById('per-pass').value='1234';
+  savePersonnel();renderPersonnelList();renderAdminStats();
+  document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
+  document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
   document.querySelectorAll('#loc-checkboxes input').forEach(c=>c.checked=false);
   showToast('پرسنل با موفقیت ذخیره شد ✅','success');
 }
 
 function openEditPersonnel(id){
-  const p=state.personnel.find(x=>x.id===id);
-  if(!p)return;
+  const p=state.personnel.find(x=>x.id===id);if(!p)return;
   document.getElementById('edit-per-id').value=id;
   document.getElementById('edit-per-fname').value=p.fname;
   document.getElementById('edit-per-lname').value=p.lname;
@@ -695,12 +807,10 @@ function saveEditPersonnel(){
   const pass=document.getElementById('edit-per-pass').value.trim();
   const locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(c=>c.value);
   if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
-  const dup=state.personnel.find(p=>p.nationalId===nid&&p.id!==id);
-  if(dup){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
-  const idx=state.personnel.findIndex(p=>p.id===id);
-  if(idx<0)return;
+  if(state.personnel.find(p=>p.nationalId===nid&&p.id!==id)){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
+  const idx=state.personnel.findIndex(p=>p.id===id);if(idx<0)return;
   state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
-  savePersonnel(); renderPersonnelList();
+  savePersonnel();renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
   showToast('پرسنل ویرایش شد ✅','success');
 }
@@ -708,7 +818,7 @@ function saveEditPersonnel(){
 function deletePersonnel(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.personnel=state.personnel.filter(p=>p.id!==id);
-  savePersonnel(); renderPersonnelList(); renderAdminStats();
+  savePersonnel();renderPersonnelList();renderAdminStats();
   showToast('پرسنل حذف شد','error');
 }
 
@@ -724,9 +834,22 @@ function loadReports(){
   const pid=document.getElementById('filter-person').value;
   const date=document.getElementById('filter-date').value;
   let logs=[...state.logs];
-  if(pid) logs=logs.filter(l=>l.userId===pid);
-  if(date) logs=logs.filter(l=>l.date===date);
+  if(pid)logs=logs.filter(l=>l.userId===pid);
+  if(date)logs=logs.filter(l=>l.date===date);
   logs.reverse();
+
+  // Summary
+  const summary=document.getElementById('reports-summary');
+  if(logs.length>0){
+    const users=new Set(logs.map(l=>l.userId)).size;
+    summary.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge badge-blue">${toPersianNum(logs.length)} رکورد</span>
+      <span class="badge badge-purple">${toPersianNum(users)} نفر</span>
+      <span class="badge badge-green">${toPersianNum(logs.filter(l=>l.type==='in').length)} ورود</span>
+      <span class="badge badge-red">${toPersianNum(logs.filter(l=>l.type==='out').length)} خروج</span>
+    </div>`;
+  } else summary.innerHTML='';
+
   const list=document.getElementById('reports-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📊</div>هیچ رکوردی یافت نشد</div>';return;}
   list.innerHTML=logs.map(l=>`
@@ -740,25 +863,20 @@ function loadReports(){
     </div>`).join('');
 }
 
-// ── Excel Export ──
 function exportExcel(){
   const pid=document.getElementById('filter-person').value;
   const date=document.getElementById('filter-date').value;
   let logs=[...state.logs];
-  if(pid) logs=logs.filter(l=>l.userId===pid);
-  if(date) logs=logs.filter(l=>l.date===date);
+  if(pid)logs=logs.filter(l=>l.userId===pid);
+  if(date)logs=logs.filter(l=>l.date===date);
   if(!logs.length){showToast('هیچ رکوردی برای خروجی وجود ندارد','error');return;}
-
   const BOM='\uFEFF';
-  const header='نام پرسنل,کد ملی,نوع,مکان,تاریخ,ساعت\n';
-  const rows=logs.map(l=>`"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}"`).join('\n');
-  const csv=BOM+header+rows;
-  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const header='نام پرسنل,کد ملی,نوع,مکان,تاریخ,ساعت,عرض جغرافیایی,طول جغرافیایی\n';
+  const rows=logs.map(l=>`"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}","${l.lat||''}","${l.lng||''}"`).join('\n');
+  const blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url; a.download='گزارش_حضور_غیاب.csv'; a.click();
-  URL.revokeObjectURL(url);
-  showToast('فایل اکسل دانلود شد ✅','success');
+  const a=document.createElement('a');a.href=url;a.download='گزارش_حضور_غیاب.csv';a.click();
+  URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
 // ════ UTILS ════
@@ -768,20 +886,19 @@ function calcDistance(lat1,lon1,lat2,lon2){
   const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
-function todayStr(){ return new Date().toLocaleDateString('fa-IR'); }
-function toPersianNum(n){ return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]); }
+function todayStr(){return new Date().toLocaleDateString('fa-IR');}
+function toPersianNum(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
   const old=document.querySelector('.toast');if(old)old.remove();
   const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
   document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
 }
 
-// Close modals on overlay click
 ['checkin-modal','edit-loc-modal','edit-per-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
-
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('city-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
 </script>
 </body>
 </html>
