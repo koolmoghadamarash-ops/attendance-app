@@ -172,6 +172,15 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
     </div>
+
+    <div class="today-log" id="emp-inbox-card">
+      <div class="status-header" style="margin-bottom:0">
+        <span class="status-title">📬 صندوق پیام</span>
+        <span class="badge badge-purple" id="inbox-count">۰ پیام</span>
+      </div>
+      <div class="divider"></div>
+      <div id="emp-inbox-list"><div class="empty-state"><div class="icon">📭</div>صندوق خالی است</div></div>
+    </div>
   </div>
 </div>
 
@@ -525,23 +534,43 @@ function initEmployee(){
 function showEmpMessages(){
   const u=state.currentUser;
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  // Render inbox
+  renderEmpInbox(msgs,u.nationalId);
+  // Show popup for unread
   const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
-  if(!unread.length)return;
-  // Mark as read
-  unread.forEach(m=>{
-    const idx=state.messages.findIndex(x=>x.id===m.id);
-    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
-      state.messages[idx].readBy.push(u.nationalId);
-    }
-  });
-  saveMessages();
-  // Show in UI
-  const msgHtml=unread.map(m=>`<div style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px">${m.text}<div style="font-size:11px;color:var(--text3);margin-top:4px">${m.date} ${m.time}</div></div>`).join('');
-  const box=document.createElement('div');
-  box.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:90%;max-width:360px;background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px;z-index:250;box-shadow:var(--shadow)';
-  box.innerHTML=`<div style="font-weight:700;margin-bottom:10px;font-size:14px">📬 ${toPersianNum(unread.length)} پیام جدید</div>${msgHtml}<button onclick="this.parentElement.remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;width:100%;margin-top:4px">متوجه شدم ✓</button>`;
-  document.body.appendChild(box);
-  setTimeout(()=>{if(box.parentElement)box.remove();},10000);
+  if(unread.length>0){
+    // Mark as read
+    unread.forEach(m=>{
+      const idx=state.messages.findIndex(x=>x.id===m.id);
+      if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+        state.messages[idx].readBy.push(u.nationalId);
+      }
+    });
+    saveMessages();
+    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید دارید`,'info');
+  }
+}
+
+function renderEmpInbox(msgs, nationalId){
+  const list=document.getElementById('emp-inbox-list');
+  const count=document.getElementById('inbox-count');
+  if(!list||!count)return;
+  if(!msgs||!msgs.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">📭</div>صندوق خالی است</div>';
+    count.textContent='۰ پیام';
+    return;
+  }
+  count.textContent=toPersianNum(msgs.length)+' پیام';
+  // Show newest first
+  const sorted=[...msgs].reverse();
+  list.innerHTML=sorted.map(m=>{
+    const isNew=!m.readBy.includes(nationalId);
+    return `<div style="padding:12px;background:${isNew?'rgba(0,212,255,0.06)':'transparent'};border-radius:12px;margin-bottom:8px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
+      ${isNew?'<span style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px;display:block">🔵 جدید</span>':''}
+      <div style="font-size:13px;line-height:1.6">${m.text}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">📅 ${m.date} ${m.time}</div>
+    </div>`;
+  }).join('');
 }
 
 function updateEmpStatus(){
@@ -686,23 +715,43 @@ function processQRCode(data){
 function showEmpMessages(){
   const u=state.currentUser;
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  // Render inbox
+  renderEmpInbox(msgs,u.nationalId);
+  // Show popup for unread
   const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
-  if(!unread.length)return;
-  // Mark as read
-  unread.forEach(m=>{
-    const idx=state.messages.findIndex(x=>x.id===m.id);
-    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
-      state.messages[idx].readBy.push(u.nationalId);
-    }
-  });
-  saveMessages();
-  // Show in UI
-  const msgHtml=unread.map(m=>`<div style="background:rgba(0,212,255,0.08);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:10px 12px;margin-bottom:8px;font-size:13px">${m.text}<div style="font-size:11px;color:var(--text3);margin-top:4px">${m.date} ${m.time}</div></div>`).join('');
-  const box=document.createElement('div');
-  box.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:90%;max-width:360px;background:var(--card);border:1px solid var(--accent);border-radius:16px;padding:16px;z-index:250;box-shadow:var(--shadow)';
-  box.innerHTML=`<div style="font-weight:700;margin-bottom:10px;font-size:14px">📬 ${toPersianNum(unread.length)} پیام جدید</div>${msgHtml}<button onclick="this.parentElement.remove()" style="background:var(--accent);color:#fff;border:none;border-radius:8px;padding:8px 20px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer;width:100%;margin-top:4px">متوجه شدم ✓</button>`;
-  document.body.appendChild(box);
-  setTimeout(()=>{if(box.parentElement)box.remove();},10000);
+  if(unread.length>0){
+    // Mark as read
+    unread.forEach(m=>{
+      const idx=state.messages.findIndex(x=>x.id===m.id);
+      if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+        state.messages[idx].readBy.push(u.nationalId);
+      }
+    });
+    saveMessages();
+    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید دارید`,'info');
+  }
+}
+
+function renderEmpInbox(msgs, nationalId){
+  const list=document.getElementById('emp-inbox-list');
+  const count=document.getElementById('inbox-count');
+  if(!list||!count)return;
+  if(!msgs||!msgs.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">📭</div>صندوق خالی است</div>';
+    count.textContent='۰ پیام';
+    return;
+  }
+  count.textContent=toPersianNum(msgs.length)+' پیام';
+  // Show newest first
+  const sorted=[...msgs].reverse();
+  list.innerHTML=sorted.map(m=>{
+    const isNew=!m.readBy.includes(nationalId);
+    return `<div style="padding:12px;background:${isNew?'rgba(0,212,255,0.06)':'transparent'};border-radius:12px;margin-bottom:8px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
+      ${isNew?'<span style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px;display:block">🔵 جدید</span>':''}
+      <div style="font-size:13px;line-height:1.6">${m.text}</div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">📅 ${m.date} ${m.time}</div>
+    </div>`;
+  }).join('');
 }
 
 function showResult(msg,type){
