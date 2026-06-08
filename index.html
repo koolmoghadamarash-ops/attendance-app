@@ -193,19 +193,11 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <!-- Tab QR -->
     <div id="tab-qr" class="tab-content">
-      <div class="qr-display-card">
-        <h3>🔐 QR Code شعبه</h3>
-        <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
-        <div class="qr-loc-select">
-          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
-            <option value="">-- شعبه را انتخاب کنید --</option>
-          </select>
-        </div>
-        <div id="qr-display-container"><div id="qr-code-div"></div></div>
-        <div class="qr-timer">تغییر بعدی: <span id="qr-countdown">--:--</span></div>
-        <button class="btn btn-primary" style="margin-top:12px" onclick="generateQR()">🔄 تولید مجدد</button>
-        <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="openFullscreenQR()">⛶ نمایش تمام‌صفحه</button>
+      <div style="margin-bottom:10px;background:var(--bg3);border-radius:12px;padding:12px;font-size:13px;color:var(--text2);text-align:center">
+        🔐 QR Code هر <strong style="color:var(--accent)">۳۰ دقیقه</strong> به صورت خودکار تغییر می‌کند<br>
+        تغییر بعدی: <span id="qr-countdown" style="color:var(--orange);font-weight:700">--:--</span>
       </div>
+      <div id="all-qr-codes"></div>
     </div>
 
     <!-- Tab Locations -->
@@ -342,15 +334,18 @@ function saveLogs(){localStorage.setItem('hg_logs',JSON.stringify(state.logs));}
 
 // ════ QR TOKEN ════
 function getQRToken(locId){
-  // Token changes every hour — based on locId + current hour
+  // Token changes every 30 minutes
   const now=new Date();
-  const hourKey=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
-  return btoa(`HG:${locId}:${hourKey}`).replace(/=/g,'');
+  const slot=Math.floor(now.getMinutes()/30);
+  const key=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}-${slot}`;
+  return btoa(`HG:${locId}:${key}`).replace(/=/g,'');
 }
 
-function getNextHourSeconds(){
+function getNextSlotSeconds(){
   const now=new Date();
-  return 3600 - (now.getMinutes()*60 + now.getSeconds());
+  const mins=now.getMinutes()%30;
+  const secs=now.getSeconds();
+  return (30-mins)*60 - secs;
 }
 
 // ════ AUTH ════
@@ -388,13 +383,13 @@ setInterval(()=>{
   // Update QR countdown
   const cd=document.getElementById('qr-countdown');
   if(cd&&cd.textContent!=='--:--'){
-    const s=getNextHourSeconds();
+    const s=getNextSlotSeconds();
     const m=Math.floor(s/60), sec=s%60;
     cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   }
   const fst=document.getElementById('fullscreen-timer');
   if(fst&&fst.style.display!=='none'){
-    const s=getNextHourSeconds();
+    const s=getNextSlotSeconds();
     const m=Math.floor(s/60),sec=s%60;
     fst.textContent=`تغییر بعدی: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
   }
@@ -554,42 +549,69 @@ function showResult(msg,type){
 
 // ════ QR GENERATOR ════
 function renderQRLocSelect(){
-  const sel=document.getElementById('qr-loc-select');
-  sel.innerHTML='<option value="">-- شعبه را انتخاب کنید --</option>'+
-    state.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  // Auto-render all locations
+  renderAllQRCodes();
 }
 
-function generateQR(){
-  const locId=document.getElementById('qr-loc-select').value;
-  if(!locId) return;
-  const token=getQRToken(locId);
-  const container=document.getElementById('qr-code-div');
-  container.innerHTML='';
-  if(qrInstance){qrInstance=null;}
-  qrInstance=new QRCode(container,{
-    text:token,width:200,height:200,
-    colorDark:'#0a1628',colorLight:'#ffffff',
-    correctLevel:QRCode.CorrectLevel.H
+function renderAllQRCodes(){
+  const container=document.getElementById('all-qr-codes');
+  if(!container)return;
+  if(!state.locations.length){
+    container.innerHTML='<div class="empty-state"><div class="icon">🏢</div>ابتدا شعبه اضافه کنید</div>';
+    return;
+  }
+  container.innerHTML=state.locations.map(l=>`
+    <div class="qr-display-card" style="margin-bottom:14px">
+      <h3>🏢 ${l.name}</h3>
+      <p style="font-size:11px;color:var(--text2);margin-bottom:12px">${l.address||''}</p>
+      <div id="qr-auto-${l.id}" style="background:#fff;border-radius:12px;padding:12px;display:inline-block"></div>
+      <br>
+      <button class="btn btn-ghost" style="margin-top:10px;font-size:13px" onclick="openFullscreenQR('${l.id}')">⛶ نمایش تمام‌صفحه</button>
+    </div>`).join('');
+  // Generate QR for each location
+  state.locations.forEach(l=>{
+    const div=document.getElementById('qr-auto-'+l.id);
+    if(!div)return;
+    div.innerHTML='';
+    new QRCode(div,{text:getQRToken(l.id),width:180,height:180,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
   });
-  document.getElementById('qr-countdown').textContent='--:--';
-  // Start countdown
-  const s=getNextHourSeconds();
+  // Update countdown
+  const s=getNextSlotSeconds();
   const m=Math.floor(s/60),sec=s%60;
-  document.getElementById('qr-countdown').textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  const cd=document.getElementById('qr-countdown');
+  if(cd) cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 
-function openFullscreenQR(){
-  const locId=document.getElementById('qr-loc-select').value;
-  if(!locId){showToast('ابتدا شعبه را انتخاب کنید','error');return;}
+// Auto-refresh QR every 30 minutes
+setInterval(()=>{
+  const now=new Date();
+  if(now.getSeconds()===0&&now.getMinutes()%30===0){
+    renderAllQRCodes();
+    // Also refresh fullscreen if open
+    const fs=document.getElementById('fullscreen-qr');
+    if(fs&&fs.style.display==='flex') refreshFullscreenQR();
+  }
+},1000);
+
+let currentFsLocId=null;
+function openFullscreenQR(locId){
+  currentFsLocId=locId;
   const loc=state.locations.find(l=>l.id===locId);
+  if(!loc)return;
   const token=getQRToken(locId);
   const fs=document.getElementById('fullscreen-qr');
   fs.style.display='flex';
-  document.getElementById('fullscreen-loc-name').textContent='📍 '+loc.name;
+  document.getElementById('fullscreen-loc-name').textContent='🏢 '+loc.name;
   const container=document.getElementById('fullscreen-qr-code');
   container.innerHTML='';
   new QRCode(container,{text:token,width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
 }
+
+function refreshFullscreenQR(){
+  if(!currentFsLocId)return;
+  openFullscreenQR(currentFsLocId);
+}
+
 function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
 
 // ════ ADMIN ════
