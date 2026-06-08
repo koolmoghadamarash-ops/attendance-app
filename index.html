@@ -12,18 +12,19 @@
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4);--glow:0 0 20px rgba(0,212,255,0.15)}
+:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
 .screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
 #screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
-.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow),var(--glow)}
+.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
 .login-logo{text-align:center;margin-bottom:32px}
 .login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
 .login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
 .field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
-.field input,.field select,.field textarea{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;transition:border-color .2s;outline:none}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
 .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
 .field select option{background:var(--bg3)}
 .btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
@@ -33,7 +34,6 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .btn-ghost:active{background:var(--bg3)}
 .btn-green{background:linear-gradient(135deg,#00c853,#00e676);color:#001a08;box-shadow:0 4px 16px rgba(0,230,118,0.3)}
 .btn-red{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;box-shadow:0 4px 16px rgba(255,68,68,0.3)}
-.btn-orange{background:linear-gradient(135deg,#e65c00,#ff9800);color:#fff}
 .btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
 .btn-xs{padding:5px 10px;font-size:12px;width:auto;border-radius:7px}
 .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
@@ -54,29 +54,25 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
 .badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
 .badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
-.location-info{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:12px;padding:10px 14px;margin-bottom:10px;font-size:13px}
-.location-dot{width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);flex-shrink:0;animation:pulse 2s infinite}
-.location-dot.inactive{background:var(--text3);box-shadow:none;animation:none}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.today-log,.week-summary{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
 .log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
 .log-item:last-child{border-bottom:none}
 .log-type{display:flex;align-items:center;gap:8px;color:var(--text2)}
-.log-dot{width:6px;height:6px;border-radius:50%}
 .divider{height:1px;background:var(--border);margin:12px 0}
 .duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
-.week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:10px}
-.week-day{text-align:center;padding:6px 2px;border-radius:8px;font-size:11px}
-.week-day .day-name{color:var(--text3);margin-bottom:4px}
-.week-day .day-dot{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:10px;font-weight:700}
-.day-present{background:rgba(0,230,118,0.2);color:var(--green)}
-.day-absent{background:var(--bg3);color:var(--text3)}
-.day-today{border:2px solid var(--accent)}
+/* QR Scanner */
+.qr-scan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+#reader{width:100%;border-radius:12px;overflow:hidden;margin:10px 0}
+.qr-result{background:var(--bg3);border-radius:10px;padding:12px;font-size:13px;margin-top:8px;text-align:center;display:none}
+.qr-result.success{border:1px solid var(--green);color:var(--green)}
+.qr-result.error{border:1px solid var(--red);color:var(--red)}
+/* Admin */
 #screen-admin{background:var(--bg)}
 .admin-content{flex:1;padding:14px;overflow-y:auto}
 .tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
-.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
+.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
 .tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
@@ -93,28 +89,31 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
 .report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
 .report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
-#map-container{height:220px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
+/* QR Display */
+.qr-display-card{background:linear-gradient(135deg,#0f1e35,#1a2d4a);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;margin-bottom:14px}
+.qr-display-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.qr-display-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
+#qr-display-container{background:#fff;border-radius:16px;padding:16px;display:inline-block;margin:0 auto}
+.qr-timer{margin-top:12px;font-size:13px;color:var(--text2)}
+.qr-timer span{color:var(--orange);font-weight:700}
+.qr-loc-select{margin-bottom:12px}
+/* Map */
+#map-container{height:200px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
 .map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:1000;pointer-events:none}
 .map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--accent)}
 .map-crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
 .map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
-.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none;box-shadow:0 0 8px var(--accent)}
+.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none}
 .city-search{display:flex;gap:8px;margin-bottom:8px}
 .city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none}
-.city-search input:focus{border-color:var(--accent)}
+/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}.modal-sub{font-size:13px;color:var(--text2);margin-bottom:20px}
-.gps-anim{width:80px;height:80px;margin:0 auto 16px;position:relative;display:flex;align-items:center;justify-content:center}
-.gps-ring{position:absolute;border-radius:50%;border:2px solid var(--accent);animation:expand 2s ease-in-out infinite}
-.gps-ring:nth-child(1){width:80px;height:80px}.gps-ring:nth-child(2){width:56px;height:56px;animation-delay:.5s}.gps-ring:nth-child(3){width:32px;height:32px;animation-delay:1s}
-.gps-dot{width:16px;height:16px;background:var(--accent);border-radius:50%;box-shadow:0 0 16px var(--accent);z-index:1}
-@keyframes expand{0%{opacity:1;transform:scale(.8)}100%{opacity:0;transform:scale(1.2)}}
-.gps-status{text-align:center;font-size:13px;margin-bottom:16px;line-height:1.7;white-space:pre-line}
-.gps-status.success{color:var(--green)}.gps-status.error{color:var(--red)}.gps-status.loading{color:var(--accent)}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
+/* Toast */
 .toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:90vw;text-align:center}
 .toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent)}
 @keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
@@ -122,8 +121,10 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 input[type=range]{accent-color:var(--accent);width:100%}
 .excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
-.gps-debug{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px 12px;font-size:11px;color:var(--text2);margin-bottom:10px;line-height:1.8}
-.override-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:10px;padding:10px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+/* QR Scanner video */
+#qr-video{width:100%;border-radius:12px;display:none}
+.scan-overlay{position:relative}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
 </style>
 </head>
 <body>
@@ -134,9 +135,9 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <div class="login-logo">
       <div class="icon-wrap">📍</div>
       <h1>حضور و غیاب هوشمند</h1>
-      <p>سیستم ثبت ورود و خروج با GPS</p>
+      <p>سیستم ثبت ورود و خروج</p>
     </div>
-    <div class="field"><label>نام کاربری</label><input type="text" id="login-user" placeholder="نام کاربری را وارد کنید" autocomplete="username"></div>
+    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی را وارد کنید" autocomplete="username" inputmode="numeric"></div>
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
@@ -158,23 +159,18 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <div class="status-card">
       <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
-      <div class="location-info"><div class="location-dot inactive" id="gps-dot"></div><span id="gps-text" style="color:var(--text2)">موقعیت تایید نشده</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">برای ثبت حضور، QR code شعبه را اسکن کنید:</p>
       <div class="action-btns">
-        <button class="btn btn-green" onclick="openCheckin('in')">⬤ ورود</button>
-        <button class="btn btn-red" onclick="openCheckin('out')">◎ خروج</button>
+        <button class="btn btn-green" onclick="openQRScan('in')">📷 اسکن ورود</button>
+        <button class="btn btn-red" onclick="openQRScan('out')">📷 اسکن خروج</button>
       </div>
     </div>
 
     <div class="today-log">
       <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
-      <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap" id="today-summary"></div>
+      <div style="margin-top:8px" id="today-summary"></div>
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
-    </div>
-
-    <div class="week-summary">
-      <div class="status-header" style="margin-bottom:0"><span class="status-title">خلاصه هفته</span><span class="badge badge-purple" id="week-hours">۰ ساعت</span></div>
-      <div class="week-grid" id="week-grid"></div>
     </div>
   </div>
 </div>
@@ -189,37 +185,50 @@ input[type=range]{accent-color:var(--accent);width:100%}
   <div class="admin-content">
     <div class="stats-grid" id="admin-stats"></div>
     <div class="tabs">
-      <button class="tab active" onclick="adminTab('locations',this)">مکان‌ها</button>
+      <button class="tab active" onclick="adminTab('qr',this)">QR شعبه</button>
+      <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
-      <button class="tab" onclick="adminTab('reports',this)">گزارش‌ها</button>
+      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+    </div>
+
+    <!-- Tab QR -->
+    <div id="tab-qr" class="tab-content">
+      <div class="qr-display-card">
+        <h3>🔐 QR Code شعبه</h3>
+        <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
+        <div class="qr-loc-select">
+          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
+            <option value="">-- شعبه را انتخاب کنید --</option>
+          </select>
+        </div>
+        <div id="qr-display-container"><div id="qr-code-div"></div></div>
+        <div class="qr-timer">تغییر بعدی: <span id="qr-countdown">--:--</span></div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="generateQR()">🔄 تولید مجدد</button>
+        <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="openFullscreenQR()">⛶ نمایش تمام‌صفحه</button>
+      </div>
     </div>
 
     <!-- Tab Locations -->
-    <div id="tab-locations" class="tab-content">
+    <div id="tab-locations" class="tab-content" style="display:none">
       <div class="form-card">
         <div class="section-title">➕ افزودن مکان جدید</div>
-        <div class="field"><label>نام مکان</label><input type="text" id="loc-name" placeholder="مثلاً: دفتر مرکزی"></div>
+        <div class="field"><label>نام مکان / شعبه</label><input type="text" id="loc-name" placeholder="مثلاً: شعبه مرکزی"></div>
         <div class="field"><label>آدرس (اختیاری)</label><input type="text" id="loc-addr" placeholder="آدرس مکان"></div>
         <div class="field">
-          <label>جستجوی شهر و انتخاب موقعیت روی نقشه</label>
+          <label>انتخاب موقعیت روی نقشه (اختیاری)</label>
           <div class="city-search">
-            <input type="text" id="city-search-input" placeholder="نام شهر را بنویسید... (مثلاً: تهران، اصفهان)">
+            <input type="text" id="city-search-input" placeholder="جستجوی شهر...">
             <button class="btn btn-primary btn-sm" onclick="searchCity()">🔍</button>
           </div>
           <div id="map-container">
             <div id="add-map" style="width:100%;height:100%"></div>
-            <div class="map-crosshair"></div>
-            <div class="map-pin-dot"></div>
+            <div class="map-crosshair"></div><div class="map-pin-dot"></div>
           </div>
           <div style="display:flex;gap:8px">
             <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
             <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()" title="موقعیت فعلی">📍</button>
+            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">📍</button>
           </div>
-        </div>
-        <div class="field">
-          <label>شعاع مجاز (متر): <span id="radius-val">100</span></label>
-          <input type="range" id="loc-radius" min="50" max="100" step="10" value="100" oninput="document.getElementById('radius-val').textContent=this.value">
         </div>
         <button class="btn btn-primary" onclick="addLocation()">💾 ذخیره مکان</button>
       </div>
@@ -230,14 +239,14 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <!-- Tab Personnel -->
     <div id="tab-personnel" class="tab-content" style="display:none">
       <div class="form-card">
-        <div class="section-title">➕ افزودن پرسنل جدید</div>
+        <div class="section-title">➕ افزودن پرسنل</div>
         <div class="form-grid">
           <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
           <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
         </div>
-        <div class="field"><label>کد ملی (نام کاربری)</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
-        <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز عبور" value="1234"></div>
-        <div class="field"><label>مکان‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
+        <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
+        <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" value="1234"></div>
+        <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
         <button class="btn btn-primary" onclick="addPersonnel()">💾 ذخیره پرسنل</button>
       </div>
       <div class="section-title">لیست پرسنل</div>
@@ -246,7 +255,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
-      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل (CSV)</button>
+      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
       <div class="report-filter">
         <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
           <option value="">همه پرسنل</option>
@@ -262,18 +271,18 @@ input[type=range]{accent-color:var(--accent);width:100%}
   </div>
 </div>
 
-<!-- GPS MODAL -->
-<div class="modal-overlay" id="checkin-modal">
+<!-- QR SCAN MODAL -->
+<div class="modal-overlay" id="qr-scan-modal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title" id="modal-title">ثبت ورود</div>
-    <div class="modal-sub" id="modal-sub">در حال دریافت موقعیت GPS...</div>
-    <div class="gps-anim"><div class="gps-ring"></div><div class="gps-ring"></div><div class="gps-ring"></div><div class="gps-dot"></div></div>
-    <div class="gps-status loading" id="modal-status">در حال یافتن موقعیت...</div>
-    <div class="gps-debug" id="gps-debug" style="display:none"></div>
-    <button class="btn btn-primary" id="modal-confirm-btn" onclick="confirmCheckin()" style="display:none;margin-top:8px">✅ تایید و ثبت</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="closeModal()">انصراف</button>
-    <button class="btn btn-ghost btn-sm" style="margin-top:8px;font-size:11px;color:var(--text3)" onclick="retryGPS()">🔄 تلاش مجدد GPS</button>
+    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
+    <div class="scan-overlay">
+      <video id="qr-video" autoplay playsinline></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+    </div>
+    <div id="qr-scan-result" class="qr-result"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
 </div>
 
@@ -285,23 +294,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <input type="hidden" id="edit-loc-id">
     <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
     <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
-    <div class="city-search" style="margin-bottom:8px">
-      <input type="text" id="edit-city-search" placeholder="جستجوی شهر...">
-      <button class="btn btn-primary btn-sm" onclick="searchCityEdit()">🔍</button>
-    </div>
-    <div style="height:180px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative">
-      <div id="edit-map" style="width:100%;height:100%"></div>
-      <div class="map-crosshair"></div><div class="map-pin-dot"></div>
-    </div>
-    <div style="display:flex;gap:8px;margin-bottom:10px">
-      <input type="number" id="edit-loc-lat" step="0.000001" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-      <input type="number" id="edit-loc-lng" step="0.000001" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-    </div>
-    <div class="field">
-      <label>شعاع مجاز (متر): <span id="edit-radius-val">100</span></label>
-      <input type="range" id="edit-loc-radius" min="50" max="100" step="10" value="100" oninput="document.getElementById('edit-radius-val').textContent=this.value">
-    </div>
-    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره تغییرات</button>
+    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
   </div>
 </div>
@@ -317,28 +310,48 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
     </div>
     <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
-    <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass" placeholder="رمز جدید"></div>
-    <div class="field"><label>مکان‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
-    <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره تغییرات</button>
+    <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
+    <div class="field"><label>شعبه‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
+    <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره</button>
     <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-per-modal').classList.remove('open')">انصراف</button>
   </div>
 </div>
 
+<!-- FULLSCREEN QR -->
+<div id="fullscreen-qr" style="display:none;position:fixed;inset:0;background:#fff;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+  <div id="fullscreen-qr-code" style="background:#fff;padding:20px;border-radius:16px"></div>
+  <div style="font-size:18px;font-weight:700;color:#1a2d4a" id="fullscreen-loc-name"></div>
+  <div style="font-size:14px;color:#4a7a9b" id="fullscreen-timer"></div>
+  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
+</div>
+
 <script>
 // ════ STATE ════
-let state = {
-  currentUser: null,
-  checkinType: 'in',
-  currentCoords: null,
-  locations: JSON.parse(localStorage.getItem('hg_locations')||'[]'),
-  personnel: JSON.parse(localStorage.getItem('hg_personnel')||'[]'),
-  logs: JSON.parse(localStorage.getItem('hg_logs')||'[]'),
+let state={
+  currentUser:null,
+  checkinType:'in',
+  locations:JSON.parse(localStorage.getItem('hg_locations')||'[]'),
+  personnel:JSON.parse(localStorage.getItem('hg_personnel')||'[]'),
+  logs:JSON.parse(localStorage.getItem('hg_logs')||'[]'),
 };
-let addMap=null, editMap=null;
+let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
 function saveLocations(){localStorage.setItem('hg_locations',JSON.stringify(state.locations));}
 function savePersonnel(){localStorage.setItem('hg_personnel',JSON.stringify(state.personnel));}
 function saveLogs(){localStorage.setItem('hg_logs',JSON.stringify(state.logs));}
+
+// ════ QR TOKEN ════
+function getQRToken(locId){
+  // Token changes every hour — based on locId + current hour
+  const now=new Date();
+  const hourKey=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
+  return btoa(`HG:${locId}:${hourKey}`).replace(/=/g,'');
+}
+
+function getNextHourSeconds(){
+  const now=new Date();
+  return 3600 - (now.getMinutes()*60 + now.getSeconds());
+}
 
 // ════ AUTH ════
 function doLogin(){
@@ -352,13 +365,19 @@ function doLogin(){
   if(p){state.currentUser={type:'employee',...p};showScreen('emp');initEmployee();return;}
   showToast('نام کاربری یا رمز اشتباه است','error');
 }
-function doLogout(){state.currentUser=null;document.getElementById('login-user').value='';document.getElementById('login-pass').value='';showScreen('login');}
+function doLogout(){
+  state.currentUser=null;
+  stopQRScan();
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  showScreen('login');
+}
 
 // ════ SCREENS ════
 function showScreen(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+n).classList.add('active');
-  if(n==='admin') setTimeout(initAddMap,400);
+  if(n==='admin') setTimeout(()=>{initAddMap();renderQRLocSelect();},400);
 }
 
 // ════ CLOCK ════
@@ -366,6 +385,19 @@ setInterval(()=>{
   const el=document.getElementById('clock-display');if(!el)return;
   el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Update QR countdown
+  const cd=document.getElementById('qr-countdown');
+  if(cd&&cd.textContent!=='--:--'){
+    const s=getNextHourSeconds();
+    const m=Math.floor(s/60), sec=s%60;
+    cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  const fst=document.getElementById('fullscreen-timer');
+  if(fst&&fst.style.display!=='none'){
+    const s=getNextHourSeconds();
+    const m=Math.floor(s/60),sec=s%60;
+    fst.textContent=`تغییر بعدی: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
 },1000);
 
 // ════ EMPLOYEE ════
@@ -374,8 +406,8 @@ function initEmployee(){
   document.getElementById('emp-name').textContent=u.fname+' '+u.lname;
   document.getElementById('emp-avatar').textContent=u.fname[0];
   const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-  document.getElementById('emp-location-name').textContent=locs||'بدون مکان';
-  updateEmpStatus();renderTodayLogs();renderWeekSummary();
+  document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
+  updateEmpStatus();renderTodayLogs();
 }
 
 function updateEmpStatus(){
@@ -389,258 +421,176 @@ function updateEmpStatus(){
 }
 
 function calcTodayDuration(logs){
-  let total=0, lastIn=null;
+  let total=0,lastIn=null;
   for(const l of logs){
-    if(l.type==='in') lastIn=new Date(l.timestamp);
+    if(l.type==='in')lastIn=new Date(l.timestamp);
     else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
   }
-  if(lastIn) total+=Date.now()-lastIn;
-  const h=Math.floor(total/3600000), m=Math.floor((total%3600000)/60000);
-  return {total, text: h>0?`${toPersianNum(h)} ساعت ${toPersianNum(m)} دقیقه`:`${toPersianNum(m)} دقیقه`};
+  if(lastIn)total+=Date.now()-lastIn;
+  const h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  return h>0?`${toPersianNum(h)} ساعت ${toPersianNum(m)} دقیقه`:`${toPersianNum(m)} دقیقه`;
 }
 
 function renderTodayLogs(){
   const today=todayStr();
   const logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
   document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
-  const dur=calcTodayDuration(logs);
   const summary=document.getElementById('today-summary');
-  if(logs.length>0){
-    summary.innerHTML=`<span class="duration-badge">⏱ ${dur.text}</span>`;
-  } else summary.innerHTML='';
+  summary.innerHTML=logs.length>0?`<span class="duration-badge">⏱ ${calcTodayDuration(logs)}</span>`:'';
   const list=document.getElementById('today-logs-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
   list.innerHTML=logs.map(l=>`
     <div class="log-item">
-      <div class="log-type"><div class="log-dot" style="background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
-      <div style="text-align:left"><div style="font-weight:600">${l.time}</div><div style="font-size:10px;color:var(--text3)">${l.lat?`${(+l.lat).toFixed(4)},${(+l.lng).toFixed(4)}`:''}</div></div>
+      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
+      <div style="font-weight:600">${l.time}</div>
     </div>`).join('');
 }
 
-function renderWeekSummary(){
-  const now=new Date();
-  const days=[];
-  for(let i=6;i>=0;i--){
-    const d=new Date(now); d.setDate(d.getDate()-i);
-    days.push(d);
-  }
-  let totalMs=0;
-  const grid=document.getElementById('week-grid');
-  grid.innerHTML=days.map(d=>{
-    const ds=d.toLocaleDateString('fa-IR');
-    const dayLogs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===ds);
-    const present=dayLogs.some(l=>l.type==='in');
-    const dur=calcTodayDuration(dayLogs);
-    totalMs+=dur.total;
-    const isToday=ds===todayStr();
-    const dayName=d.toLocaleDateString('fa-IR',{weekday:'short'});
-    return `<div class="week-day">
-      <div class="day-name">${dayName}</div>
-      <div class="day-dot ${present?'day-present':'day-absent'} ${isToday?'day-today':''}">${present?'✓':'—'}</div>
-    </div>`;
-  }).join('');
-  const th=Math.floor(totalMs/3600000);
-  document.getElementById('week-hours').textContent=toPersianNum(th)+' ساعت';
+// ════ QR SCANNER ════
+function openQRScan(type){
+  state.checkinType=type;
+  document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
+  document.getElementById('qr-scan-result').style.display='none';
+  document.getElementById('qr-scan-modal').classList.add('open');
+  startCamera();
 }
 
-// ════ CHECKIN ════
-function openCheckin(type){
-  state.checkinType=type; state.currentCoords=null;
-  document.getElementById('modal-title').textContent=type==='in'?'🟢 ثبت ورود':'🔴 ثبت خروج';
-  document.getElementById('modal-sub').textContent='در حال دریافت موقعیت GPS...';
-  document.getElementById('modal-status').textContent='در حال یافتن موقعیت...';
-  document.getElementById('modal-status').className='gps-status loading';
-  document.getElementById('modal-confirm-btn').style.display='none';
-  document.getElementById('gps-debug').style.display='none';
-  document.getElementById('checkin-modal').classList.add('open');
-  requestGPS();
+function closeQRScan(){
+  document.getElementById('qr-scan-modal').classList.remove('open');
+  stopQRScan();
 }
 
-function closeModal(){document.getElementById('checkin-modal').classList.remove('open');}
-function retryGPS(){
-  document.getElementById('modal-status').textContent='در حال یافتن موقعیت...';
-  document.getElementById('modal-status').className='gps-status loading';
-  document.getElementById('modal-confirm-btn').style.display='none';
-  document.getElementById('gps-debug').style.display='none';
-  requestGPS();
+function stopQRScan(){
+  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
+  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
+  const video=document.getElementById('qr-video');
+  video.style.display='none';
+  video.srcObject=null;
 }
 
-function requestGPS(){
-  if(!navigator.geolocation){
-    showGPSError('مرورگر شما از GPS پشتیبانی نمی‌کند');return;
-  }
-  // First try: high accuracy
-  navigator.geolocation.getCurrentPosition(
-    pos=>processGPS(pos),
-    err=>{
-      // Second try: lower accuracy
-      navigator.geolocation.getCurrentPosition(
-        pos=>processGPS(pos),
-        err2=>showGPSError(getGPSErrorMsg(err2)),
-        {enableHighAccuracy:false,timeout:15000,maximumAge:30000}
-      );
-    },
-    {enableHighAccuracy:true,timeout:12000,maximumAge:0}
-  );
-}
-
-function getGPSErrorMsg(err){
-  switch(err.code){
-    case 1: return 'دسترسی به GPS رد شد\n\nلطفاً در تنظیمات مرورگر/گوشی دسترسی مکان را فعال کنید';
-    case 2: return 'موقعیت مکانی در دسترس نیست\n\nمطمئن شوید GPS گوشی فعال است';
-    case 3: return 'زمان دریافت GPS به پایان رسید\n\nدر فضای باز بودید؟ دوباره امتحان کنید';
-    default: return 'خطا در دریافت GPS';
+async function startCamera(){
+  const video=document.getElementById('qr-video');
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    video.srcObject=scanStream;
+    video.style.display='block';
+    video.play();
+    scanInterval=setInterval(scanFrame,300);
+  } catch(e){
+    showToast('دسترسی به دوربین رد شد','error');
+    closeQRScan();
   }
 }
 
-function processGPS(pos){
-  const lat=pos.coords.latitude, lng=pos.coords.longitude;
-  const acc=Math.round(pos.coords.accuracy);
-  const debug=document.getElementById('gps-debug');
-  debug.style.display='block';
-  debug.innerHTML=`📡 موقعیت دریافت شد<br>عرض: ${lat.toFixed(6)} | طول: ${lng.toFixed(6)}<br>دقت: ${acc} متر`;
-  checkLocation(lat,lng,acc);
-}
-
-function checkLocation(lat,lng,acc){
-  const u=state.currentUser;
-  if(!u.locations||u.locations.length===0){
-    showGPSError('هیچ مکانی برای شما تعریف نشده\nلطفاً با مدیر تماس بگیرید');return;
-  }
-  let found=null, minDist=Infinity;
-  for(const locId of u.locations){
-    const loc=state.locations.find(l=>l.id===locId);
-    if(!loc)continue;
-    const dist=calcDistance(lat,lng,+loc.lat,+loc.lng);
-    if(dist<minDist){minDist=dist;}
-    if(dist<=loc.radius){found={loc,dist};break;}
-  }
-  const debug=document.getElementById('gps-debug');
-  const allLocs=u.locations.map(id=>{
-    const l=state.locations.find(x=>x.id===id);
-    if(!l)return null;
-    const d=Math.round(calcDistance(lat,lng,+l.lat,+l.lng));
-    return `📍 ${l.name}: ${d}م (مجاز: ${l.radius}م)`;
-  }).filter(Boolean).join('\n');
-  debug.innerHTML+=`\n${allLocs}`;
-
-  if(found){
-    state.currentCoords={lat,lng,location:found.loc};
-    document.getElementById('modal-status').textContent=`✅ در محدوده "${found.loc.name}" هستید\nفاصله: ${Math.round(found.dist)} متر`;
-    document.getElementById('modal-status').className='gps-status success';
-    document.getElementById('modal-confirm-btn').style.display='block';
-    document.getElementById('gps-dot').classList.remove('inactive');
-    document.getElementById('gps-text').textContent='📍 '+found.loc.name;
-    document.getElementById('gps-text').style.color='var(--green)';
+function scanFrame(){
+  const video=document.getElementById('qr-video');
+  if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+  const canvas=document.getElementById('qr-canvas');
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  const ctx=canvas.getContext('2d');
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  // Use BarcodeDetector if available
+  if('BarcodeDetector' in window){
+    const detector=new BarcodeDetector({formats:['qr_code']});
+    detector.detect(canvas).then(codes=>{
+      if(codes.length>0) processQRCode(codes[0].rawValue);
+    }).catch(()=>{});
   } else {
-    document.getElementById('modal-status').textContent=`❌ خارج از محدوده مجاز\n\nنزدیک‌ترین مکان: ${Math.round(minDist)} متر فاصله دارید`;
-    document.getElementById('modal-status').className='gps-status error';
-    document.getElementById('modal-confirm-btn').style.display='none';
-    document.getElementById('gps-dot').classList.add('inactive');
-    document.getElementById('gps-text').textContent='خارج از محدوده';
-    document.getElementById('gps-text').style.color='var(--red)';
+    // Fallback: jsQR
+    if(typeof jsQR!=='undefined'){
+      const code=jsQR(imageData.data,imageData.width,imageData.height);
+      if(code) processQRCode(code.data);
+    }
   }
 }
 
-function showGPSError(msg){
-  document.getElementById('modal-status').textContent=msg;
-  document.getElementById('modal-status').className='gps-status error';
-  document.getElementById('modal-confirm-btn').style.display='none';
-}
-
-function confirmCheckin(){
-  if(!state.currentCoords)return;
+function processQRCode(data){
+  // Validate QR token
+  let valid=false, locName='', locId='';
+  for(const loc of state.locations){
+    const expected=getQRToken(loc.id);
+    if(data===expected){
+      // Check if user is allowed in this location
+      if(state.currentUser.locations.includes(loc.id)){
+        valid=true; locName=loc.name; locId=loc.id;
+      } else {
+        showResult('❌ شما مجاز به ورود در این شعبه نیستید','error');
+        return;
+      }
+      break;
+    }
+  }
+  if(!valid){
+    showResult('❌ QR Code نامعتبر یا منقضی شده است','error');
+    return;
+  }
+  stopQRScan();
+  // Register checkin
   const now=new Date();
-  const log={
+  state.logs.push({
     id:'log_'+Date.now(),
     userId:state.currentUser.nationalId,
     userName:state.currentUser.fname+' '+state.currentUser.lname,
-    locationId:state.currentCoords.location?.id||'',
-    locationName:state.currentCoords.location?.name||'نامشخص',
+    locationId:locId,
+    locationName:locName,
     type:state.checkinType,
     date:todayStr(),
     time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
     timestamp:now.toISOString(),
-    lat:state.currentCoords.lat,
-    lng:state.currentCoords.lng,
-  };
-  state.logs.push(log);saveLogs();closeModal();
-  showToast(state.checkinType==='in'?'✅ ورود با موفقیت ثبت شد':'✅ خروج با موفقیت ثبت شد','success');
-  updateEmpStatus();renderTodayLogs();renderWeekSummary();
-}
-
-// ════ MAP ════
-function initAddMap(){
-  if(addMap)return;
-  const center=[35.6892,51.3890];
-  addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
-  addMap.on('move',()=>{
-    const c=addMap.getCenter();
-    document.getElementById('loc-lat').value=c.lat.toFixed(6);
-    document.getElementById('loc-lng').value=c.lng.toFixed(6);
+    method:'qr',
   });
-  document.getElementById('loc-lat').value=center[0];
-  document.getElementById('loc-lng').value=center[1];
+  saveLogs();
+  document.getElementById('qr-scan-modal').classList.remove('open');
+  showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
+  updateEmpStatus();renderTodayLogs();
 }
 
-async function searchCity(){
-  const q=document.getElementById('city-search-input').value.trim();
-  if(!q)return;
-  showToast('در حال جستجو...','info');
-  try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
-    const d=await r.json();
-    if(d&&d[0]){
-      const lat=parseFloat(d[0].lat),lng=parseFloat(d[0].lon);
-      if(addMap){addMap.setView([lat,lng],15);}
-      document.getElementById('loc-lat').value=lat.toFixed(6);
-      document.getElementById('loc-lng').value=lng.toFixed(6);
-      showToast('شهر یافت شد ✅','success');
-    } else showToast('شهر پیدا نشد','error');
-  } catch(e){showToast('خطا در جستجو','error');}
+function showResult(msg,type){
+  const el=document.getElementById('qr-scan-result');
+  el.textContent=msg;el.className='qr-result '+type;el.style.display='block';
 }
 
-async function searchCityEdit(){
-  const q=document.getElementById('edit-city-search').value.trim();
-  if(!q)return;
-  try{
-    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
-    const d=await r.json();
-    if(d&&d[0]){
-      const lat=parseFloat(d[0].lat),lng=parseFloat(d[0].lon);
-      if(editMap){editMap.setView([lat,lng],15);}
-      document.getElementById('edit-loc-lat').value=lat.toFixed(6);
-      document.getElementById('edit-loc-lng').value=lng.toFixed(6);
-      showToast('شهر یافت شد ✅','success');
-    } else showToast('شهر پیدا نشد','error');
-  } catch(e){showToast('خطا در جستجو','error');}
+// ════ QR GENERATOR ════
+function renderQRLocSelect(){
+  const sel=document.getElementById('qr-loc-select');
+  sel.innerHTML='<option value="">-- شعبه را انتخاب کنید --</option>'+
+    state.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
 }
 
-function initEditMap(lat,lng){
-  setTimeout(()=>{
-    if(editMap){editMap.setView([lat,lng],16);return;}
-    editMap=L.map('edit-map',{zoomControl:true}).setView([lat,lng],16);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(editMap);
-    editMap.on('move',()=>{
-      const c=editMap.getCenter();
-      document.getElementById('edit-loc-lat').value=c.lat.toFixed(6);
-      document.getElementById('edit-loc-lng').value=c.lng.toFixed(6);
-    });
-  },350);
+function generateQR(){
+  const locId=document.getElementById('qr-loc-select').value;
+  if(!locId) return;
+  const token=getQRToken(locId);
+  const container=document.getElementById('qr-code-div');
+  container.innerHTML='';
+  if(qrInstance){qrInstance=null;}
+  qrInstance=new QRCode(container,{
+    text:token,width:200,height:200,
+    colorDark:'#0a1628',colorLight:'#ffffff',
+    correctLevel:QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-countdown').textContent='--:--';
+  // Start countdown
+  const s=getNextHourSeconds();
+  const m=Math.floor(s/60),sec=s%60;
+  document.getElementById('qr-countdown').textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
 }
 
-function useMyLocationForMap(){
-  if(!navigator.geolocation){showToast('GPS در دسترس نیست','error');return;}
-  showToast('در حال دریافت موقعیت...','info');
-  navigator.geolocation.getCurrentPosition(pos=>{
-    const{latitude:lat,longitude:lng}=pos.coords;
-    if(addMap)addMap.setView([lat,lng],17);
-    document.getElementById('loc-lat').value=lat.toFixed(6);
-    document.getElementById('loc-lng').value=lng.toFixed(6);
-    showToast('موقعیت فعلی دریافت شد ✅','success');
-  },()=>showToast('دسترسی به GPS رد شد','error'),{enableHighAccuracy:true,timeout:10000});
+function openFullscreenQR(){
+  const locId=document.getElementById('qr-loc-select').value;
+  if(!locId){showToast('ابتدا شعبه را انتخاب کنید','error');return;}
+  const loc=state.locations.find(l=>l.id===locId);
+  const token=getQRToken(locId);
+  const fs=document.getElementById('fullscreen-qr');
+  fs.style.display='flex';
+  document.getElementById('fullscreen-loc-name').textContent='📍 '+loc.name;
+  const container=document.getElementById('fullscreen-qr-code');
+  container.innerHTML='';
+  new QRCode(container,{text:token,width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
 }
+function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
 
 // ════ ADMIN ════
 function adminTab(tab,el){
@@ -651,6 +601,7 @@ function adminTab(tab,el){
   if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
   if(tab==='reports'){loadReportFilters();loadReports();}
   if(tab==='locations')setTimeout(()=>{if(addMap)addMap.invalidateSize();},200);
+  if(tab==='qr')renderQRLocSelect();
 }
 
 function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
@@ -659,7 +610,7 @@ function renderAdminStats(){
   const today=todayStr();
   const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
   document.getElementById('admin-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">مکان</div></div>
+    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">شعبه</div></div>
     <div class="stat-box"><div class="stat-num" style="color:var(--purple)">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
     <div class="stat-box"><div class="stat-num" style="color:var(--green)">${toPersianNum(presentToday)}</div><div class="stat-label">حاضر امروز</div></div>
     <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${toPersianNum(state.logs.filter(l=>l.date===today).length)}</div><div class="stat-label">ثبت امروز</div></div>`;
@@ -667,18 +618,16 @@ function renderAdminStats(){
 
 function renderLocationsList(){
   const list=document.getElementById('locations-list');
-  if(!state.locations.length){list.innerHTML='<div class="empty-state"><div class="icon">🗺️</div>هیچ مکانی ثبت نشده</div>';return;}
+  if(!state.locations.length){list.innerHTML='<div class="empty-state"><div class="icon">🏢</div>هیچ شعبه‌ای ثبت نشده</div>';return;}
   list.innerHTML=state.locations.map(l=>`
     <div class="card">
       <div class="card-header">
-        <div><div class="card-title">📍 ${l.name}</div><div class="card-sub">${l.address||'—'}</div></div>
+        <div><div class="card-title">🏢 ${l.name}</div><div class="card-sub">${l.address||'—'}</div></div>
         <div class="card-actions">
           <button class="btn btn-ghost btn-xs" onclick="openEditLocation('${l.id}')">✏️</button>
           <button class="btn btn-ghost btn-xs" onclick="deleteLocation('${l.id}')">🗑</button>
         </div>
       </div>
-      <div class="info-row"><span class="info-label">مختصات</span><span class="info-val" style="font-size:11px">${(+l.lat).toFixed(5)}, ${(+l.lng).toFixed(5)}</span></div>
-      <div class="info-row"><span class="info-label">شعاع مجاز</span><span class="info-val">${l.radius} متر</span></div>
       <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(p=>p.locations.includes(l.id)).length)} نفر</span></div>
     </div>`).join('');
 }
@@ -686,23 +635,20 @@ function renderLocationsList(){
 function addLocation(){
   const name=document.getElementById('loc-name').value.trim();
   const addr=document.getElementById('loc-addr').value.trim();
-  const lat=parseFloat(document.getElementById('loc-lat').value);
-  const lng=parseFloat(document.getElementById('loc-lng').value);
-  const radius=parseInt(document.getElementById('loc-radius').value);
-  if(!name||isNaN(lat)||isNaN(lng)){showToast('نام مکان و موقعیت روی نقشه الزامی است','error');return;}
-  state.locations.push({id:'loc_'+Date.now(),name,address:addr,lat,lng,radius});
-  saveLocations();renderLocationsList();renderAdminStats();
+  if(!name){showToast('نام شعبه الزامی است','error');return;}
+  state.locations.push({id:'loc_'+Date.now(),name,address:addr});
+  saveLocations();renderLocationsList();renderAdminStats();renderQRLocSelect();
   document.getElementById('loc-name').value='';
   document.getElementById('loc-addr').value='';
-  showToast('مکان با موفقیت ذخیره شد ✅','success');
+  showToast('شعبه با موفقیت ذخیره شد ✅','success');
 }
 
 function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.locations=state.locations.filter(l=>l.id!==id);
   state.personnel.forEach(p=>{p.locations=p.locations.filter(lid=>lid!==id);});
-  saveLocations();savePersonnel();renderLocationsList();renderAdminStats();
-  showToast('مکان حذف شد','error');
+  saveLocations();savePersonnel();renderLocationsList();renderAdminStats();renderQRLocSelect();
+  showToast('شعبه حذف شد','error');
 }
 
 function openEditLocation(id){
@@ -710,36 +656,29 @@ function openEditLocation(id){
   document.getElementById('edit-loc-id').value=id;
   document.getElementById('edit-loc-name').value=loc.name;
   document.getElementById('edit-loc-addr').value=loc.address||'';
-  document.getElementById('edit-loc-lat').value=loc.lat;
-  document.getElementById('edit-loc-lng').value=loc.lng;
-  document.getElementById('edit-loc-radius').value=loc.radius;
-  document.getElementById('edit-radius-val').textContent=loc.radius;
   document.getElementById('edit-loc-modal').classList.add('open');
-  initEditMap(+loc.lat,+loc.lng);
 }
 
 function saveEditLocation(){
   const id=document.getElementById('edit-loc-id').value;
   const name=document.getElementById('edit-loc-name').value.trim();
   const addr=document.getElementById('edit-loc-addr').value.trim();
-  const lat=parseFloat(document.getElementById('edit-loc-lat').value);
-  const lng=parseFloat(document.getElementById('edit-loc-lng').value);
-  const radius=parseInt(document.getElementById('edit-loc-radius').value);
-  if(!name||isNaN(lat)||isNaN(lng)){showToast('نام و موقعیت الزامی است','error');return;}
+  if(!name){showToast('نام الزامی است','error');return;}
   const idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
-  state.locations[idx]={...state.locations[idx],name,address:addr,lat,lng,radius};
-  saveLocations();renderLocationsList();
+  state.locations[idx]={...state.locations[idx],name,address:addr};
+  saveLocations();renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
-  showToast('مکان ویرایش شد ✅','success');
+  showToast('شعبه ویرایش شد ✅','success');
 }
 
+// ── Personnel ──
 function renderLocCheckboxes(divId,selectedIds){
   const div=document.getElementById(divId);
   div.innerHTML=state.locations.map(l=>`
     <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">
       <input type="checkbox" value="${l.id}" ${selectedIds.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
-      <span style="font-size:13px">📍 ${l.name}</span>
-    </label>`).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا مکان اضافه کنید</p>';
+      <span style="font-size:13px">🏢 ${l.name}</span>
+    </label>`).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
 }
 
 function renderPersonnelList(){
@@ -749,7 +688,6 @@ function renderPersonnelList(){
   list.innerHTML=state.personnel.map(p=>{
     const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===today);
     const last=logs[logs.length-1];
-    const dur=calcTodayDuration(logs);
     const statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
     const locs=p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
     return `<div class="card">
@@ -766,8 +704,8 @@ function renderPersonnelList(){
           </div>
         </div>
       </div>
-      ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${dur.text}</span></div>`:''}
-      <div class="info-row"><span class="info-label">مکان‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
+      ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${calcTodayDuration(logs)}</span></div>`:''}
+      <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
     </div>`;
   }).join('');
 }
@@ -784,7 +722,6 @@ function addPersonnel(){
   savePersonnel();renderPersonnelList();renderAdminStats();
   document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
   document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
-  document.querySelectorAll('#loc-checkboxes input').forEach(c=>c.checked=false);
   showToast('پرسنل با موفقیت ذخیره شد ✅','success');
 }
 
@@ -822,6 +759,37 @@ function deletePersonnel(id){
   showToast('پرسنل حذف شد','error');
 }
 
+// ── Map ──
+function initAddMap(){
+  if(addMap)return;
+  const center=[35.6892,51.3890];
+  addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
+  addMap.on('move',()=>{
+    const c=addMap.getCenter();
+    document.getElementById('loc-lat').value=c.lat.toFixed(6);
+    document.getElementById('loc-lng').value=c.lng.toFixed(6);
+  });
+}
+
+async function searchCity(){
+  const q=document.getElementById('city-search-input').value.trim();if(!q)return;
+  try{
+    const r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+    const d=await r.json();
+    if(d&&d[0]){addMap.setView([+d[0].lat,+d[0].lon],15);showToast('شهر یافت شد ✅','success');}
+    else showToast('شهر پیدا نشد','error');
+  }catch(e){showToast('خطا در جستجو','error');}
+}
+
+function useMyLocationForMap(){
+  if(!navigator.geolocation){showToast('GPS در دسترس نیست','error');return;}
+  navigator.geolocation.getCurrentPosition(pos=>{
+    addMap.setView([pos.coords.latitude,pos.coords.longitude],17);
+    showToast('موقعیت فعلی دریافت شد ✅','success');
+  },()=>showToast('دسترسی به GPS رد شد','error'),{enableHighAccuracy:true,timeout:10000});
+}
+
 // ── Reports ──
 function loadReportFilters(){
   document.getElementById('filter-person').innerHTML='<option value="">همه پرسنل</option>'+
@@ -837,25 +805,20 @@ function loadReports(){
   if(pid)logs=logs.filter(l=>l.userId===pid);
   if(date)logs=logs.filter(l=>l.date===date);
   logs.reverse();
-
-  // Summary
   const summary=document.getElementById('reports-summary');
   if(logs.length>0){
-    const users=new Set(logs.map(l=>l.userId)).size;
     summary.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
       <span class="badge badge-blue">${toPersianNum(logs.length)} رکورد</span>
-      <span class="badge badge-purple">${toPersianNum(users)} نفر</span>
       <span class="badge badge-green">${toPersianNum(logs.filter(l=>l.type==='in').length)} ورود</span>
       <span class="badge badge-red">${toPersianNum(logs.filter(l=>l.type==='out').length)} خروج</span>
     </div>`;
   } else summary.innerHTML='';
-
   const list=document.getElementById('reports-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📊</div>هیچ رکوردی یافت نشد</div>';return;}
   list.innerHTML=logs.map(l=>`
     <div class="report-item">
       <div class="report-avatar">${l.userName[0]}</div>
-      <div class="report-info"><div class="report-name">${l.userName}</div><div class="report-meta">📍 ${l.locationName} | 📅 ${l.date}</div></div>
+      <div class="report-info"><div class="report-name">${l.userName}</div><div class="report-meta">🏢 ${l.locationName} | 📅 ${l.date}</div></div>
       <div style="text-align:left">
         <div class="badge ${l.type==='in'?'badge-green':'badge-red'}" style="margin-bottom:4px">${l.type==='in'?'ورود':'خروج'}</div>
         <div style="font-size:12px;color:var(--text2)">${l.time}</div>
@@ -869,10 +832,10 @@ function exportExcel(){
   let logs=[...state.logs];
   if(pid)logs=logs.filter(l=>l.userId===pid);
   if(date)logs=logs.filter(l=>l.date===date);
-  if(!logs.length){showToast('هیچ رکوردی برای خروجی وجود ندارد','error');return;}
+  if(!logs.length){showToast('هیچ رکوردی وجود ندارد','error');return;}
   const BOM='\uFEFF';
-  const header='نام پرسنل,کد ملی,نوع,مکان,تاریخ,ساعت,عرض جغرافیایی,طول جغرافیایی\n';
-  const rows=logs.map(l=>`"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}","${l.lat||''}","${l.lng||''}"`).join('\n');
+  const header='نام پرسنل,کد ملی,نوع,شعبه,تاریخ,ساعت,روش ثبت\n';
+  const rows=logs.map(l=>`"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}","${l.method||'qr'}"`).join('\n');
   const blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='گزارش_حضور_غیاب.csv';a.click();
@@ -880,23 +843,23 @@ function exportExcel(){
 }
 
 // ════ UTILS ════
-function calcDistance(lat1,lon1,lat2,lon2){
-  const R=6371000,φ1=lat1*Math.PI/180,φ2=lat2*Math.PI/180;
-  const Δφ=(lat2-lat1)*Math.PI/180,Δλ=(lon2-lon1)*Math.PI/180;
-  const a=Math.sin(Δφ/2)**2+Math.cos(φ1)*Math.cos(φ2)*Math.sin(Δλ/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
-}
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
   const old=document.querySelector('.toast');if(old)old.remove();
   const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+  document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
 }
 
-['checkin-modal','edit-loc-modal','edit-per-modal'].forEach(id=>{
+// Load jsQR fallback
+const s=document.createElement('script');
+s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
+document.head.appendChild(s);
+
+['edit-loc-modal','edit-per-modal'].forEach(id=>{
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
+document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 document.getElementById('city-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
 </script>
