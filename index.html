@@ -125,6 +125,26 @@ input[type=range]{accent-color:var(--accent);width:100%}
 #qr-video{width:100%;border-radius:12px;display:none}
 .scan-overlay{position:relative}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
+/* Attendance Table */
+.att-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.att-table th{background:var(--bg3);color:var(--text2);padding:8px 10px;text-align:right;font-weight:600;border-bottom:1px solid var(--border)}
+.att-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+.att-table tr:last-child td{border-bottom:none}
+.att-table tr:hover td{background:rgba(0,212,255,0.04)}
+.att-in{color:var(--green);font-weight:600}
+.att-out{color:var(--red);font-weight:600}
+/* Person card expand */
+.person-logs{display:none;background:var(--bg3);border-radius:12px;padding:12px;margin-top:8px;overflow-x:auto}
+.person-logs.open{display:block}
+/* Stats chart */
+.bar-chart{display:flex;align-items:flex-end;gap:6px;height:80px;margin-top:12px}
+.bar-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-fill{width:100%;background:linear-gradient(to top,var(--accent),#0066ff);border-radius:4px 4px 0 0;min-height:4px;transition:height .3s}
+.bar-label{font-size:10px;color:var(--text3)}
+.bar-val{font-size:10px;color:var(--text2)}
+/* Notification bell */
+.notif-bell{position:relative;cursor:pointer}
+.notif-dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;background:var(--red);border-radius:50%;border:2px solid var(--card)}
 </style>
 </head>
 <body>
@@ -195,12 +215,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <div id="absence-alerts" style="display:none"></div>
     <div class="stats-grid" id="admin-stats"></div>
     <div class="tabs">
-      <button class="tab active" onclick="adminTab('qr',this)">QR شعبه</button>
-      <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
+      <button class="tab active" onclick="adminTab('qr',this)">QR</button>
+      <button class="tab" onclick="adminTab('dashboard',this)">داشبورد</button>
+      <button class="tab" onclick="adminTab('locations',this)">شعب</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
       <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
-      <button class="tab" onclick="adminTab('settings',this)">تنظیمات</button>
-      <button class="tab" onclick="adminTab('messages',this)">پیام‌ها</button>
+      <button class="tab" onclick="adminTab('settings',this)">⚙️</button>
+      <button class="tab" onclick="adminTab('messages',this)">📨</button>
     </div>
 
     <!-- Tab QR -->
@@ -217,6 +238,21 @@ input[type=range]{accent-color:var(--accent);width:100%}
           <button class="btn btn-ghost" style="font-size:12px" onclick="copyUniversalQRLink()">📋 کپی لینک صفحه نمایش شعبه</button>
         </div>
       </div>
+    </div>
+
+    <!-- Tab Dashboard -->
+    <div id="tab-dashboard" class="tab-content" style="display:none">
+      <div class="section-title">📊 حضور امروز به تفکیک پرسنل</div>
+      <div id="dashboard-list"></div>
+      <div class="divider"></div>
+      <div class="section-title">📈 آمار هفته جاری</div>
+      <div id="weekly-chart-wrap" class="card">
+        <div class="bar-chart" id="weekly-chart"></div>
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-top:4px" id="weekly-chart-labels"></div>
+      </div>
+      <div class="divider"></div>
+      <div class="section-title">🏆 پرکارترین پرسنل این هفته</div>
+      <div id="top-personnel"></div>
     </div>
 
     <!-- Tab Locations -->
@@ -833,6 +869,7 @@ function adminTab(tab,el){
     renderWorkHoursList();
   }
   if(tab==='messages'){renderMsgTarget();renderSentMessages();}
+  if(tab==='dashboard'){renderDashboard();}
 }
 
 function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
@@ -949,6 +986,12 @@ function renderPersonnelList(){
       </div>
       ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${calcTodayDuration(logs)}</span></div>`:''}
       <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
+      <button onclick="togglePersonLogs('logs_${p.id}')" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text2);font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer;width:100%;margin-top:6px">
+        📋 مشاهده جدول ورود/خروج امروز
+      </button>
+      <div class="person-logs" id="logs_${p.id}">
+        ${buildLogsTable(logs)}
+      </div>
     </div>`;
   }).join('');
 }
@@ -1201,6 +1244,142 @@ function copyQRLink(locId){
   } else {
     showToast(url,'info');
   }
+}
+
+// ════ DASHBOARD ════
+function renderDashboard(){
+  const today=todayStr();
+  const list=document.getElementById('dashboard-list');
+  if(!list)return;
+  if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">👥</div>پرسنلی ثبت نشده</div>';return;}
+  list.innerHTML=state.personnel.map(p=>{
+    const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===today);
+    const last=logs[logs.length-1];
+    const dur=calcTodayDuration(logs);
+    const firstIn=logs.find(l=>l.type==='in');
+    const lastOut=[...logs].reverse().find(l=>l.type==='out');
+    const statusColor=!last?'var(--orange)':last.type==='in'?'var(--green)':'var(--red)';
+    const statusText=!last?'غایب':last.type==='in'?'حاضر':'خروج';
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="report-avatar">${p.fname[0]}</div>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:14px">${p.fname} ${p.lname}</div>
+          <div style="font-size:11px;color:var(--text2)">${p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ')||'—'}</div>
+        </div>
+        <span style="color:${statusColor};font-size:12px;font-weight:700;background:${statusColor}22;padding:4px 10px;border-radius:20px;border:1px solid ${statusColor}44">${statusText}</span>
+      </div>
+      ${logs.length>0?`
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px">
+        <div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--text3)">ورود</div>
+          <div style="font-size:13px;font-weight:700;color:var(--green)">${firstIn?firstIn.time:'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--text3)">خروج</div>
+          <div style="font-size:13px;font-weight:700;color:var(--red)">${lastOut?lastOut.time:'—'}</div>
+        </div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px;text-align:center">
+          <div style="font-size:10px;color:var(--text3)">مدت</div>
+          <div style="font-size:11px;font-weight:700;color:var(--purple)">${dur}</div>
+        </div>
+      </div>
+      <button onclick="togglePersonLogs('dash_logs_${p.id}')" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text3);font-family:Vazirmatn,sans-serif;font-size:11px;cursor:pointer;margin-top:8px">جدول کامل</button>
+      <div class="person-logs" id="dash_logs_${p.id}">${buildLogsTable(logs)}</div>
+      `:''}
+    </div>`;
+  }).join('');
+
+  // Weekly chart
+  renderWeeklyChart();
+  renderTopPersonnel();
+}
+
+function renderWeeklyChart(){
+  const chart=document.getElementById('weekly-chart');
+  const labels=document.getElementById('weekly-chart-labels');
+  if(!chart)return;
+  const now=new Date();
+  const days=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    days.push(d);
+  }
+  const maxMs=8*3600000; // 8 hours max
+  chart.innerHTML=days.map(d=>{
+    const ds=d.toLocaleDateString('fa-IR');
+    let totalMs=0;
+    state.personnel.forEach(p=>{
+      const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===ds);
+      totalMs+=calcTodayDurationMs(logs);
+    });
+    const avgMs=state.personnel.length?totalMs/state.personnel.length:0;
+    const pct=Math.min(100,Math.round(avgMs/maxMs*100));
+    const h=Math.floor(avgMs/3600000);
+    return `<div class="bar-item">
+      <div style="font-size:10px;color:var(--text2)">${h?toPersianNum(h)+'h':''}</div>
+      <div class="bar-fill" style="height:${Math.max(4,pct*0.7)}px"></div>
+      <div class="bar-label">${d.toLocaleDateString('fa-IR',{weekday:'short'})}</div>
+    </div>`;
+  }).join('');
+}
+
+function calcTodayDurationMs(logs){
+  let total=0,lastIn=null;
+  for(const l of logs){
+    if(l.type==='in')lastIn=new Date(l.timestamp);
+    else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
+  }
+  if(lastIn)total+=Date.now()-lastIn;
+  return total;
+}
+
+function renderTopPersonnel(){
+  const top=document.getElementById('top-personnel');
+  if(!top)return;
+  const now=new Date();
+  const weekAgo=new Date(now);weekAgo.setDate(weekAgo.getDate()-7);
+  const scored=state.personnel.map(p=>{
+    let totalMs=0;
+    for(let i=0;i<7;i++){
+      const d=new Date(now);d.setDate(d.getDate()-i);
+      const ds=d.toLocaleDateString('fa-IR');
+      const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===ds);
+      totalMs+=calcTodayDurationMs(logs);
+    }
+    return{p,totalMs};
+  }).sort((a,b)=>b.totalMs-a.totalMs).slice(0,3);
+  const medals=['🥇','🥈','🥉'];
+  top.innerHTML=scored.map((item,i)=>{
+    const h=Math.floor(item.totalMs/3600000),m=Math.floor((item.totalMs%3600000)/60000);
+    return `<div class="card" style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="font-size:24px">${medals[i]}</div>
+      <div class="report-avatar">${item.p.fname[0]}</div>
+      <div style="flex:1"><div style="font-weight:700">${item.p.fname} ${item.p.lname}</div></div>
+      <div class="duration-badge">${toPersianNum(h)}:${String(m).padStart(2,'0')} ساعت</div>
+    </div>`;
+  }).join('')||'<div class="empty-state"><div class="icon">📊</div>داده کافی وجود ندارد</div>';
+}
+
+function buildLogsTable(logs){
+  if(!logs.length)return '<p style="font-size:12px;color:var(--text3);text-align:center;padding:8px">ثبتی وجود ندارد</p>';
+  return `<table class="att-table">
+    <thead><tr><th>#</th><th>نوع</th><th>ساعت</th><th>شعبه</th></tr></thead>
+    <tbody>${logs.map((l,i)=>`
+      <tr>
+        <td>${toPersianNum(i+1)}</td>
+        <td class="${l.type==='in'?'att-in':'att-out'}">${l.type==='in'?'⬤ ورود':'◎ خروج'}</td>
+        <td>${l.time}</td>
+        <td style="font-size:11px">${l.locationName}</td>
+      </tr>`).join('')}
+    </tbody>
+  </table>`;
+}
+
+function togglePersonLogs(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.toggle('open');
 }
 
 // ════ UTILS ════
