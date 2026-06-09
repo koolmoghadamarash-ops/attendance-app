@@ -13,10 +13,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
+
+
 <style>
 :root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -157,13 +155,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 .track-dot-track{background:var(--accent)}
 .tracking-indicator{display:flex;align-items:center;gap:8px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--green);margin-top:8px}
 .tracking-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
-/* Persian datepicker override */
-.datepicker-plot-area{background:var(--card)!important;border:1px solid var(--border)!important;border-radius:16px!important;font-family:'Vazirmatn',sans-serif!important;direction:rtl!important;box-shadow:var(--shadow)!important}
-.datepicker-plot-area .header-row{background:var(--bg3)!important;border-radius:12px 12px 0 0!important}
-.datepicker-plot-area .header-row .title-row td{color:var(--text)!important}
-.datepicker-plot-area .day-row td{color:var(--text)!important}
-.datepicker-plot-area .selected-day{background:var(--accent)!important;color:#fff!important;border-radius:8px!important}
-.datepicker-plot-area .today{border:1px solid var(--accent)!important;border-radius:8px!important}
+
 /* Conference */
 .conf-card{background:linear-gradient(135deg,#1a1a3e,#2d1b69);border:1px solid rgba(167,139,250,0.3);border-radius:16px;padding:16px;margin-bottom:12px}
 .conf-live{background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.4);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;color:var(--red);display:inline-flex;align-items:center;gap:6px}
@@ -393,18 +385,27 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
         <div class="field">
           <label>تاریخ جلسه (شمسی)</label>
-          <input type="text" id="conf-date-picker" placeholder="انتخاب تاریخ..." readonly style="cursor:pointer;background:var(--bg3)">
-          <input type="hidden" id="conf-date">
+          <div style="display:flex;gap:8px">
+            <select id="conf-year" style="flex:2;padding:12px 8px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none"></select>
+            <select id="conf-month" style="flex:2;padding:12px 8px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none">
+              <option value="01">فروردین</option><option value="02">اردیبهشت</option><option value="03">خرداد</option>
+              <option value="04">تیر</option><option value="05">مرداد</option><option value="06">شهریور</option>
+              <option value="07">مهر</option><option value="08">آبان</option><option value="09">آذر</option>
+              <option value="10">دی</option><option value="11">بهمن</option><option value="12">اسفند</option>
+            </select>
+            <select id="conf-day" style="flex:1;padding:12px 8px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none"></select>
+          </div>
         </div>
         <div class="field">
           <label>ساعت شروع</label>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
-            <select id="conf-hour" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none"></select>
-            <select id="conf-minute" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
-              <option value="00">۰۰ دقیقه</option>
-              <option value="15">۱۵ دقیقه</option>
-              <option value="30">۳۰ دقیقه</option>
-              <option value="45">۴۵ دقیقه</option>
+          <div style="display:flex;gap:8px">
+            <select id="conf-hour" style="flex:1;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none"></select>
+            <span style="padding:12px 4px;color:var(--text2);font-size:18px;align-self:center">:</span>
+            <select id="conf-minute" style="flex:1;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
+              <option value="00">۰۰</option>
+              <option value="15">۱۵</option>
+              <option value="30">۳۰</option>
+              <option value="45">۴۵</option>
             </select>
           </div>
         </div>
@@ -416,7 +417,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
         <div class="field">
           <label>شرکت‌کنندگان مجاز</label>
-          <div id="conf-participants" style="display:grid;gap:8px;margin-top:8px;max-height:220px;overflow-y:auto;padding:4px 0"></div>
+          <div id="conf-participants" style="display:flex;flex-direction:column;gap:8px;margin-top:8px;max-height:240px;overflow-y:auto"></div>
         </div>
         <button class="btn btn-primary" onclick="addConference()">💾 ذخیره جلسه</button>
       </div>
@@ -1730,59 +1731,81 @@ function renderConferenceAdminTab(){
 }
 
 function initJalaliDateSelects(){
-  // Init hour select
-  const hourSel=document.getElementById('conf-hour');
-  if(hourSel&&!hourSel.options.length){
-    for(let h=0;h<24;h++){
-      const opt=document.createElement('option');
-      opt.value=String(h).padStart(2,'0');
-      opt.textContent=toPersianNum(h)+' ساعت';
-      if(h===8) opt.selected=true;
-      hourSel.appendChild(opt);
+  // Get current Jalali date
+  var now=new Date();
+  var jd=gregorianToJalali(now.getFullYear(),now.getMonth()+1,now.getDate());
+  var curYear=jd[0], curMonth=jd[1], curDay=jd[2];
+
+  // Year select
+  var yearSel=document.getElementById('conf-year');
+  if(yearSel){
+    yearSel.innerHTML='';
+    for(var y=curYear;y<=curYear+2;y++){
+      var opt=document.createElement('option');
+      opt.value=y; opt.textContent=toPersianNum(y);
+      if(y===curYear) opt.selected=true;
+      yearSel.appendChild(opt);
     }
   }
-  // Init Persian datepicker
-  setTimeout(function(){
-    if(typeof jQuery!=='undefined'&&typeof jQuery.fn.persianDatepicker!=='undefined'){
-      jQuery('#conf-date-picker').persianDatepicker({
-        format:'YYYY/MM/DD',
-        autoClose:true,
-        observer:true,
-        calendar:{persian:{locale:'fa'}},
-        onSelect:function(unix){
-          try{
-            var d=new persianDate(unix);
-            var val=d.year()+'/'+String(d.month()).padStart(2,'0')+'/'+String(d.date()).padStart(2,'0');
-            document.getElementById('conf-date-picker').value=val;
-            document.getElementById('conf-date').value=val;
-          }catch(e){
-            var inp=document.getElementById('conf-date-picker');
-            document.getElementById('conf-date').value=inp.value;
-          }
-        }
-      });
-    } else {
-      // Fallback: simple manual input
-      var picker=document.getElementById('conf-date-picker');
-      if(picker){
-        picker.readOnly=false;
-        picker.placeholder='مثلاً: ۱۴۰۴/۰۳/۲۵';
-        picker.addEventListener('input',function(){
-          document.getElementById('conf-date').value=this.value;
-        });
-      }
+
+  // Month - set current
+  var monthSel=document.getElementById('conf-month');
+  if(monthSel) monthSel.value=String(curMonth).padStart(2,'0');
+
+  // Day select
+  var daySel=document.getElementById('conf-day');
+  if(daySel){
+    daySel.innerHTML='';
+    for(var d=1;d<=31;d++){
+      var opt2=document.createElement('option');
+      opt2.value=String(d).padStart(2,'0');
+      opt2.textContent=toPersianNum(d);
+      if(d===curDay) opt2.selected=true;
+      daySel.appendChild(opt2);
     }
-  },800);
+  }
+
+  // Hour select
+  var hourSel=document.getElementById('conf-hour');
+  if(hourSel&&!hourSel.options.length){
+    for(var h=0;h<24;h++){
+      var opt3=document.createElement('option');
+      opt3.value=String(h).padStart(2,'0');
+      opt3.textContent=toPersianNum(h);
+      if(h===8) opt3.selected=true;
+      hourSel.appendChild(opt3);
+    }
+  }
+}
+
+function gregorianToJalali(gy,gm,gd){
+  var g_d_no=[0,31,(gy%4===0&&(gy%100!==0||gy%400===0)?29:28),31,30,31,30,31,31,30,31,30,31];
+  var j_d_no=[0,31,31,31,31,31,31,30,30,30,30,30,29];
+  var jy,jm,jd,i;
+  var g_y=gy-1600,g_m=gm-1,g_d=gd-1;
+  var g_d_no2=365*g_y+(Math.floor((g_y+3)/4)-Math.floor((g_y+99)/100)+Math.floor((g_y+399)/400));
+  for(i=0;i<g_m;++i) g_d_no2+=g_d_no[i+1];
+  g_d_no2+=g_d;
+  var j_d_no2=g_d_no2-79;
+  var j_np=Math.floor(j_d_no2/12053);
+  j_d_no2%=12053;
+  jy=979+33*j_np+4*Math.floor(j_d_no2/1461);
+  j_d_no2%=1461;
+  if(j_d_no2>=366){jy+=Math.floor((j_d_no2-1)/365);j_d_no2=(j_d_no2-1)%365;}
+  for(i=0;i<11&&j_d_no2>=j_d_no[i+1];++i) j_d_no2-=j_d_no[i+1];
+  jm=i+1; jd=j_d_no2+1;
+  return [jy,jm,jd];
 }
 
 function addConference(){
   const title=document.getElementById('conf-title').value.trim();
   const desc=document.getElementById('conf-desc').value.trim();
-  const datePicker=document.getElementById('conf-date-picker');
-  const dateHidden=document.getElementById('conf-date');
-  const date=(dateHidden&&dateHidden.value)?dateHidden.value:(datePicker?datePicker.value:'');
-  const hour=document.getElementById('conf-hour')?.value||'08';
-  const minute=document.getElementById('conf-minute')?.value||'00';
+  const year=document.getElementById('conf-year').value;
+  const month=document.getElementById('conf-month').value;
+  const day=document.getElementById('conf-day').value;
+  const date=year+'/'+month+'/'+day;
+  const hour=document.getElementById('conf-hour').value||'08';
+  const minute=document.getElementById('conf-minute').value||'00';
   const time=hour+':'+minute;
   const manager=document.getElementById('conf-manager').value;
   const participants=[...document.querySelectorAll('#conf-participants input:checked')].map(c=>c.value);
