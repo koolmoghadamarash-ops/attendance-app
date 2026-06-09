@@ -673,7 +673,7 @@ function loadAllData(){
   ]).then(function(results){
     var locs=results[0],pers=results[1],logs=results[2],msgs=results[3],wh=results[4],confs=results[5];
     state.locations=locs.map(function(l){return {id:l.id,name:l.name,address:l.address,lat:l.lat,lng:l.lng,radius:l.radius||300};});
-    state.personnel=pers.map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,locations:p.locations||[]};});
+    state.personnel=pers.map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,national_id:p.national_id,password:p.password,locations:p.locations||[]};});
     state.logs=logs.map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng,method:l.method||'qr'};});
     state.messages=msgs.map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,timestamp:m.timestamp,readBy:m.read_by||[]};});
     state.workHours={};
@@ -726,27 +726,43 @@ function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
   if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
-  if(user==='admin'&&pass==='1234'){
-    state.currentUser={type:'admin'};
-    showScreen('admin');
-    renderAdmin();
-    // Load data in background
-    initSupabase();
-    loadAllData().then(function(){renderAdmin();});
-    return;
-  }
-  // For personnel: need to load data first
+  
   initSupabase();
   showLoadingOverlay(true);
+  
   loadAllData().then(function(){
-    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     showLoadingOverlay(false);
+    
+    // Admin login
+    if(user==='admin'&&pass==='1234'){
+      state.currentUser={type:'admin'};
+      showScreen('admin');
+      renderAdmin();
+      return;
+    }
+    
+    // Personnel login - check both nationalId formats
+    var p=state.personnel.find(function(x){
+      return (x.nationalId===user||x.national_id===user)&&x.password===pass;
+    });
+    
     if(p){
       state.currentUser=Object.assign({type:'employee'},p);
       showScreen('emp');
       initEmployee();
     } else {
       showToast('نام کاربری یا رمز اشتباه است','error');
+    }
+  }).catch(function(e){
+    showLoadingOverlay(false);
+    console.error('Login error',e);
+    // Fallback: try admin without DB
+    if(user==='admin'&&pass==='1234'){
+      state.currentUser={type:'admin'};
+      showScreen('admin');
+      renderAdmin();
+    } else {
+      showToast('خطا در اتصال به سرور','error');
     }
   });
 }
