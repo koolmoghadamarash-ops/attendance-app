@@ -13,6 +13,10 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-date@1.1.0/dist/persian-date.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/js/persian-datepicker.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/persian-datepicker@1.2.0/dist/css/persian-datepicker.min.css">
 <style>
 :root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -111,6 +115,7 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .modal-overlay.open{display:flex}
 .modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes slideDown{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
 .modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
 /* Toast */
@@ -152,6 +157,21 @@ input[type=range]{accent-color:var(--accent);width:100%}
 .track-dot-track{background:var(--accent)}
 .tracking-indicator{display:flex;align-items:center;gap:8px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.2);border-radius:10px;padding:8px 12px;font-size:12px;color:var(--green);margin-top:8px}
 .tracking-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+/* Persian datepicker override */
+.datepicker-plot-area{background:var(--card)!important;border:1px solid var(--border)!important;border-radius:16px!important;font-family:'Vazirmatn',sans-serif!important;direction:rtl!important;box-shadow:var(--shadow)!important}
+.datepicker-plot-area .header-row{background:var(--bg3)!important;border-radius:12px 12px 0 0!important}
+.datepicker-plot-area .header-row .title-row td{color:var(--text)!important}
+.datepicker-plot-area .day-row td{color:var(--text)!important}
+.datepicker-plot-area .selected-day{background:var(--accent)!important;color:#fff!important;border-radius:8px!important}
+.datepicker-plot-area .today{border:1px solid var(--accent)!important;border-radius:8px!important}
+/* Conference */
+.conf-card{background:linear-gradient(135deg,#1a1a3e,#2d1b69);border:1px solid rgba(167,139,250,0.3);border-radius:16px;padding:16px;margin-bottom:12px}
+.conf-live{background:rgba(255,68,68,0.15);border:1px solid rgba(255,68,68,0.4);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;color:var(--red);display:inline-flex;align-items:center;gap:6px}
+.conf-live-dot{width:6px;height:6px;background:var(--red);border-radius:50%;animation:pulse 1s infinite}
+.conf-upcoming{background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:700;color:var(--purple)}
+.conf-done{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:3px 12px;font-size:11px;color:var(--text3)}
+.conf-join-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
+.conf-start-btn{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-family:Vazirmatn,sans-serif;font-size:14px;font-weight:600;cursor:pointer;width:100%;margin-top:10px}
 </style>
 </head>
 <body>
@@ -164,7 +184,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <h1>حضور و غیاب هوشمند</h1>
       <p>سیستم ثبت ورود و خروج</p>
     </div>
-    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی را وارد کنید" autocomplete="username" inputmode="numeric"></div>
+    <div class="field"><label>نام کاربری</label><input type="text" id="login-user" placeholder="نام کاربری یا کد ملی را وارد کنید" autocomplete="username"></div>
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
@@ -174,10 +194,50 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <!-- EMPLOYEE -->
 <div id="screen-emp" class="screen">
   <div class="topbar">
-    <div class="avatar" id="emp-avatar">A</div>
-    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
+    <div class="avatar" id="emp-avatar" onclick="toggleEmpMenu()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="toggleEmpMenu()">
+      <div class="topbar-title" id="emp-name">نام پرسنل</div>
+      <div class="topbar-sub" id="emp-location-name">مکان کاری</div>
+    </div>
+    <div class="notif-bell" onclick="toggleEmpMenu()" style="margin-left:4px">
+      <span style="font-size:22px">🔔</span>
+      <div class="notif-dot" id="notif-dot" style="display:none"></div>
+    </div>
+    <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px" onclick="toggleEmpMenu()">☰</button>
   </div>
+
+  <!-- Employee Dropdown Menu -->
+  <div id="emp-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:150" onclick="closeEmpMenu()">
+    <div style="position:absolute;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);padding:8px 0;animation:slideDown .2s ease" onclick="event.stopPropagation()">
+      <!-- Profile header -->
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
+        <div class="avatar" id="emp-avatar2" style="width:48px;height:48px;font-size:18px">A</div>
+        <div>
+          <div style="font-weight:700;font-size:15px" id="menu-emp-name">نام پرسنل</div>
+          <div style="font-size:12px;color:var(--text2)" id="menu-emp-loc">مکان کاری</div>
+          <div style="font-size:11px;color:var(--text3)" id="menu-emp-id"></div>
+        </div>
+      </div>
+      <!-- Inbox preview -->
+      <div id="menu-inbox-preview" style="padding:12px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📬 پیام‌های اخیر</div>
+        <div id="menu-inbox-items"></div>
+      </div>
+      <!-- Menu items -->
+      <div style="padding:8px 0">
+        <button onclick="openChangePassword();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+          <span>🔑</span><span>تغییر رمز عبور</span>
+        </button>
+        <button onclick="openProfilePanel();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+          <span>👤</span><span>پروفایل من</span>
+        </button>
+        <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:4px">
+          <span>⏏</span><span>خروج از حساب</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="emp-content">
     <div class="clock-card">
       <div class="clock-time" id="clock-display">--:--:--</div>
@@ -203,6 +263,11 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div style="margin-top:8px" id="today-summary"></div>
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
+    </div>
+
+    <div id="emp-conferences-card" style="display:none">
+      <div style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:10px">📅 جلسات شما</div>
+      <div id="emp-conferences-list"></div>
     </div>
 
     <div class="today-log" id="emp-inbox-card">
@@ -235,6 +300,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <button class="tab" onclick="adminTab('settings',this)">⚙️</button>
       <button class="tab" onclick="adminTab('messages',this)">📨</button>
       <button class="tab" onclick="adminTab('track',this)">🗺️</button>
+      <button class="tab" onclick="adminTab('conference',this)">📅</button>
     </div>
 
     <!-- Tab QR -->
@@ -311,6 +377,51 @@ input[type=range]{accent-color:var(--accent);width:100%}
       </div>
       <div class="section-title">لیست پرسنل</div>
       <div id="personnel-list"></div>
+    </div>
+
+    <!-- Tab Conference -->
+    <div id="tab-conference" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">➕ تعریف جلسه جدید</div>
+        <div class="field">
+          <label>عنوان جلسه</label>
+          <input type="text" id="conf-title" placeholder="مثلاً: جلسه هیئت مدیره">
+        </div>
+        <div class="field">
+          <label>توضیحات (اختیاری)</label>
+          <input type="text" id="conf-desc" placeholder="موضوع جلسه...">
+        </div>
+        <div class="field">
+          <label>تاریخ جلسه (شمسی)</label>
+          <input type="text" id="conf-date-picker" placeholder="انتخاب تاریخ..." readonly style="cursor:pointer;background:var(--bg3)">
+          <input type="hidden" id="conf-date">
+        </div>
+        <div class="field">
+          <label>ساعت شروع</label>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:center">
+            <select id="conf-hour" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none"></select>
+            <select id="conf-minute" style="padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
+              <option value="00">۰۰ دقیقه</option>
+              <option value="15">۱۵ دقیقه</option>
+              <option value="30">۳۰ دقیقه</option>
+              <option value="45">۴۵ دقیقه</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>مدیر جلسه</label>
+          <select id="conf-manager" style="width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
+            <option value="">-- انتخاب مدیر جلسه --</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>شرکت‌کنندگان مجاز</label>
+          <div id="conf-participants" style="display:grid;gap:8px;margin-top:8px;max-height:220px;overflow-y:auto;padding:4px 0"></div>
+        </div>
+        <button class="btn btn-primary" onclick="addConference()">💾 ذخیره جلسه</button>
+      </div>
+      <div class="section-title">جلسات</div>
+      <div id="conference-list"></div>
     </div>
 
     <!-- Tab Track -->
@@ -522,6 +633,7 @@ let state={
   workHours:JSON.parse(localStorage.getItem('hg_workhours')||'{}'),
   messages:JSON.parse(localStorage.getItem('hg_messages')||'[]'),
   locationLogs:JSON.parse(localStorage.getItem('hg_locationlogs')||'[]'),
+  conferences:JSON.parse(localStorage.getItem('hg_conferences')||'[]'),
   isTracking:false,
 };
 let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
@@ -530,6 +642,7 @@ function saveLocations(){localStorage.setItem('hg_locations',JSON.stringify(stat
 function saveWorkHours(){localStorage.setItem('hg_workhours',JSON.stringify(state.workHours));}
 function saveMessages(){localStorage.setItem('hg_messages',JSON.stringify(state.messages));}
 function saveLocationLogs(){localStorage.setItem('hg_locationlogs',JSON.stringify(state.locationLogs));}
+function saveConferences(){localStorage.setItem('hg_conferences',JSON.stringify(state.conferences));}
 function savePersonnel(){localStorage.setItem('hg_personnel',JSON.stringify(state.personnel));}
 function saveLogs(){localStorage.setItem('hg_logs',JSON.stringify(state.logs));}
 
@@ -586,12 +699,14 @@ setInterval(()=>{
   const el=document.getElementById('clock-display');if(!el)return;
   el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
-  // Update QR countdown
+  // Update QR countdown always
   const cd=document.getElementById('qr-countdown');
-  if(cd&&cd.textContent!=='--:--'){
+  if(cd){
     const s=getNextSlotSeconds();
     const m=Math.floor(s/60), sec=s%60;
     cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    // Auto-refresh QR at slot boundary
+    if(s===1800) renderAllQRCodes();
   }
   const fst=document.getElementById('fullscreen-timer');
   if(fst&&fst.style.display!=='none'){
@@ -611,6 +726,8 @@ function initEmployee(){
   updateEmpStatus();renderTodayLogs();
   // Show unread messages
   showEmpMessages();
+  // Show conferences
+  renderEmpConferences();
   // Start location tracking
   startTracking();
 }
@@ -618,20 +735,14 @@ function initEmployee(){
 function showEmpMessages(){
   const u=state.currentUser;
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
-  // Render inbox
+  // Render inbox in card
   renderEmpInbox(msgs,u.nationalId);
-  // Show popup for unread
+  // Show notif dot if unread
   const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
   if(unread.length>0){
-    // Mark as read
-    unread.forEach(m=>{
-      const idx=state.messages.findIndex(x=>x.id===m.id);
-      if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
-        state.messages[idx].readBy.push(u.nationalId);
-      }
-    });
-    saveMessages();
-    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید دارید`,'info');
+    const dot=document.getElementById('notif-dot');
+    if(dot)dot.style.display='block';
+    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید — برای مشاهده روی زنگ بزنید`,'info');
   }
 }
 
@@ -794,6 +905,8 @@ function processQRCode(data){
   updateEmpStatus();renderTodayLogs();
   // Show unread messages
   showEmpMessages();
+  // Show conferences
+  renderEmpConferences();
   // Start location tracking
   startTracking();
 }
@@ -801,20 +914,14 @@ function processQRCode(data){
 function showEmpMessages(){
   const u=state.currentUser;
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
-  // Render inbox
+  // Render inbox in card
   renderEmpInbox(msgs,u.nationalId);
-  // Show popup for unread
+  // Show notif dot if unread
   const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
   if(unread.length>0){
-    // Mark as read
-    unread.forEach(m=>{
-      const idx=state.messages.findIndex(x=>x.id===m.id);
-      if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
-        state.messages[idx].readBy.push(u.nationalId);
-      }
-    });
-    saveMessages();
-    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید دارید`,'info');
+    const dot=document.getElementById('notif-dot');
+    if(dot)dot.style.display='block';
+    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید — برای مشاهده روی زنگ بزنید`,'info');
   }
 }
 
@@ -855,8 +962,16 @@ function renderAllQRCodes(){
   const container=document.getElementById('qr-universal-container');
   if(!container)return;
   container.innerHTML='';
-  new QRCode(container,{text:getUniversalToken(),width:200,height:200,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
-  // Update countdown
+  try{
+    new QRCode(container,{text:getUniversalToken(),width:200,height:200,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  }catch(e){
+    // QRCode library may not be loaded yet, retry
+    setTimeout(renderAllQRCodes,500);return;
+  }
+  updateQRCountdown();
+}
+
+function updateQRCountdown(){
   const s=getNextSlotSeconds();
   const m=Math.floor(s/60),sec=s%60;
   const cd=document.getElementById('qr-countdown');
@@ -921,9 +1036,10 @@ function adminTab(tab,el){
   if(tab==='messages'){renderMsgTarget();renderSentMessages();}
   if(tab==='dashboard'){renderDashboard();}
   if(tab==='track'){renderTrackTab();setTimeout(()=>{if(trackMap)trackMap.invalidateSize();},300);}
+  if(tab==='conference'){renderConferenceAdminTab();}
 }
 
-function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
+function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();setTimeout(()=>{renderAllQRCodes();renderQRLocSelect();},500);}
 
 function renderAdminStats(){
   // Check absence alerts
@@ -932,18 +1048,18 @@ function renderAdminStats(){
   if(alertDiv){
     if(alerts.length>0){
       alertDiv.style.display='block';
-      alertDiv.innerHTML=`<div style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--red)">⚠️ غایبین: ${alerts.join(' | ')}</div>`;
+      alertDiv.innerHTML='<div style="background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);border-radius:12px;padding:12px 14px;margin-bottom:12px;font-size:13px;color:var(--red)">&#9888;&#65039; غایبین: '+alerts.join(' | ')+'</div>';
     } else alertDiv.style.display='none';
   }
-}
-function _unusedStats(){
+  // Render stats
   const today=todayStr();
-  const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
-  document.getElementById('admin-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">شعبه</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--purple)">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--green)">${toPersianNum(presentToday)}</div><div class="stat-label">حاضر امروز</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${toPersianNum(state.logs.filter(l=>l.date===today).length)}</div><div class="stat-label">ثبت امروز</div></div>`;
+  const presentToday=new Set(state.logs.filter(function(l){return l.date===today&&l.type==='in';}).map(function(l){return l.userId;})).size;
+  const statsEl=document.getElementById('admin-stats');
+  if(statsEl) statsEl.innerHTML=
+    '<div class="stat-box"><div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div><div class="stat-label">شعبه</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div><div class="stat-label">پرسنل</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div><div class="stat-label">حاضر امروز</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--orange)">'+toPersianNum(state.logs.filter(function(l){return l.date===today;}).length)+'</div><div class="stat-label">ثبت امروز</div></div>';
 }
 
 function renderLocationsList(){
@@ -1578,6 +1694,309 @@ function loadTrackMap(){
     trackMap.fitBounds(bounds,{padding:[20,20]});
     trackMap.invalidateSize();
   },300);
+}
+
+// ════ CONFERENCE ════
+function renderConferenceAdminTab(){
+  // Init year select
+  initJalaliDateSelects();
+  // Fill manager select
+  const mgr=document.getElementById('conf-manager');
+  if(mgr){
+    if(!state.personnel.length){
+      mgr.innerHTML='<option value="">ابتدا پرسنل اضافه کنید</option>';
+    } else {
+      mgr.innerHTML='<option value="">-- انتخاب مدیر جلسه --</option>'+
+        state.personnel.map(function(p){return '<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';}).join('');
+    }
+  }
+  // Fill participants checkboxes
+  const parts=document.getElementById('conf-participants');
+  if(parts){
+    if(!state.personnel.length){
+      parts.innerHTML='<p style="color:var(--text3);font-size:13px;padding:8px">ابتدا پرسنل اضافه کنید</p>';
+    } else {
+      var partsHTML='';
+      for(var pi=0;pi<state.personnel.length;pi++){
+        var pp=state.personnel[pi];
+        partsHTML+='<label style="display:flex;align-items:center;gap:12px;cursor:pointer;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;margin-bottom:4px">'+
+          '<input type="checkbox" value="'+pp.nationalId+'" style="width:18px;height:18px;accent-color:var(--accent);flex-shrink:0">'+
+          '<span style="font-size:14px;font-weight:500">👤 '+pp.fname+' '+pp.lname+'</span></label>';
+      }
+      parts.innerHTML=partsHTML;
+    }
+  }
+  renderConferenceList();
+}
+
+function initJalaliDateSelects(){
+  // Init hour select
+  const hourSel=document.getElementById('conf-hour');
+  if(hourSel&&!hourSel.options.length){
+    for(let h=0;h<24;h++){
+      const opt=document.createElement('option');
+      opt.value=String(h).padStart(2,'0');
+      opt.textContent=toPersianNum(h)+' ساعت';
+      if(h===8) opt.selected=true;
+      hourSel.appendChild(opt);
+    }
+  }
+  // Init Persian datepicker
+  setTimeout(function(){
+    if(typeof jQuery!=='undefined'&&typeof jQuery.fn.persianDatepicker!=='undefined'){
+      jQuery('#conf-date-picker').persianDatepicker({
+        format:'YYYY/MM/DD',
+        autoClose:true,
+        observer:true,
+        calendar:{persian:{locale:'fa'}},
+        onSelect:function(unix){
+          try{
+            var d=new persianDate(unix);
+            var val=d.year()+'/'+String(d.month()).padStart(2,'0')+'/'+String(d.date()).padStart(2,'0');
+            document.getElementById('conf-date-picker').value=val;
+            document.getElementById('conf-date').value=val;
+          }catch(e){
+            var inp=document.getElementById('conf-date-picker');
+            document.getElementById('conf-date').value=inp.value;
+          }
+        }
+      });
+    } else {
+      // Fallback: simple manual input
+      var picker=document.getElementById('conf-date-picker');
+      if(picker){
+        picker.readOnly=false;
+        picker.placeholder='مثلاً: ۱۴۰۴/۰۳/۲۵';
+        picker.addEventListener('input',function(){
+          document.getElementById('conf-date').value=this.value;
+        });
+      }
+    }
+  },800);
+}
+
+function addConference(){
+  const title=document.getElementById('conf-title').value.trim();
+  const desc=document.getElementById('conf-desc').value.trim();
+  const datePicker=document.getElementById('conf-date-picker');
+  const dateHidden=document.getElementById('conf-date');
+  const date=(dateHidden&&dateHidden.value)?dateHidden.value:(datePicker?datePicker.value:'');
+  const hour=document.getElementById('conf-hour')?.value||'08';
+  const minute=document.getElementById('conf-minute')?.value||'00';
+  const time=hour+':'+minute;
+  const manager=document.getElementById('conf-manager').value;
+  const participants=[...document.querySelectorAll('#conf-participants input:checked')].map(c=>c.value);
+  if(!title||!date||!time||!manager){showToast('عنوان، تاریخ، ساعت و مدیر الزامی است','error');return;}
+  if(!participants.includes(manager)) participants.push(manager);
+  state.conferences.push({
+    id:'conf_'+Date.now(),
+    title,desc,date,time,manager,participants,
+    status:'upcoming', // upcoming, live, done
+    startedAt:null,endedAt:null,
+  });
+  saveConferences();
+  renderConferenceList();
+  renderEmpConferences();
+  document.getElementById('conf-title').value='';
+  document.getElementById('conf-desc').value='';
+  showToast('جلسه با موفقیت ثبت شد ✅','success');
+}
+
+function renderConferenceList(){
+  const list=document.getElementById('conference-list');
+  if(!list)return;
+  if(!state.conferences.length){list.innerHTML='<div class="empty-state"><div class="icon">📅</div>جلسه‌ای ثبت نشده</div>';return;}
+  const sorted=[...state.conferences].sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+  list.innerHTML=sorted.map(c=>{
+    const mgr=state.personnel.find(p=>p.nationalId===c.manager);
+    const partNames=c.participants.map(id=>state.personnel.find(p=>p.nationalId===id)?.fname).filter(Boolean).join('، ');
+    const statusBadge=c.status==='live'?
+      `<span class="conf-live"><span class="conf-live-dot"></span>در حال برگزاری</span>`:
+      c.status==='done'?`<span class="conf-done">✓ پایان یافته</span>`:
+      `<span class="conf-upcoming">⏰ برگزار نشده</span>`;
+    return `<div class="conf-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div>
+          <div style="font-size:15px;font-weight:700;color:#e8f4fd">${c.title}</div>
+          ${c.desc?`<div style="font-size:12px;color:#7ea8c9;margin-top:3px">${c.desc}</div>`:''}
+        </div>
+        ${statusBadge}
+      </div>
+      <div style="font-size:12px;color:#7ea8c9;margin-bottom:6px">📅 ${c.date} | ⏰ ${c.time}</div>
+      <div style="font-size:12px;color:#7ea8c9;margin-bottom:4px">👑 مدیر: ${mgr?mgr.fname+' '+mgr.lname:'—'}</div>
+      <div style="font-size:12px;color:#7ea8c9">👥 ${toPersianNum(c.participants.length)} شرکت‌کننده: ${partNames}</div>
+      <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+        ${c.status==='upcoming'?`<button onclick="startConference('${c.id}')" class="conf-start-btn" style="flex:1">🔴 شروع جلسه</button>`:''}
+        ${c.status==='live'?`<button onclick="endConference('${c.id}')" style="flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">⏹ پایان جلسه</button>`:''}
+        <button onclick="deleteConference('${c.id}')" style="background:transparent;border:1px solid rgba(255,68,68,0.3);border-radius:10px;padding:10px 14px;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:12px;cursor:pointer">🗑</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function startConference(id){
+  const idx=state.conferences.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  state.conferences[idx].status='live';
+  state.conferences[idx].startedAt=new Date().toISOString();
+  saveConferences();
+  renderConferenceList();
+  renderEmpConferences();
+  showToast('جلسه شروع شد 🔴','success');
+}
+
+function endConference(id){
+  const idx=state.conferences.findIndex(c=>c.id===id);
+  if(idx<0)return;
+  state.conferences[idx].status='done';
+  state.conferences[idx].endedAt=new Date().toISOString();
+  saveConferences();
+  renderConferenceList();
+  renderEmpConferences();
+  showToast('جلسه پایان یافت ✅','success');
+}
+
+function deleteConference(id){
+  if(!confirm('آیا مطمئن هستید؟'))return;
+  state.conferences=state.conferences.filter(c=>c.id!==id);
+  saveConferences();renderConferenceList();
+}
+
+function renderEmpConferences(){
+  if(!state.currentUser)return;
+  const u=state.currentUser;
+  // Find conferences this user is part of and are upcoming or live
+  const myConfs=state.conferences.filter(c=>
+    c.participants.includes(u.nationalId) && c.status!=='done'
+  );
+  const card=document.getElementById('emp-conferences-card');
+  const list=document.getElementById('emp-conferences-list');
+  if(!card||!list)return;
+  if(!myConfs.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=myConfs.map(c=>{
+    const isManager=c.manager===u.nationalId;
+    const isLive=c.status==='live';
+    return `<div class="conf-card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="font-size:15px;font-weight:700;color:#e8f4fd">${c.title}</div>
+        ${isLive?`<span class="conf-live"><span class="conf-live-dot"></span>زنده</span>`:`<span class="conf-upcoming">⏰ ${c.time}</span>`}
+      </div>
+      ${c.desc?`<div style="font-size:12px;color:#7ea8c9;margin-bottom:6px">${c.desc}</div>`:''}
+      <div style="font-size:12px;color:#7ea8c9">📅 ${c.date}</div>
+      ${isManager&&isLive?`<button onclick="endConferenceEmp('${c.id}')" style="width:100%;margin-top:10px;background:rgba(255,68,68,0.2);border:1px solid rgba(255,68,68,0.4);border-radius:10px;padding:10px;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:600;cursor:pointer">⏹ پایان جلسه</button>`:''}
+      ${isManager&&!isLive?`<button onclick="startConferenceEmp('${c.id}')" class="conf-start-btn">🔴 شروع جلسه</button>`:''}
+    </div>`;
+  }).join('');
+}
+
+function startConferenceEmp(id){startConference(id);}
+function endConferenceEmp(id){endConference(id);}
+
+// ════ EMP MENU ════
+function toggleEmpMenu(){
+  const menu=document.getElementById('emp-menu');
+  if(menu.style.display==='none'){
+    openEmpMenu();
+  } else {
+    closeEmpMenu();
+  }
+}
+
+function openEmpMenu(){
+  const u=state.currentUser;
+  const menu=document.getElementById('emp-menu');
+  menu.style.display='block';
+  // Update menu info
+  document.getElementById('emp-avatar2').textContent=u.fname[0];
+  document.getElementById('menu-emp-name').textContent=u.fname+' '+u.lname;
+  const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
+  document.getElementById('menu-emp-loc').textContent=locs||'بدون شعبه';
+  document.getElementById('menu-emp-id').textContent='کد ملی: '+u.nationalId;
+  // Inbox preview - show last 3 messages
+  const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  const preview=document.getElementById('menu-inbox-items');
+  if(!msgs.length){
+    preview.innerHTML='<div style="font-size:12px;color:var(--text3)">پیامی وجود ندارد</div>';
+  } else {
+    const last3=[...msgs].reverse().slice(0,3);
+    preview.innerHTML=last3.map(m=>{
+      const isNew=!m.readBy.includes(u.nationalId);
+      return `<div style="padding:8px;background:${isNew?'rgba(0,212,255,0.06)':'var(--bg3)'};border-radius:8px;margin-bottom:6px;font-size:12px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
+        ${isNew?'<span style="color:var(--accent);font-size:10px">🔵 جدید &nbsp;</span>':''}${m.text.length>50?m.text.substring(0,50)+'...':m.text}
+        <div style="font-size:10px;color:var(--text3);margin-top:3px">${m.time} — ${m.date}</div>
+      </div>`;
+    }).join('');
+  }
+  // Mark messages as read
+  msgs.forEach(m=>{
+    const idx=state.messages.findIndex(x=>x.id===m.id);
+    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+      state.messages[idx].readBy.push(u.nationalId);
+    }
+  });
+  saveMessages();
+  document.getElementById('notif-dot').style.display='none';
+}
+
+function closeEmpMenu(){
+  document.getElementById('emp-menu').style.display='none';
+}
+
+function openChangePassword(){
+  document.getElementById('cp-current').value='';
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-confirm').value='';
+  document.getElementById('change-pass-modal').classList.add('open');
+}
+
+function doChangePassword(){
+  const current=document.getElementById('cp-current').value;
+  const newPass=document.getElementById('cp-new').value;
+  const confirm=document.getElementById('cp-confirm').value;
+  const u=state.currentUser;
+  if(current!==u.password){showToast('رمز فعلی اشتباه است','error');return;}
+  if(newPass.length<4){showToast('رمز جدید باید حداقل ۴ کاراکتر باشد','error');return;}
+  if(newPass!==confirm){showToast('تکرار رمز مطابقت ندارد','error');return;}
+  const idx=state.personnel.findIndex(p=>p.nationalId===u.nationalId);
+  if(idx>=0){
+    state.personnel[idx].password=newPass;
+    state.currentUser.password=newPass;
+    savePersonnel();
+  }
+  document.getElementById('change-pass-modal').classList.remove('open');
+  showToast('رمز عبور با موفقیت تغییر کرد ✅','success');
+}
+
+function openProfilePanel(){
+  const u=state.currentUser;
+  document.getElementById('profile-avatar').textContent=u.fname[0];
+  document.getElementById('profile-name').textContent=u.fname+' '+u.lname;
+  document.getElementById('profile-id').textContent='کد ملی: '+u.nationalId;
+  // Stats
+  const today=todayStr();
+  const todayLogs=state.logs.filter(l=>l.userId===u.nationalId&&l.date===today);
+  const totalLogs=state.logs.filter(l=>l.userId===u.nationalId);
+  const workDays=new Set(totalLogs.map(l=>l.date)).size;
+  document.getElementById('profile-stats').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--green)">${toPersianNum(workDays)}</div><div class="stat-label">روز کاری</div></div>
+      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--accent)">${toPersianNum(todayLogs.length)}</div><div class="stat-label">ثبت امروز</div></div>
+      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--purple)">${toPersianNum(totalLogs.filter(l=>l.type==='in').length)}</div><div class="stat-label">کل ورود</div></div>
+    </div>`;
+  // All messages
+  const msgs=getMyMessages(u.nationalId,u.locations||[]);
+  const inbox=document.getElementById('profile-inbox');
+  if(!msgs.length){
+    inbox.innerHTML='<div class="empty-state"><div class="icon">📭</div>پیامی وجود ندارد</div>';
+  } else {
+    inbox.innerHTML=[...msgs].reverse().map(m=>`
+      <div style="padding:12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;border:1px solid var(--border)">
+        <div style="font-size:13px;line-height:1.6">${m.text}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">📅 ${m.date} ${m.time}</div>
+      </div>`).join('');
+  }
+  document.getElementById('profile-modal').classList.add('open');
 }
 
 // ════ UTILS ════
