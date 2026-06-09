@@ -186,47 +186,30 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <!-- EMPLOYEE -->
 <div id="screen-emp" class="screen">
   <div class="topbar">
-    <div class="avatar" id="emp-avatar" onclick="toggleEmpMenu()" style="cursor:pointer">A</div>
-    <div style="flex:1;cursor:pointer" onclick="toggleEmpMenu()">
+    <div class="avatar" id="emp-avatar" onclick="openProfilePanel()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="openProfilePanel()">
       <div class="topbar-title" id="emp-name">نام پرسنل</div>
       <div class="topbar-sub" id="emp-location-name">مکان کاری</div>
     </div>
-    <div class="notif-bell" onclick="toggleEmpMenu()" style="margin-left:4px">
-      <span style="font-size:22px">🔔</span>
+    <div class="notif-bell" onclick="openProfilePanel()" style="margin-left:8px;cursor:pointer;position:relative">
+      <span style="font-size:24px">🔔</span>
       <div class="notif-dot" id="notif-dot" style="display:none"></div>
     </div>
-    <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px" onclick="toggleEmpMenu()">☰</button>
+    <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px 8px" onclick="toggleEmpMenu()">☰</button>
   </div>
 
-  <!-- Employee Dropdown Menu -->
+  <!-- Employee Dropdown Menu (☰) -->
   <div id="emp-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:150" onclick="closeEmpMenu()">
     <div style="position:absolute;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);padding:8px 0;animation:slideDown .2s ease" onclick="event.stopPropagation()">
-      <!-- Profile header -->
-      <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px">
-        <div class="avatar" id="emp-avatar2" style="width:48px;height:48px;font-size:18px">A</div>
-        <div>
-          <div style="font-weight:700;font-size:15px" id="menu-emp-name">نام پرسنل</div>
-          <div style="font-size:12px;color:var(--text2)" id="menu-emp-loc">مکان کاری</div>
-          <div style="font-size:11px;color:var(--text3)" id="menu-emp-id"></div>
-        </div>
-      </div>
-      <!-- Inbox preview -->
-      <div id="menu-inbox-preview" style="padding:12px 20px;border-bottom:1px solid var(--border)">
-        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📬 پیام‌های اخیر</div>
-        <div id="menu-inbox-items"></div>
-      </div>
-      <!-- Menu items -->
-      <div style="padding:8px 0">
-        <button onclick="openChangePassword();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
-          <span>🔑</span><span>تغییر رمز عبور</span>
-        </button>
-        <button onclick="openProfilePanel();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
-          <span>👤</span><span>پروفایل من</span>
-        </button>
-        <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:4px">
-          <span>⏏</span><span>خروج از حساب</span>
-        </button>
-      </div>
+      <button onclick="openProfilePanel();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+        <span>👤</span><span>پروفایل و پیام‌ها</span>
+      </button>
+      <button onclick="openChangePassword();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+        <span>🔑</span><span>تغییر رمز عبور</span>
+      </button>
+      <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:4px">
+        <span>⏏</span><span>خروج از حساب</span>
+      </button>
     </div>
   </div>
 
@@ -514,12 +497,9 @@ input[type=range]{accent-color:var(--accent);width:100%}
   <div class="modal">
     <div class="modal-handle"></div>
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <div class="scan-overlay">
-      <video id="qr-video" autoplay playsinline></video>
-      <canvas id="qr-canvas" style="display:none"></canvas>
-    </div>
-    <div id="qr-scan-result" class="qr-result"></div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:12px">دوربین را روی QR code شعبه بگیرید</p>
+    <div id="qr-reader" style="width:100%;border-radius:12px;overflow:hidden"></div>
+    <div id="qr-scan-result" class="qr-result" style="margin-top:10px"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
 </div>
@@ -806,12 +786,16 @@ function renderTodayLogs(){
 }
 
 // ════ QR SCANNER ════
+let html5QrScanner = null;
+
 function openQRScan(type){
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
-  document.getElementById('qr-scan-result').style.display='none';
+  const resultEl=document.getElementById('qr-scan-result');
+  resultEl.style.display='none';
+  resultEl.textContent='';
   document.getElementById('qr-scan-modal').classList.add('open');
-  startCamera();
+  setTimeout(startHtml5Scanner, 400);
 }
 
 function closeQRScan(){
@@ -820,49 +804,34 @@ function closeQRScan(){
 }
 
 function stopQRScan(){
-  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
-  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
-  const video=document.getElementById('qr-video');
-  video.style.display='none';
-  video.srcObject=null;
+  if(html5QrScanner){
+    html5QrScanner.stop().then(()=>{
+      html5QrScanner.clear();
+      html5QrScanner=null;
+    }).catch(()=>{html5QrScanner=null;});
+  }
 }
 
-async function startCamera(){
-  const video=document.getElementById('qr-video');
-  try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-    video.srcObject=scanStream;
-    video.style.display='block';
-    video.play();
-    scanInterval=setInterval(scanFrame,300);
-  } catch(e){
-    showToast('دسترسی به دوربین رد شد','error');
+function startHtml5Scanner(){
+  if(typeof Html5Qrcode==='undefined'){
+    showToast('کتابخانه اسکنر لود نشد، دوباره امتحان کنید','error');
+    return;
+  }
+  const div=document.getElementById('qr-reader');
+  div.innerHTML='';
+  html5QrScanner=new Html5Qrcode('qr-reader');
+  const config={fps:10, qrbox:{width:250,height:250}, aspectRatio:1.0};
+  html5QrScanner.start(
+    {facingMode:'environment'},
+    config,
+    function(decodedText){
+      processQRCode(decodedText);
+    },
+    function(err){}
+  ).catch(function(err){
+    showToast('دسترسی به دوربین رد شد — در تنظیمات Safari دسترسی دوربین را فعال کنید','error');
     closeQRScan();
-  }
-}
-
-function scanFrame(){
-  const video=document.getElementById('qr-video');
-  if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-  const canvas=document.getElementById('qr-canvas');
-  canvas.width=video.videoWidth;
-  canvas.height=video.videoHeight;
-  const ctx=canvas.getContext('2d');
-  ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  // Use BarcodeDetector if available
-  if('BarcodeDetector' in window){
-    const detector=new BarcodeDetector({formats:['qr_code']});
-    detector.detect(canvas).then(codes=>{
-      if(codes.length>0) processQRCode(codes[0].rawValue);
-    }).catch(()=>{});
-  } else {
-    // Fallback: jsQR
-    if(typeof jsQR!=='undefined'){
-      const code=jsQR(imageData.data,imageData.width,imageData.height);
-      if(code) processQRCode(code.data);
-    }
-  }
+  });
 }
 
 function processQRCode(data){
@@ -1996,6 +1965,9 @@ function openProfilePanel(){
   document.getElementById('profile-avatar').textContent=u.fname[0];
   document.getElementById('profile-name').textContent=u.fname+' '+u.lname;
   document.getElementById('profile-id').textContent='کد ملی: '+u.nationalId;
+  const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
+  const locEl=document.getElementById('profile-loc');
+  if(locEl) locEl.textContent='شعبه: '+(locs||'—');
   // Stats
   const today=todayStr();
   const todayLogs=state.logs.filter(l=>l.userId===u.nationalId&&l.date===today);
@@ -2031,9 +2003,9 @@ function showToast(msg,type){
   document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
 }
 
-// Load jsQR fallback
+// Load html5-qrcode for better iOS Safari support
 const s=document.createElement('script');
-s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
+s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
 document.head.appendChild(s);
 
 ['edit-loc-modal','edit-per-modal'].forEach(id=>{
