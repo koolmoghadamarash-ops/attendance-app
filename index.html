@@ -1870,7 +1870,7 @@ function gregorianToJalali(gy,gm,gd){
   var jy,jm,jd,i,ii;
   var g_y=gy-1600,g_m=gm-1,g_d=gd-1;
   var g_d_no2=365*g_y+(Math.floor((g_y+3)/4)-Math.floor((g_y+99)/100)+Math.floor((g_y+399)/400));
-  for(i=0;i<g_m;++i) g_d_no2+=g_d_no[i+1];
+  for(var gi=0;gi<g_m;gi++) g_d_no2+=g_d_no[gi+1];
   g_d_no2+=g_d;
   var j_d_no2=g_d_no2-79;
   var j_np=Math.floor(j_d_no2/12053);
@@ -1878,8 +1878,8 @@ function gregorianToJalali(gy,gm,gd){
   jy=979+33*j_np+4*Math.floor(j_d_no2/1461);
   j_d_no2%=1461;
   if(j_d_no2>=366){jy+=Math.floor((j_d_no2-1)/365);j_d_no2=(j_d_no2-1)%365;}
-  for(i=0;i<11&&j_d_no2>=j_d_no[i+1];++i) j_d_no2-=j_d_no[i+1];
-  jm=i+1; jd=j_d_no2+1;
+  var ji=0;for(ji=0;ji<11&&j_d_no2>=j_d_no[ji+1];ji++) j_d_no2-=j_d_no[ji+1];
+  jm=ji+1; jd=j_d_no2+1;
   return [jy,jm,jd];
 }
 
