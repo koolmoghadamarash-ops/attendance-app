@@ -13,7 +13,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
 
 <style>
@@ -610,14 +610,14 @@ input[type=range]{accent-color:var(--accent);width:100%}
 const SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';
 const SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';
 let sb=null;
-window.addEventListener('load',function(){
+function initSupabase(){
+  if(sb)return true;
   try{
+    if(typeof supabase==='undefined'){console.warn('Supabase not loaded yet');return false;}
     sb=supabase.createClient(SUPA_URL,SUPA_KEY);
-    console.log('Supabase ready');
-  }catch(e){
-    console.error('Supabase init error',e);
-  }
-});
+    return true;
+  }catch(e){console.error('Supabase init error',e);return false;}
+}
 
 // ════ STATE ════
 let state={
@@ -1867,7 +1867,7 @@ function initJalaliDateSelects(){
 function gregorianToJalali(gy,gm,gd){
   var g_d_no=[0,31,(gy%4===0&&(gy%100!==0||gy%400===0)?29:28),31,30,31,30,31,31,30,31,30,31];
   var j_d_no=[0,31,31,31,31,31,31,30,30,30,30,30,29];
-  var jy,jm,jd,i;
+  var jy,jm,jd,i,ii;
   var g_y=gy-1600,g_m=gm-1,g_d=gd-1;
   var g_d_no2=365*g_y+(Math.floor((g_y+3)/4)-Math.floor((g_y+99)/100)+Math.floor((g_y+399)/400));
   for(i=0;i<g_m;++i) g_d_no2+=g_d_no[i+1];
