@@ -1118,11 +1118,19 @@ function adminTab(tab,el){
   }
   if(tab==='messages'){renderMsgTarget();renderSentMessages();}
   if(tab==='dashboard'){renderDashboard();}
-  if(tab==='track'){renderTrackTab();setTimeout(()=>{if(trackMap)trackMap.invalidateSize();},300);}
+  if(tab==='track'){renderTrackTab();setTimeout(function(){if(trackMap)trackMap.invalidateSize();},300);}
   if(tab==='conference'){renderConferenceAdminTab();}
 }
 
-function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();setTimeout(()=>{renderAllQRCodes();renderQRLocSelect();},500);}
+function renderAdmin(){
+  try{renderAdminStats();}catch(e){console.error('renderAdminStats error',e);}
+  try{renderLocationsList();}catch(e){console.error('renderLocationsList error',e);}
+  try{renderPersonnelList();}catch(e){console.error('renderPersonnelList error',e);}
+  setTimeout(function(){
+    try{renderAllQRCodes();}catch(e){}
+    try{renderQRLocSelect();}catch(e){}
+  },500);
+}
 
 function renderAdminStats(){
   // Check absence alerts
@@ -1425,7 +1433,9 @@ function checkAbsenceAlerts(){
   const timeStr=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
   const today=new Date().toLocaleDateString('fa-IR');
   const alerts=[];
-  for(const [locId,wh] of Object.entries(state.workHours)){
+  var whEntries=Object.entries(state.workHours);
+  for(var wi=0;wi<whEntries.length;wi++){
+    var locId=whEntries[wi][0],wh=whEntries[wi][1];
     if(timeStr<wh.start) continue;
     const locPersonnel=state.personnel.filter(p=>p.locations.includes(locId));
     for(const p of locPersonnel){
@@ -2132,13 +2142,20 @@ const s=document.createElement('script');
 s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
 document.head.appendChild(s);
 
-['edit-loc-modal','edit-per-modal'].forEach(id=>{
+['edit-loc-modal','edit-per-modal'].forEach(function(id){
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
-document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
-document.getElementById('city-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
+document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('login-user').addEventListener('keydown',function(e){if(e.key==='Enter')document.getElementById('login-pass').focus();});
+document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
+
+// Global error handler
+window.onerror=function(msg,src,line,col,err){
+  console.error('JS Error:',msg,'at',src,'line',line);
+  showToast('خطا: '+msg,'error');
+  return true;
+};
 </script>
 </body>
 </html>
