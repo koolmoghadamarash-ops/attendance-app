@@ -2128,6 +2128,7 @@ document.head.appendChild(s);
 });
 document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
 document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('login-user').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
 document.getElementById('city-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
 </script>
 </body>
