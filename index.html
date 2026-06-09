@@ -610,9 +610,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
 const SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';
 const SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';
 let sb=null;
-document.addEventListener('DOMContentLoaded',function(){
-  try{sb=supabase.createClient(SUPA_URL,SUPA_KEY);}
-  catch(e){console.error('Supabase error',e);}
+window.addEventListener('load',function(){
+  try{
+    sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+    console.log('Supabase ready');
+  }catch(e){
+    console.error('Supabase init error',e);
+  }
 });
 
 // ════ STATE ════
