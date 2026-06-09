@@ -13,6 +13,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 
 
 <style>
@@ -605,17 +606,20 @@ input[type=range]{accent-color:var(--accent);width:100%}
   }
 })();
 
+// ════ SUPABASE ════
+const SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';
+const SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';
+let sb=null;
+document.addEventListener('DOMContentLoaded',function(){
+  try{sb=supabase.createClient(SUPA_URL,SUPA_KEY);}
+  catch(e){console.error('Supabase error',e);}
+});
+
 // ════ STATE ════
 let state={
-  currentUser:null,
-  checkinType:'in',
-  locations:JSON.parse(localStorage.getItem('hg_locations')||'[]'),
-  personnel:JSON.parse(localStorage.getItem('hg_personnel')||'[]'),
-  logs:JSON.parse(localStorage.getItem('hg_logs')||'[]'),
-  workHours:JSON.parse(localStorage.getItem('hg_workhours')||'{}'),
-  messages:JSON.parse(localStorage.getItem('hg_messages')||'[]'),
-  locationLogs:JSON.parse(localStorage.getItem('hg_locationlogs')||'[]'),
-  conferences:JSON.parse(localStorage.getItem('hg_conferences')||'[]'),
+  currentUser:null,checkinType:'in',
+  locations:[],personnel:[],logs:[],
+  workHours:{},messages:[],locationLogs:[],conferences:[],
   isTracking:false,
 };
 let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
@@ -1140,7 +1144,7 @@ function renderLocationsList(){
     </div>`).join('');
 }
 
-function addLocation(){
+async function addLocation(){
   const name=document.getElementById('loc-name').value.trim();
   const addr=document.getElementById('loc-addr').value.trim();
   if(!name){showToast('نام شعبه الزامی است','error');return;}
@@ -1153,7 +1157,7 @@ function addLocation(){
   showToast('شعبه با موفقیت ذخیره شد ✅','success');
 }
 
-function deleteLocation(id){
+async function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.locations=state.locations.filter(l=>l.id!==id);
   state.personnel.forEach(p=>{p.locations=p.locations.filter(lid=>lid!==id);});
@@ -1174,7 +1178,7 @@ function openEditLocation(id){
   document.getElementById('edit-loc-modal').classList.add('open');
 }
 
-function saveEditLocation(){
+async function saveEditLocation(){
   const id=document.getElementById('edit-loc-id').value;
   const name=document.getElementById('edit-loc-name').value.trim();
   const addr=document.getElementById('edit-loc-addr').value.trim();
@@ -1231,7 +1235,7 @@ function renderPersonnelList(){
   }).join('');
 }
 
-function addPersonnel(){
+async function addPersonnel(){
   const fname=document.getElementById('per-fname').value.trim();
   const lname=document.getElementById('per-lname').value.trim();
   const nid=document.getElementById('per-id').value.trim();
@@ -1259,7 +1263,7 @@ function openEditPersonnel(id){
   document.getElementById('edit-per-modal').classList.add('open');
 }
 
-function saveEditPersonnel(){
+async function saveEditPersonnel(){
   const id=document.getElementById('edit-per-id').value;
   const fname=document.getElementById('edit-per-fname').value.trim();
   const lname=document.getElementById('edit-per-lname').value.trim();
@@ -1272,14 +1276,18 @@ function saveEditPersonnel(){
   const updates={fname,lname,national_id:nid,locations:locs};
   if(pass) updates.password=pass;
   await dbUpdate('personnel',id,updates);
+  const upd={fname,lname,national_id:nid,locations:locs};
+  if(pass) upd.password=pass;
+  await dbUpdate('personnel',id,upd);
   state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
   renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
   showToast('پرسنل ویرایش شد ✅','success');
 }
 
-function deletePersonnel(id){
+async function deletePersonnel(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
+  await dbDelete('personnel',id);
   await dbDelete('personnel',id);
   state.personnel=state.personnel.filter(p=>p.id!==id);
   renderPersonnelList();renderAdminStats();
@@ -1382,7 +1390,7 @@ function renderWorkHoursList(){
   }).join('');
 }
 
-function saveWorkHoursForLoc(){
+async function saveWorkHoursForLoc(){
   const locId=document.getElementById('wh-loc').value;
   const start=document.getElementById('wh-start').value;
   const end=document.getElementById('wh-end').value;
@@ -1423,7 +1431,7 @@ function renderMsgTarget(){
     state.personnel.map(p=>`<option value="user:${p.nationalId}">${p.fname} ${p.lname}</option>`).join('');
 }
 
-function sendMessage(){
+async function sendMessage(){
   const target=document.getElementById('msg-target').value;
   const text=document.getElementById('msg-text').value.trim();
   if(!text){showToast('متن پیام را وارد کنید','error');return;}
@@ -1871,7 +1879,7 @@ function gregorianToJalali(gy,gm,gd){
   return [jy,jm,jd];
 }
 
-function addConference(){
+async function addConference(){
   const title=document.getElementById('conf-title').value.trim();
   const desc=document.getElementById('conf-desc').value.trim();
   const year=document.getElementById('conf-year').value;
@@ -1927,7 +1935,7 @@ function renderConferenceList(){
   }).join('');
 }
 
-function startConference(id){
+async function startConference(id){
   const idx=state.conferences.findIndex(c=>c.id===id);
   if(idx<0)return;
   state.conferences[idx].status='live';
@@ -1938,7 +1946,7 @@ function startConference(id){
   showToast('جلسه شروع شد 🔴','success');
 }
 
-function endConference(id){
+async function endConference(id){
   const idx=state.conferences.findIndex(c=>c.id===id);
   if(idx<0)return;
   state.conferences[idx].status='done';
@@ -1949,8 +1957,9 @@ function endConference(id){
   showToast('جلسه پایان یافت ✅','success');
 }
 
-function deleteConference(id){
+async function deleteConference(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
+  await dbDelete('conferences',id);
   await dbDelete('conferences',id);
   state.conferences=state.conferences.filter(c=>c.id!==id);
   renderConferenceList();
@@ -2044,7 +2053,7 @@ function openChangePassword(){
   document.getElementById('change-pass-modal').classList.add('open');
 }
 
-function doChangePassword(){
+async function doChangePassword(){
   const current=document.getElementById('cp-current').value;
   const newPass=document.getElementById('cp-new').value;
   const confirm=document.getElementById('cp-confirm').value;
