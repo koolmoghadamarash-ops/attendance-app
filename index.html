@@ -628,6 +628,71 @@ let state={
 };
 let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
+// ════ DB HELPERS ════
+function dbGetAll(table){
+  if(!sb) return Promise.resolve([]);
+  return sb.from(table).select('*').then(function(r){
+    if(r.error){console.error('DB Error',table,r.error.message);return [];}
+    return r.data||[];
+  }).catch(function(e){console.error('dbGetAll catch',e);return [];});
+}
+function dbInsert(table,row){
+  if(!sb) return Promise.resolve(false);
+  return sb.from(table).insert(row).then(function(r){
+    if(r.error) console.error('DB Insert',table,r.error.message);
+    return !r.error;
+  }).catch(function(){return false;});
+}
+function dbUpdate(table,id,upd){
+  if(!sb) return Promise.resolve(false);
+  return sb.from(table).update(upd).eq('id',id).then(function(r){
+    if(r.error) console.error('DB Update',table,r.error.message);
+    return !r.error;
+  }).catch(function(){return false;});
+}
+function dbDelete(table,id){
+  if(!sb) return Promise.resolve(false);
+  return sb.from(table).delete().eq('id',id).then(function(r){
+    if(r.error) console.error('DB Delete',table,r.error.message);
+    return !r.error;
+  }).catch(function(){return false;});
+}
+function dbUpsert(table,row){
+  if(!sb) return Promise.resolve(false);
+  return sb.from(table).upsert(row).then(function(r){
+    if(r.error) console.error('DB Upsert',table,r.error.message);
+    return !r.error;
+  }).catch(function(){return false;});
+}
+function loadAllData(){
+  initSupabase();
+  if(!sb) return Promise.resolve();
+  return Promise.all([
+    dbGetAll('locations'),dbGetAll('personnel'),dbGetAll('logs'),
+    dbGetAll('messages'),dbGetAll('work_hours'),dbGetAll('conferences'),
+  ]).then(function(results){
+    var locs=results[0],pers=results[1],logs=results[2],msgs=results[3],wh=results[4],confs=results[5];
+    state.locations=locs.map(function(l){return {id:l.id,name:l.name,address:l.address,lat:l.lat,lng:l.lng,radius:l.radius||300};});
+    state.personnel=pers.map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,locations:p.locations||[]};});
+    state.logs=logs.map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng,method:l.method||'qr'};});
+    state.messages=msgs.map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,timestamp:m.timestamp,readBy:m.read_by||[]};});
+    state.workHours={};
+    wh.forEach(function(w){state.workHours[w.location_id]={start:w.start_time,end:w.end_time};});
+    state.conferences=confs.map(function(c){return {id:c.id,title:c.title,desc:c.description,date:c.date,time:c.time,manager:c.manager,participants:c.participants||[],status:c.status||'upcoming',startedAt:c.started_at,endedAt:c.ended_at};});
+  }).catch(function(e){console.error('loadAllData error',e);});
+}
+function showLoadingOverlay(show){
+  var ov=document.getElementById('loading-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='loading-overlay';
+    ov.style.cssText='position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px;font-family:Vazirmatn,sans-serif';
+    ov.innerHTML='<div style="font-size:48px">\u{1F4CD}</div><div style="font-size:16px;font-weight:600;color:var(--accent)">\u062F\u0631 \u062D\u0627\u0644 \u0628\u0627\u0631\u06AF\u0630\u0627\u0631\u06CC...</div>';
+    document.body.appendChild(ov);
+  }
+  ov.style.display=show?'flex':'none';
+}
+
 function saveLocations(){localStorage.setItem('hg_locations',JSON.stringify(state.locations));}
 function saveWorkHours(){localStorage.setItem('hg_workhours',JSON.stringify(state.workHours));}
 function saveMessages(){localStorage.setItem('hg_messages',JSON.stringify(state.messages));}
