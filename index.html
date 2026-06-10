@@ -6,6 +6,8 @@
 <meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <meta name="apple-mobile-web-app-title" content="حضور و غیاب">
 <title>حضور و غیاب هوشمند</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,7 +18,7 @@
 <style>
 :root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
 .screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
 #screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
 .login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
@@ -148,9 +150,67 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <!-- EMPLOYEE -->
 <div id="screen-emp" class="screen">
   <div class="topbar">
-    <div class="avatar" id="emp-avatar">A</div>
-    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
+    <div class="avatar" id="emp-avatar" onclick="openProfile()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="openProfile()">
+      <div class="topbar-title" id="emp-name">نام پرسنل</div>
+      <div class="topbar-sub" id="emp-location-name">مکان کاری</div>
+    </div>
+    <div onclick="openInbox()" style="cursor:pointer;position:relative;padding:4px 8px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text2);vertical-align:middle"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      <div id="inbox-dot" style="display:none;position:absolute;top:2px;right:6px;width:8px;height:8px;background:var(--red);border-radius:50%"></div>
+    </div>
+    <button style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--text2);padding:4px" onclick="toggleMenu()">☰</button>
+  </div>
+
+  <!-- Side Menu -->
+  <div id="emp-menu" style="display:none;position:fixed;inset:0;z-index:150" onclick="closeMenu()">
+    <div style="position:absolute;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,0.4)" onclick="event.stopPropagation()">
+      <div style="padding:16px 20px;border-bottom:1px solid var(--border)">
+        <div style="font-weight:700;font-size:15px" id="menu-name">---</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px" id="menu-loc">---</div>
+      </div>
+      <button onclick="openProfile();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+        <span>👤</span><span>پروفایل و پیام‌ها</span>
+      </button>
+      <button onclick="openChangePass();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+        <span>🔑</span><span>تغییر رمز عبور</span>
+      </button>
+      <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)">
+        <span>⏏</span><span>خروج از حساب</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center" onclick="document.getElementById('profile-modal').style.display='none'">
+    <div style="background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px" onclick="event.stopPropagation()">
+      <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px"></div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div class="avatar" id="profile-avatar" style="width:56px;height:56px;font-size:20px;margin:0 auto 10px">A</div>
+        <div style="font-size:17px;font-weight:700" id="profile-name">---</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px" id="profile-id">---</div>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:10px">📬 صندوق پیام</div>
+      <div id="profile-msgs" style="max-height:260px;overflow-y:auto;margin-bottom:16px">
+        <div class="empty-state" style="padding:20px"><div class="icon">📭</div>پیامی وجود ندارد</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openChangePass();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">🔑 تغییر رمز</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="cp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;align-items:flex-end;justify-content:center" onclick="document.getElementById('cp-modal').style.display='none'">
+    <div style="background:var(--card);border-radius:24px 24px 0 0;padding:24px 20px 40px;width:100%;max-width:480px" onclick="event.stopPropagation()">
+      <div style="width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px"></div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:16px">🔑 تغییر رمز عبور</div>
+      <div class="field"><label>رمز فعلی</label><input type="password" id="cp-cur" placeholder="رمز فعلی"></div>
+      <div class="field"><label>رمز جدید</label><input type="password" id="cp-new" placeholder="رمز جدید"></div>
+      <div class="field"><label>تکرار رمز جدید</label><input type="password" id="cp-rep" placeholder="تکرار رمز جدید"></div>
+      <button onclick="doChangePass()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;border:none;border-radius:12px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">💾 ذخیره رمز جدید</button>
+    </div>
   </div>
   <div class="emp-content">
     <div class="clock-card">
@@ -387,6 +447,72 @@ function doLogin(){
     showToast('خطا در اتصال','error');
   });
 }
+function toggleMenu(){
+  var m=document.getElementById('emp-menu');
+  if(m.style.display==='none'){
+    var u=state.currentUser;
+    document.getElementById('menu-name').textContent=u.fname+' '+u.lname;
+    var locs=(u.locations||[]).map(function(id){var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+    document.getElementById('menu-loc').textContent=locs||'بدون شعبه';
+    m.style.display='block';
+  } else m.style.display='none';
+}
+function closeMenu(){document.getElementById('emp-menu').style.display='none';}
+
+function openInbox(){openProfile();}
+
+function openProfile(){
+  var u=state.currentUser;
+  if(!u)return;
+  document.getElementById('profile-avatar').textContent=u.fname[0];
+  document.getElementById('profile-name').textContent=u.fname+' '+u.lname;
+  document.getElementById('profile-id').textContent='کد ملی: '+u.nationalId;
+  // Load messages
+  var myMsgs=state.messages.filter(function(m){
+    return m.target==='all'||m.target===u.nationalId||(u.locations||[]).some(function(lid){return m.target==='loc_'+lid;});
+  });
+  var dot=document.getElementById('inbox-dot');
+  var unread=myMsgs.filter(function(m){return !(m.readBy||[]).includes(u.nationalId);});
+  if(dot) dot.style.display=unread.length?'block':'none';
+  var box=document.getElementById('profile-msgs');
+  if(!myMsgs.length){
+    box.innerHTML='<div class="empty-state" style="padding:20px"><div class="icon">📭</div>پیامی وجود ندارد</div>';
+  } else {
+    box.innerHTML=myMsgs.slice().reverse().map(function(m){
+      var isNew=!(m.readBy||[]).includes(u.nationalId);
+      if(isNew){var idx=state.messages.findIndex(function(x){return x.id===m.id;});if(idx>=0){if(!state.messages[idx].readBy)state.messages[idx].readBy=[];state.messages[idx].readBy.push(u.nationalId);}}
+      return '<div style="padding:12px;background:'+(isNew?'rgba(0,212,255,0.06)':'var(--bg3)')+';border-radius:10px;margin-bottom:8px;border:1px solid '+(isNew?'rgba(0,212,255,0.25)':'var(--border)')+'">'+
+        (isNew?'<div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px">🔵 جدید</div>':'')+
+        '<div style="font-size:13px;line-height:1.6">'+m.text+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:6px">'+m.date+' '+m.time+'</div></div>';
+    }).join('');
+  }
+  var modal=document.getElementById('profile-modal');
+  modal.style.display='flex';
+}
+
+function openChangePass(){
+  document.getElementById('cp-cur').value='';
+  document.getElementById('cp-new').value='';
+  document.getElementById('cp-rep').value='';
+  document.getElementById('cp-modal').style.display='flex';
+}
+
+function doChangePass(){
+  var cur=document.getElementById('cp-cur').value;
+  var nw=document.getElementById('cp-new').value;
+  var rep=document.getElementById('cp-rep').value;
+  var u=state.currentUser;
+  if(cur!==u.password){showToast('رمز فعلی اشتباه است','error');return;}
+  if(nw.length<4){showToast('رمز جدید باید حداقل ۴ کاراکتر باشد','error');return;}
+  if(nw!==rep){showToast('تکرار رمز مطابقت ندارد','error');return;}
+  var idx=state.personnel.findIndex(function(p){return p.nationalId===u.nationalId;});
+  if(idx>=0){state.personnel[idx].password=nw;state.currentUser.password=nw;savePersonnel();}
+  dbEdit('personnel',state.personnel[idx]?state.personnel[idx].id:'',{password:nw});
+  document.getElementById('cp-modal').style.display='none';
+  showToast('رمز عبور با موفقیت تغییر کرد ✅','success');
+}
+
 function doLogout(){
   state.currentUser=null;
   stopQRScan();
@@ -432,6 +558,17 @@ function initEmployee(){
   updateEmpStatus();renderTodayLogs();
 }
 
+function checkInboxDot(){
+  var u=state.currentUser;
+  if(!u)return;
+  var myMsgs=state.messages.filter(function(m){
+    return m.target==='all'||m.target===u.nationalId||(u.locations||[]).some(function(lid){return m.target==='loc_'+lid;});
+  });
+  var unread=myMsgs.filter(function(m){return !(m.readBy||[]).includes(u.nationalId);});
+  var dot=document.getElementById('inbox-dot');
+  if(dot) dot.style.display=unread.length?'block':'none';
+  if(unread.length>0) showToast('📬 '+unread.length+' پیام جدید دارید','info');
+}
 function updateEmpStatus(){
   const today=todayStr();
   const logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
