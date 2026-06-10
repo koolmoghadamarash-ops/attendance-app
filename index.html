@@ -193,9 +193,12 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="topbar-title" id="emp-name">نام پرسنل</div>
       <div class="topbar-sub" id="emp-location-name">مکان کاری</div>
     </div>
-    <div onclick="openProfilePanel()" style="margin-left:8px;cursor:pointer;position:relative;padding:4px">
-      <span style="font-size:22px">🔔</span>
-      <div class="notif-dot" id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%"></div>
+    <div onclick="openInbox()" style="margin-left:8px;cursor:pointer;position:relative;padding:4px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text2)">
+        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+        <polyline points="22,6 12,13 2,6"></polyline>
+      </svg>
+      <div id="notif-dot" style="display:none;position:absolute;top:0;right:0;width:9px;height:9px;background:var(--red);border-radius:50%;border:2px solid var(--card)"></div>
     </div>
     <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px 8px" onclick="toggleEmpMenu()">☰</button>
   </div>
@@ -823,17 +826,40 @@ function initEmployee(){
 }
 
 function showEmpMessages(){
-  const u=state.currentUser;
-  const msgs=getMyMessages(u.nationalId,u.locations||[]);
-  // Render inbox in card
-  renderEmpInbox(msgs,u.nationalId);
-  // Show notif dot if unread
-  const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
+  var u=state.currentUser;
+  var msgs=getMyMessages(u.nationalId,u.locations||[]);
+  var unread=msgs.filter(function(m){return !m.readBy.includes(u.nationalId);});
+  
   if(unread.length>0){
-    const dot=document.getElementById('notif-dot');
-    if(dot)dot.style.display='block';
-    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید — برای مشاهده روی زنگ بزنید`,'info');
+    // Show notif dot on inbox icon
+    var dot=document.getElementById('notif-dot');
+    if(dot) dot.style.display='block';
+    
+    // Show popup notification
+    showInboxPopup(unread.length);
   }
+}
+
+function showInboxPopup(count){
+  var existing=document.getElementById('inbox-popup');
+  if(existing) existing.remove();
+  
+  var popup=document.createElement('div');
+  popup.id='inbox-popup';
+  popup.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:88%;max-width:340px;background:var(--card);border:1.5px solid var(--accent);border-radius:16px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.4);font-family:Vazirmatn,sans-serif;direction:rtl;text-align:center';
+  popup.innerHTML='<div style="font-size:24px;margin-bottom:8px">📬</div>'+
+    '<div style="font-size:15px;font-weight:700;margin-bottom:6px">'+toPersianNum(count)+' پیام خوانده نشده دارید</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:14px">برای مشاهده روی آیکون صندوق کلیک کنید</div>'+
+    '<div style="display:flex;gap:8px">'+
+      '<button onclick="openInbox();document.getElementById('inbox-popup').remove()" style="flex:1;padding:10px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:700;cursor:pointer">مشاهده پیام‌ها</button>'+
+      '<button onclick="document.getElementById('inbox-popup').remove()" style="padding:10px 14px;background:var(--bg3);color:var(--text2);border:none;border-radius:10px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">بعداً</button>'+
+    '</div>';
+  document.body.appendChild(popup);
+  
+  // Auto close after 8 seconds
+  setTimeout(function(){
+    if(document.getElementById('inbox-popup')) document.getElementById('inbox-popup').remove();
+  },8000);
 }
 
 function renderEmpInbox(msgs, nationalId){
@@ -1082,17 +1108,40 @@ function processQRCode(data){
 
 
 function showEmpMessages(){
-  const u=state.currentUser;
-  const msgs=getMyMessages(u.nationalId,u.locations||[]);
-  // Render inbox in card
-  renderEmpInbox(msgs,u.nationalId);
-  // Show notif dot if unread
-  const unread=msgs.filter(m=>!m.readBy.includes(u.nationalId));
+  var u=state.currentUser;
+  var msgs=getMyMessages(u.nationalId,u.locations||[]);
+  var unread=msgs.filter(function(m){return !m.readBy.includes(u.nationalId);});
+  
   if(unread.length>0){
-    const dot=document.getElementById('notif-dot');
-    if(dot)dot.style.display='block';
-    showToast(`📬 ${toPersianNum(unread.length)} پیام جدید — برای مشاهده روی زنگ بزنید`,'info');
+    // Show notif dot on inbox icon
+    var dot=document.getElementById('notif-dot');
+    if(dot) dot.style.display='block';
+    
+    // Show popup notification
+    showInboxPopup(unread.length);
   }
+}
+
+function showInboxPopup(count){
+  var existing=document.getElementById('inbox-popup');
+  if(existing) existing.remove();
+  
+  var popup=document.createElement('div');
+  popup.id='inbox-popup';
+  popup.style.cssText='position:fixed;top:70px;left:50%;transform:translateX(-50%);width:88%;max-width:340px;background:var(--card);border:1.5px solid var(--accent);border-radius:16px;padding:16px;z-index:200;box-shadow:0 8px 32px rgba(0,0,0,0.4);font-family:Vazirmatn,sans-serif;direction:rtl;text-align:center';
+  popup.innerHTML='<div style="font-size:24px;margin-bottom:8px">📬</div>'+
+    '<div style="font-size:15px;font-weight:700;margin-bottom:6px">'+toPersianNum(count)+' پیام خوانده نشده دارید</div>'+
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:14px">برای مشاهده روی آیکون صندوق کلیک کنید</div>'+
+    '<div style="display:flex;gap:8px">'+
+      '<button onclick="openInbox();document.getElementById('inbox-popup').remove()" style="flex:1;padding:10px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,sans-serif;font-size:13px;font-weight:700;cursor:pointer">مشاهده پیام‌ها</button>'+
+      '<button onclick="document.getElementById('inbox-popup').remove()" style="padding:10px 14px;background:var(--bg3);color:var(--text2);border:none;border-radius:10px;font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">بعداً</button>'+
+    '</div>';
+  document.body.appendChild(popup);
+  
+  // Auto close after 8 seconds
+  setTimeout(function(){
+    if(document.getElementById('inbox-popup')) document.getElementById('inbox-popup').remove();
+  },8000);
 }
 
 function renderEmpInbox(msgs, nationalId){
@@ -2170,6 +2219,54 @@ function toggleEmpMenu(){
   }
 }
 
+function openInbox(){
+  var u=state.currentUser;
+  if(!u)return;
+  // Show profile modal directly
+  var modal=document.getElementById('profile-modal');
+  if(!modal)return;
+  
+  // Set basic info
+  var av=document.getElementById('profile-avatar');
+  if(av) av.textContent=u.fname[0];
+  var pn=document.getElementById('profile-name');
+  if(pn) pn.textContent=u.fname+' '+u.lname;
+  var pi=document.getElementById('profile-id');
+  if(pi) pi.textContent='کد ملی: '+u.nationalId;
+  
+  // Render messages
+  var msgs=getMyMessages(u.nationalId,u.locations||[]);
+  var inbox=document.getElementById('profile-inbox');
+  if(inbox){
+    if(!msgs.length){
+      inbox.innerHTML='<div class="empty-state"><div class="icon">📭</div>پیامی وجود ندارد</div>';
+    } else {
+      var html='';
+      msgs.slice().reverse().forEach(function(m){
+        var isNew=!m.readBy.includes(u.nationalId);
+        html+='<div style="padding:12px;background:'+(isNew?'rgba(0,212,255,0.06)':'var(--bg3)')+';border-radius:10px;margin-bottom:8px;border:1px solid '+(isNew?'rgba(0,212,255,0.25)':'var(--border)')+'">'+
+          (isNew?'<div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px">🔵 جدید</div>':'')+
+          '<div style="font-size:13px;line-height:1.6">'+m.text+'</div>'+
+          '<div style="font-size:11px;color:var(--text3);margin-top:6px">📅 '+m.date+' '+m.time+'</div>'+
+        '</div>';
+        // Mark as read
+        var idx=state.messages.findIndex(function(x){return x.id===m.id;});
+        if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
+          state.messages[idx].readBy.push(u.nationalId);
+          dbUpdate('messages',m.id,{read_by:state.messages[idx].readBy});
+        }
+      });
+      inbox.innerHTML=html;
+    }
+  }
+  // Hide notif dot
+  var dot=document.getElementById('notif-dot');
+  if(dot) dot.style.display='none';
+  
+  // Show modal
+  modal.classList.add('open');
+}
+
 function openEmpMenu(){
   var u=state.currentUser;
   if(!u)return;
@@ -2188,15 +2285,12 @@ function closeEmpMenu(){
 
 function openChangePassword(){
   var modal=document.getElementById('change-pass-modal');
-  if(!modal){
-    showToast('در حال بارگذاری...','info');
-    setTimeout(openChangePassword,500);
-    return;
-  }
-  ['cp-current','cp-new','cp-confirm'].forEach(function(id){
-    var el=document.getElementById(id);
+  if(!modal){showToast('خطا - modal یافت نشد','error');return;}
+  var ids=['cp-current','cp-new','cp-confirm'];
+  for(var i=0;i<ids.length;i++){
+    var el=document.getElementById(ids[i]);
     if(el) el.value='';
-  });
+  }
   modal.classList.add('open');
 }
 
@@ -2234,16 +2328,17 @@ function openProfilePanel(){
   var locEl=document.getElementById('profile-loc');
   if(locEl) locEl.textContent='شعبه: '+(locs||'—');
   // Stats
-  const today=todayStr();
-  const todayLogs=state.logs.filter(l=>l.userId===u.nationalId&&l.date===today);
-  const totalLogs=state.logs.filter(l=>l.userId===u.nationalId);
-  const workDays=new Set(totalLogs.map(l=>l.date)).size;
-  document.getElementById('profile-stats').innerHTML=`
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--green)">${toPersianNum(workDays)}</div><div class="stat-label">روز کاری</div></div>
-      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--accent)">${toPersianNum(todayLogs.length)}</div><div class="stat-label">ثبت امروز</div></div>
-      <div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--purple)">${toPersianNum(totalLogs.filter(l=>l.type==='in').length)}</div><div class="stat-label">کل ورود</div></div>
-    </div>`;
+  var today2=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today2;});
+  var totalLogs=state.logs.filter(function(l){return l.userId===u.nationalId;});
+  var workDays=new Set(totalLogs.map(function(l){return l.date;})).size;
+  var statsEl=document.getElementById('profile-stats');
+  if(statsEl) statsEl.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">'+
+    '<div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--green)">'+toPersianNum(workDays)+'</div><div class="stat-label">روز کاری</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--accent)">'+toPersianNum(todayLogs.length)+'</div><div class="stat-label">ثبت امروز</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="font-size:20px;color:var(--purple)">'+toPersianNum(totalLogs.filter(function(l){return l.type==='in';}).length)+'</div><div class="stat-label">کل ورود</div></div>'+
+    '</div>';
   // All messages
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
   const inbox=document.getElementById('profile-inbox');
