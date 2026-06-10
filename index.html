@@ -435,6 +435,9 @@ input[type=range]{accent-color:var(--accent);width:100%}
           <span style="color:var(--red)">🔴 خروج</span>
           <span style="color:var(--accent)">● ردیابی (هر ۵ دقیقه)</span>
         </div>
+        <div class="divider"></div>
+        <div style="font-size:13px;font-weight:600;margin-bottom:8px">📋 لیست مختصات</div>
+        <div id="track-coords-list" style="max-height:200px;overflow-y:auto;font-size:11px"></div>
       </div>
     </div>
 
@@ -949,7 +952,40 @@ function smartCheckin(type){
   );
 }
 
+function registerCheckin(locId,locName){
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
+  var lastLog=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+  if(state.checkinType==='in'&&lastLog&&lastLog.type==='in'){
+    showToast('ابتدا باید خروج ثبت کنید','error');
+    return;
+  }
+  if(state.checkinType==='out'&&(!lastLog||lastLog.type==='out')){
+    showToast('ابتدا باید ورود ثبت کنید','error');
+    return;
+  }
+  var now=new Date();
+  var logEntry={id:'log_'+Date.now(),userId:state.currentUser.nationalId,userName:state.currentUser.fname+' '+state.currentUser.lname,locationId:locId,locationName:locName,type:state.checkinType,date:today,time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),timestamp:now.toISOString(),method:'qr'};
+  state.logs.push(logEntry);
+  dbInsert('logs',{id:logEntry.id,user_id:logEntry.userId,user_name:logEntry.userName,location_id:logEntry.locationId,location_name:logEntry.locationName,type:logEntry.type,date:logEntry.date,time:logEntry.time,timestamp:logEntry.timestamp,method:'qr'});
+  if(state.checkinType==='out'){stopTracking();var ind=document.getElementById('tracking-indicator');if(ind)ind.style.display='none';}
+  else{stopTracking();setTimeout(startTracking,1000);}
+  showToast(state.checkinType==='in'?'✅ ورود در '+locName+' ثبت شد':'✅ خروج از '+locName+' ثبت شد','success');
+  updateEmpStatus();renderTodayLogs();
+}
+
 function registerCheckinWithGPS(locId,locName,lat,lng){
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
+  var lastLog=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+  if(state.checkinType==='in'&&lastLog&&lastLog.type==='in'){
+    showToast('ابتدا باید خروج ثبت کنید','error');
+    return;
+  }
+  if(state.checkinType==='out'&&(!lastLog||lastLog.type==='out')){
+    showToast('ابتدا باید ورود ثبت کنید','error');
+    return;
+  }
   const now=new Date();
   const logEntry={
     id:'log_'+Date.now(),
@@ -1027,52 +1063,23 @@ function startHtml5Scanner(){
 }
 
 function processQRCode(data){
-  // Validate QR token
-  let valid=false, locName='', locId='';
-  for(const loc of state.locations){
-    const expected=getQRToken(loc.id);
-    if(data===expected){
-      // Check if user is allowed in this location
-      if(state.currentUser.locations.includes(loc.id)){
-        valid=true; locName=loc.name; locId=loc.id;
-      } else {
-        showResult('❌ شما مجاز به ورود در این شعبه نیستید','error');
-        return;
-      }
-      break;
-    }
-  }
-  if(!valid){
-    showResult('❌ QR Code نامعتبر یا منقضی شده است','error');
+  var expected=getQRToken('universal');
+  if(data!==expected){
+    showToast('❌ QR نامعتبر یا منقضی شده','error');
     return;
   }
   stopQRScan();
-  // Register checkin
-  const now=new Date();
-  const logEntry={
-    id:'log_'+Date.now(),
-    userId:state.currentUser.nationalId,
-    userName:state.currentUser.fname+' '+state.currentUser.lname,
-    locationId:locId,
-    locationName:locName,
-    type:state.checkinType,
-    date:todayStr(),
-    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
-    timestamp:now.toISOString(),
-    method:'qr',
-  };
-  state.logs.push(logEntry);
-  dbInsert('logs',{id:logEntry.id,user_id:logEntry.userId,user_name:logEntry.userName,location_id:logEntry.locationId,location_name:logEntry.locationName,type:logEntry.type,date:logEntry.date,time:logEntry.time,timestamp:logEntry.timestamp,method:'qr'});
+  var u=state.currentUser;
+  var allowedLocs=(u.locations||[]).map(function(id){return state.locations.find(function(l){return l.id===id;});}).filter(Boolean);
+  if(!allowedLocs.length){
+    showToast('هیچ شعبه‌ای برای شما تعریف نشده','error');
+    return;
+  }
+  var loc=allowedLocs[0];
   document.getElementById('qr-scan-modal').classList.remove('open');
-  showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
-  updateEmpStatus();renderTodayLogs();
-  // Show unread messages
-  showEmpMessages();
-  // Show conferences
-  renderEmpConferences();
-  // Start location tracking
-  startTracking();
+  registerCheckin(loc.id,loc.name);
 }
+
 
 function showEmpMessages(){
   const u=state.currentUser;
@@ -1909,6 +1916,32 @@ function loadTrackMap(){
     trackMap.fitBounds(bounds,{padding:[20,20]});
     trackMap.invalidateSize();
   },300);
+  
+  // Show coords list
+  var coordsList=document.getElementById('track-coords-list');
+  if(coordsList){
+    if(!allPoints.length){
+      coordsList.innerHTML='<p style="color:var(--text3);text-align:center;padding:8px">نقطه‌ای ثبت نشده</p>';
+    } else {
+      var sorted=[...allPoints].sort(function(a,b){return new Date(a.timestamp)-new Date(b.timestamp);});
+      coordsList.innerHTML='<table class="att-table" style="font-size:11px">'+
+        '<thead><tr><th>#</th><th>ساعت</th><th>نوع</th><th>عرض</th><th>طول</th><th>دقت</th></tr></thead>'+
+        '<tbody>'+sorted.map(function(p,i){
+          var type=p.type==='in'?'<span style="color:var(--green)">ورود</span>':
+                   p.type==='out'?'<span style="color:var(--red)">خروج</span>':
+                   '<span style="color:var(--accent)">ردیابی</span>';
+          return '<tr>'+
+            '<td>'+toPersianNum(i+1)+'</td>'+
+            '<td>'+p.time+'</td>'+
+            '<td>'+type+'</td>'+
+            '<td style="direction:ltr">'+parseFloat(p.lat).toFixed(5)+'</td>'+
+            '<td style="direction:ltr">'+parseFloat(p.lng).toFixed(5)+'</td>'+
+            '<td>'+(p.accuracy?toPersianNum(p.accuracy)+'م':'—')+'</td>'+
+          '</tr>';
+        }).join('')+
+        '</tbody></table>';
+    }
+  }
 }
 
 // ════ CONFERENCE ════
