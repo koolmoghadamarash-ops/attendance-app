@@ -727,6 +727,17 @@ function getNextSlotSeconds(){
 }
 
 // ════ AUTH ════
+
+function doLogout(){
+  state.currentUser=null;
+  stopQRScan();
+  stopTracking();
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  showScreen('login');
+}
+
+// ════ SCREENS ════
 function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
@@ -771,16 +782,7 @@ function doLogin(){
     }
   });
 }
-function doLogout(){
-  state.currentUser=null;
-  stopQRScan();
-  stopTracking();
-  document.getElementById('login-user').value='';
-  document.getElementById('login-pass').value='';
-  showScreen('login');
-}
 
-// ════ SCREENS ════
 function showScreen(n){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+n).classList.add('active');
@@ -1871,7 +1873,7 @@ function renderTrackTab(){
     var allDates=Array.from(new Set([].concat(
       state.locationLogs.map(function(l){return l.date;}),
       state.logs.map(function(l){return l.date;})
-    ))].sort().reverse();
+    ))).sort().reverse();
     dSel.innerHTML=allDates.map(function(d){return '<option value="'+d+'">'+d+'</option>';}).join('');
     if(allDates.length) loadTrackMap();
     else{
@@ -1879,7 +1881,7 @@ function renderTrackTab(){
       if(noData) noData.style.display='block';
     }
   }).catch(function(){
-    var allDates=Array.from(new Set(state.logs.map(function(l){return l.date;}))].sort().reverse();
+    var allDates=Array.from(new Set(state.logs.map(function(l){return l.date;}))).sort().reverse();
     dSel.innerHTML=allDates.map(function(d){return '<option value="'+d+'">'+d+'</option>';}).join('');
     if(allDates.length) loadTrackMap();
   });
