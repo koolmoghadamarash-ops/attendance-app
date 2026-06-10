@@ -6,19 +6,17 @@
 <meta name="theme-color" content="#0a1628">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
 <meta name="apple-mobile-web-app-title" content="حضور و غیاب">
 <title>حضور و غیاب هوشمند</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 :root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+body{font-family:'Vazirmatn','IRANSans','Tahoma',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
 .screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
 #screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
 .login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
@@ -26,10 +24,10 @@ body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var
 .login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
 .login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
 .field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
-.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
 .field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
 .field select option{background:var(--bg3)}
-.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
 .btn-primary{background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
 .btn-primary:active{transform:scale(0.98)}
 .btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
@@ -65,7 +63,7 @@ body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var
 .duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
 /* QR Scanner */
 .qr-scan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
 #reader{width:100%;border-radius:12px;overflow:hidden;margin:10px 0}
 .qr-result{background:var(--bg3);border-radius:10px;padding:12px;font-size:13px;margin-top:8px;text-align:center;display:none}
 .qr-result.success{border:1px solid var(--green);color:var(--green)}
@@ -74,7 +72,7 @@ body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var
 #screen-admin{background:var(--bg)}
 .admin-content{flex:1;padding:14px;overflow-y:auto}
 .tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
-.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
+.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
 .tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
 .section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
 .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
@@ -107,7 +105,7 @@ body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var
 .map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
 .map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none}
 .city-search{display:flex;gap:8px;margin-bottom:8px}
-.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none}
+.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;outline:none}
 /* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
@@ -122,13 +120,19 @@ body{font-family:'Vazirmatn',Vazirmatn,sans-serif;background:var(--bg);color:var
 .empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}.empty-state .icon{font-size:36px;margin-bottom:10px}
 .report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
 input[type=range]{accent-color:var(--accent);width:100%}
-.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
+.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
 /* QR Scanner video */
 #qr-video{width:100%;border-radius:12px;display:none}
 .scan-overlay{position:relative}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
 </style>
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap');
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -169,13 +173,13 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <div style="font-weight:700;font-size:15px" id="menu-name">---</div>
         <div style="font-size:12px;color:var(--text2);margin-top:2px" id="menu-loc">---</div>
       </div>
-      <button onclick="openProfile();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+      <button onclick="openProfile();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
         <span>👤</span><span>پروفایل و پیام‌ها</span>
       </button>
-      <button onclick="openChangePass();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+      <button onclick="openChangePass();closeMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
         <span>🔑</span><span>تغییر رمز عبور</span>
       </button>
-      <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)">
+      <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border)">
         <span>⏏</span><span>خروج از حساب</span>
       </button>
     </div>
@@ -195,8 +199,8 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <div class="empty-state" style="padding:20px"><div class="icon">📭</div>پیامی وجود ندارد</div>
       </div>
       <div style="display:flex;gap:8px">
-        <button onclick="openChangePass();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">🔑 تغییر رمز</button>
-        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px;cursor:pointer">بستن</button>
+        <button onclick="openChangePass();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer">🔑 تغییر رمز</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer">بستن</button>
       </div>
     </div>
   </div>
@@ -209,7 +213,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="field"><label>رمز فعلی</label><input type="password" id="cp-cur" placeholder="رمز فعلی"></div>
       <div class="field"><label>رمز جدید</label><input type="password" id="cp-new" placeholder="رمز جدید"></div>
       <div class="field"><label>تکرار رمز جدید</label><input type="password" id="cp-rep" placeholder="تکرار رمز جدید"></div>
-      <button onclick="doChangePass()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;border:none;border-radius:12px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">💾 ذخیره رمز جدید</button>
+      <button onclick="doChangePass()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer">💾 ذخیره رمز جدید</button>
     </div>
   </div>
   <div class="emp-content">
@@ -246,10 +250,12 @@ input[type=range]{accent-color:var(--accent);width:100%}
   <div class="admin-content">
     <div class="stats-grid" id="admin-stats"></div>
     <div class="tabs">
-      <button class="tab active" onclick="adminTab('qr',this)">QR شعبه</button>
+      <button class="tab active" onclick="adminTab('qr',this)">QR</button>
       <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
       <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="adminTab('messages',this)">پیام‌ها</button>
+      <button class="tab" onclick="adminTab('tracking',this)">ردیابی</button>
     </div>
 
     <!-- Tab QR -->
@@ -258,7 +264,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <h3>\ud83d\udd10 QR Code شعبه</h3>
         <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
         <div class="qr-loc-select">
-          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:14px;outline:none">
+          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none">
             <option value="">-- شعبه را انتخاب کنید --</option>
           </select>
         </div>
@@ -286,8 +292,8 @@ input[type=range]{accent-color:var(--accent);width:100%}
             <div class="map-crosshair"></div><div class="map-pin-dot"></div>
           </div>
           <div style="display:flex;gap:8px">
-            <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-            <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
+            <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:12px;outline:none">
+            <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:12px;outline:none">
             <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">\ud83d\udccd</button>
           </div>
         </div>
@@ -314,14 +320,45 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div id="personnel-list"></div>
     </div>
 
+    <!-- Tab Messages -->
+    <div id="tab-messages" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">📤 ارسال پیام جدید</div>
+        <div class="field">
+          <label>گیرنده</label>
+          <select id="msg-target" style="width:100%;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px">
+            <option value="all">همه پرسنل</option>
+          </select>
+        </div>
+        <div class="field"><label>متن پیام</label><textarea id="msg-text" rows="3" placeholder="پیام خود را بنویسید..." style="resize:vertical"></textarea></div>
+        <button class="btn btn-primary" onclick="sendMessage()">📨 ارسال پیام</button>
+      </div>
+      <div class="section-title">پیام‌های ارسال شده</div>
+      <div id="messages-list"></div>
+    </div>
+
+    <!-- Tab Tracking -->
+    <div id="tab-tracking" class="tab-content" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="track-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
+          <option value="">انتخاب پرسنل</option>
+        </select>
+        <select id="track-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
+          <option value="">انتخاب تاریخ</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadTracking()">🔍</button>
+      </div>
+      <div id="tracking-list"></div>
+    </div>
+
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
       <button class="excel-btn" onclick="exportExcel()">\ud83d\udcca خروجی اکسل</button>
       <div class="report-filter">
-        <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+        <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
           <option value="">همه پرسنل</option>
         </select>
-        <select id="filter-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+        <select id="filter-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
           <option value="">همه تاریخ‌ها</option>
         </select>
         <button class="btn btn-primary btn-sm" onclick="loadReports()">\ud83d\udd0d</button>
@@ -383,7 +420,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
   <div id="fullscreen-qr-code" style="background:#fff;padding:20px;border-radius:16px"></div>
   <div style="font-size:18px;font-weight:700;color:#1a2d4a" id="fullscreen-loc-name"></div>
   <div style="font-size:14px;color:#4a7a9b" id="fullscreen-timer"></div>
-  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
+  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
 </div>
 
 <script>
@@ -752,6 +789,104 @@ function openFullscreenQR(){
 function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
 
 // ════ ADMIN ════
+function sendMessage(){
+  var target=document.getElementById('msg-target').value;
+  var text=document.getElementById('msg-text').value.trim();
+  if(!text){showToast('متن پیام خالی است','error');return;}
+  var now=new Date();
+  var msg={
+    id:'msg_'+Date.now(),
+    target:target,
+    text:text,
+    date:todayStr(),
+    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),
+    readBy:[]
+  };
+  state.messages.push(msg);
+  localStorage.setItem('hg_msgs',JSON.stringify(state.messages));
+  dbAdd('messages',{id:msg.id,target:target,text:text,date:msg.date,time:msg.time,read_by:[]});
+  document.getElementById('msg-text').value='';
+  renderMessagesList();
+  showToast('پیام با موفقیت ارسال شد ✅','success');
+}
+
+function renderMessagesList(){
+  var list=document.getElementById('messages-list');
+  if(!list)return;
+  var msgs=state.messages.slice().reverse();
+  if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div>پیامی ارسال نشده</div>';return;}
+  list.innerHTML=msgs.map(function(m){
+    var targetLabel=m.target==='all'?'همه پرسنل':'فرد/شعبه خاص';
+    return '<div class="card"><div style="font-size:13px;line-height:1.7">'+m.text+'</div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:8px;font-size:11px;color:var(--text3)">'+
+      '<span>📅 '+m.date+' '+m.time+'</span><span>👥 '+targetLabel+'</span></div></div>';
+  }).join('');
+}
+
+function initMessagesTab(){
+  var sel=document.getElementById('msg-target');
+  sel.innerHTML='<option value="all">همه پرسنل</option>';
+  state.personnel.forEach(function(p){
+    sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+  });
+  state.locations.forEach(function(l){
+    sel.innerHTML+='<option value="loc_'+l.id+'">شعبه: '+l.name+'</option>';
+  });
+  renderMessagesList();
+}
+
+function loadTracking(){
+  var pid=document.getElementById('track-person').value;
+  var date=document.getElementById('track-date').value;
+  var list=document.getElementById('tracking-list');
+  if(!pid||!date){showToast('پرسنل و تاریخ را انتخاب کنید','error');return;}
+  var logs=state.logs.filter(function(l){return l.userId===pid&&l.date===date;});
+  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📍</div>رکوردی یافت نشد</div>';return;}
+  var html='<div style="margin-bottom:12px">';
+  // Stats
+  var dur=calcTodayDurationById(logs);
+  html+='<div class="card" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center">'+
+    '<div><div style="font-size:13px;color:var(--text2)">مجموع حضور</div><div style="font-size:20px;font-weight:700;color:var(--accent)">'+dur.text+'</div></div>'+
+    '<div><div style="font-size:13px;color:var(--text2)">تعداد ثبت</div><div style="font-size:20px;font-weight:700;color:var(--green)">'+toPersianNum(logs.length)+'</div></div></div></div>';
+  // GPS coords table
+  html+='<div class="section-title">📋 لیست مختصات GPS</div>';
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:var(--bg3)"><th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">#</th><th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">ساعت</th><th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">نوع</th><th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">عرض</th><th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">طول</th></tr></thead><tbody>';
+  logs.forEach(function(l,i){
+    var typeColor=l.type==='in'?'var(--green)':'var(--red)';
+    var typeText=l.type==='in'?'ورود':'خروج';
+    html+='<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:7px">'+toPersianNum(i+1)+'</td>'+
+      '<td style="padding:7px">'+l.time+'</td>'+
+      '<td style="padding:7px;color:'+typeColor+'">'+typeText+'</td>'+
+      '<td style="padding:7px;direction:ltr;font-size:11px">'+(l.lat?parseFloat(l.lat).toFixed(5):'—')+'</td>'+
+      '<td style="padding:7px;direction:ltr;font-size:11px">'+(l.lng?parseFloat(l.lng).toFixed(5):'—')+'</td></tr>';
+  });
+  html+='</tbody></table></div></div>';
+  list.innerHTML=html;
+}
+
+function calcTodayDurationById(logs){
+  var total=0,lastIn=null;
+  logs.forEach(function(l){
+    if(l.type==='in')lastIn=new Date(l.timestamp);
+    else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
+  });
+  if(lastIn)total+=Date.now()-lastIn;
+  var h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  return {total:total,text:h>0?toPersianNum(h)+' ساعت '+toPersianNum(m)+' دقیقه':toPersianNum(m)+' دقیقه'};
+}
+
+function initTrackingTab(){
+  var pSel=document.getElementById('track-person');
+  pSel.innerHTML='<option value="">انتخاب پرسنل</option>';
+  state.personnel.forEach(function(p){pSel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';});
+  var dSel=document.getElementById('track-date');
+  var dates=[...new Set(state.logs.map(function(l){return l.date;}))].sort().reverse();
+  dSel.innerHTML='<option value="">انتخاب تاریخ</option>';
+  dates.forEach(function(d){dSel.innerHTML+='<option value="'+d+'">'+d+'</option>';});
+}
+
 function adminTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
