@@ -247,14 +247,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div id="emp-conferences-list"></div>
     </div>
 
-    <div class="today-log" id="emp-inbox-card">
-      <div class="status-header" style="margin-bottom:0">
-        <span class="status-title">📬 صندوق پیام</span>
-        <span class="badge badge-purple" id="inbox-count">۰ پیام</span>
-      </div>
-      <div class="divider"></div>
-      <div id="emp-inbox-list"><div class="empty-state"><div class="icon">📭</div>صندوق خالی است</div></div>
-    </div>
+    <!-- inbox moved to profile modal -->
   </div>
 </div>
 
@@ -2111,12 +2104,14 @@ function toggleEmpMenu(){
 }
 
 function openEmpMenu(){
-  const u=state.currentUser;
-  const menu=document.getElementById('emp-menu');
+  var u=state.currentUser;
+  var menu=document.getElementById('emp-menu');
   menu.style.display='block';
-  // Update menu info
-  document.getElementById('emp-avatar2').textContent=u.fname[0];
-  document.getElementById('menu-emp-name').textContent=u.fname+' '+u.lname;
+  // Update menu info - safe checks
+  var av2=document.getElementById('emp-avatar2');
+  if(av2) av2.textContent=u.fname[0];
+  var mn=document.getElementById('menu-emp-name');
+  if(mn) mn.textContent=u.fname+' '+u.lname;
   const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
   document.getElementById('menu-emp-loc').textContent=locs||'بدون شعبه';
   document.getElementById('menu-emp-id').textContent='کد ملی: '+u.nationalId;
@@ -2151,10 +2146,15 @@ function closeEmpMenu(){
 }
 
 function openChangePassword(){
-  document.getElementById('cp-current').value='';
-  document.getElementById('cp-new').value='';
-  document.getElementById('cp-confirm').value='';
-  document.getElementById('change-pass-modal').classList.add('open');
+  var modal=document.getElementById('change-pass-modal');
+  if(!modal){showToast('خطا: modal پیدا نشد','error');return;}
+  var cp=document.getElementById('cp-current');
+  var cn=document.getElementById('cp-new');
+  var cc=document.getElementById('cp-confirm');
+  if(cp) cp.value='';
+  if(cn) cn.value='';
+  if(cc) cc.value='';
+  modal.classList.add('open');
 }
 
 function doChangePassword(){
@@ -2176,12 +2176,19 @@ function doChangePassword(){
 }
 
 function openProfilePanel(){
-  const u=state.currentUser;
-  document.getElementById('profile-avatar').textContent=u.fname[0];
-  document.getElementById('profile-name').textContent=u.fname+' '+u.lname;
-  document.getElementById('profile-id').textContent='کد ملی: '+u.nationalId;
-  const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-  const locEl=document.getElementById('profile-loc');
+  var u=state.currentUser;
+  if(!u) return;
+  var modal=document.getElementById('profile-modal');
+  if(!modal) return;
+  
+  var av=document.getElementById('profile-avatar');
+  if(av) av.textContent=u.fname[0];
+  var pn=document.getElementById('profile-name');
+  if(pn) pn.textContent=u.fname+' '+u.lname;
+  var pi=document.getElementById('profile-id');
+  if(pi) pi.textContent='کد ملی: '+u.nationalId;
+  var locs=(u.locations||[]).map(function(id){var l=state.locations.find(function(l){return l.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+  var locEl=document.getElementById('profile-loc');
   if(locEl) locEl.textContent='شعبه: '+(locs||'—');
   // Stats
   const today=todayStr();
