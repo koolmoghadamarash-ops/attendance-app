@@ -193,23 +193,24 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="topbar-title" id="emp-name">نام پرسنل</div>
       <div class="topbar-sub" id="emp-location-name">مکان کاری</div>
     </div>
-    <div class="notif-bell" onclick="openProfilePanel()" style="margin-left:8px;cursor:pointer;position:relative">
-      <span style="font-size:24px">🔔</span>
-      <div class="notif-dot" id="notif-dot" style="display:none"></div>
+    <div onclick="openProfilePanel()" style="margin-left:8px;cursor:pointer;position:relative;padding:4px">
+      <span style="font-size:22px">🔔</span>
+      <div class="notif-dot" id="notif-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;background:var(--red);border-radius:50%"></div>
     </div>
     <button style="background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px 8px" onclick="toggleEmpMenu()">☰</button>
   </div>
 
-  <!-- Employee Dropdown Menu (☰) -->
+  <!-- Employee Menu (☰) -->
   <div id="emp-menu" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:150" onclick="closeEmpMenu()">
-    <div style="position:absolute;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);padding:8px 0;animation:slideDown .2s ease" onclick="event.stopPropagation()">
-      <button onclick="openProfilePanel();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+    <div style="position:absolute;top:64px;left:0;right:0;background:var(--card);border-bottom:1px solid var(--border);box-shadow:var(--shadow);padding:8px 0" onclick="event.stopPropagation()">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);font-size:14px;font-weight:700" id="menu-user-name">---</div>
+      <button onclick="openProfilePanel();closeEmpMenu();" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
         <span>👤</span><span>پروفایل و پیام‌ها</span>
       </button>
-      <button onclick="openChangePassword();closeEmpMenu()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
+      <button onclick="openChangePassword();closeEmpMenu();" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px">
         <span>🔑</span><span>تغییر رمز عبور</span>
       </button>
-      <button onclick="doLogout()" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:4px">
+      <button onclick="doLogout();" style="width:100%;padding:14px 20px;background:none;border:none;color:var(--red);font-family:Vazirmatn,sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:12px;border-top:1px solid var(--border);margin-top:4px">
         <span>⏏</span><span>خروج از حساب</span>
       </button>
     </div>
@@ -2111,15 +2112,11 @@ function toggleEmpMenu(){
 function openEmpMenu(){
   var u=state.currentUser;
   var menu=document.getElementById('emp-menu');
+  if(!menu)return;
   menu.style.display='block';
-  // Update menu info - safe checks
-  var av2=document.getElementById('emp-avatar2');
-  if(av2) av2.textContent=u.fname[0];
-  var mn=document.getElementById('menu-emp-name');
-  if(mn) mn.textContent=u.fname+' '+u.lname;
+  var un=document.getElementById('menu-user-name');
+  if(un&&state.currentUser) un.textContent=state.currentUser.fname+' '+state.currentUser.lname;
   const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-  document.getElementById('menu-emp-loc').textContent=locs||'بدون شعبه';
-  document.getElementById('menu-emp-id').textContent='کد ملی: '+u.nationalId;
   // Inbox preview - show last 3 messages
   const msgs=getMyMessages(u.nationalId,u.locations||[]);
   const preview=document.getElementById('menu-inbox-items');
@@ -2152,13 +2149,15 @@ function closeEmpMenu(){
 
 function openChangePassword(){
   var modal=document.getElementById('change-pass-modal');
-  if(!modal){showToast('خطا: modal پیدا نشد','error');return;}
-  var cp=document.getElementById('cp-current');
-  var cn=document.getElementById('cp-new');
-  var cc=document.getElementById('cp-confirm');
-  if(cp) cp.value='';
-  if(cn) cn.value='';
-  if(cc) cc.value='';
+  if(!modal){
+    showToast('در حال بارگذاری...','info');
+    setTimeout(openChangePassword,500);
+    return;
+  }
+  ['cp-current','cp-new','cp-confirm'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.value='';
+  });
   modal.classList.add('open');
 }
 
