@@ -2172,36 +2172,14 @@ function toggleEmpMenu(){
 
 function openEmpMenu(){
   var u=state.currentUser;
+  if(!u)return;
   var menu=document.getElementById('emp-menu');
   if(!menu)return;
   menu.style.display='block';
   var un=document.getElementById('menu-user-name');
-  if(un&&state.currentUser) un.textContent=state.currentUser.fname+' '+state.currentUser.lname;
-  const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-  // Inbox preview - show last 3 messages
-  const msgs=getMyMessages(u.nationalId,u.locations||[]);
-  const preview=document.getElementById('menu-inbox-items');
-  if(!msgs.length){
-    preview.innerHTML='<div style="font-size:12px;color:var(--text3)">پیامی وجود ندارد</div>';
-  } else {
-    const last3=[...msgs].reverse().slice(0,3);
-    preview.innerHTML=last3.map(m=>{
-      const isNew=!m.readBy.includes(u.nationalId);
-      return `<div style="padding:8px;background:${isNew?'rgba(0,212,255,0.06)':'var(--bg3)'};border-radius:8px;margin-bottom:6px;font-size:12px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
-        ${isNew?'<span style="color:var(--accent);font-size:10px">🔵 جدید &nbsp;</span>':''}${m.text.length>50?m.text.substring(0,50)+'...':m.text}
-        <div style="font-size:10px;color:var(--text3);margin-top:3px">${m.time} — ${m.date}</div>
-      </div>`;
-    }).join('');
-  }
-  // Mark messages as read
-  msgs.forEach(m=>{
-    const idx=state.messages.findIndex(x=>x.id===m.id);
-    if(idx>=0&&!state.messages[idx].readBy.includes(u.nationalId)){
-      state.messages[idx].readBy.push(u.nationalId);
-    }
-  });
-  saveMessages();
-  document.getElementById('notif-dot').style.display='none';
+  if(un) un.textContent=u.fname+' '+u.lname;
+  var nd=document.getElementById('notif-dot');
+  if(nd) nd.style.display='none';
 }
 
 function closeEmpMenu(){
