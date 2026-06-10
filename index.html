@@ -814,7 +814,7 @@ function initEmployee(){
   const u=state.currentUser;
   document.getElementById('emp-name').textContent=u.fname+' '+u.lname;
   document.getElementById('emp-avatar').textContent=u.fname[0];
-  const locs=u.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
+  const locs=u.locations.map(id=>function(id){var _l=state.locations.find(function(l){return l.id===id;});return _l?_l.name:null;}(id)).filter(Boolean).join('، ');
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
   updateEmpStatus();renderTodayLogs();
   // Show unread messages
@@ -873,7 +873,7 @@ function renderEmpInbox(msgs, nationalId){
   }
   count.textContent=toPersianNum(msgs.length)+' پیام';
   // Show newest first
-  const sorted=[...msgs].reverse();
+  const sorted=msgs.slice().reverse();
   list.innerHTML=sorted.map(m=>{
     const isNew=!m.readBy.includes(nationalId);
     return `<div style="padding:12px;background:${isNew?'rgba(0,212,255,0.06)':'transparent'};border-radius:12px;margin-bottom:8px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
@@ -1155,7 +1155,7 @@ function renderEmpInbox(msgs, nationalId){
   }
   count.textContent=toPersianNum(msgs.length)+' پیام';
   // Show newest first
-  const sorted=[...msgs].reverse();
+  const sorted=msgs.slice().reverse();
   list.innerHTML=sorted.map(m=>{
     const isNew=!m.readBy.includes(nationalId);
     return `<div style="padding:12px;background:${isNew?'rgba(0,212,255,0.06)':'transparent'};border-radius:12px;margin-bottom:8px;border:1px solid ${isNew?'rgba(0,212,255,0.2)':'var(--border)'}">
@@ -1342,7 +1342,7 @@ function saveEditLocation(){
   const addr=document.getElementById('edit-loc-addr').value.trim();
   if(!name){showToast('نام الزامی است','error');return;}
   const idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
-  state.locations[idx]={...state.locations[idx],name,address:addr};
+  state.locations[idx]=Object.assign({},state.locations[idx],{name,address:addr});
   saveLocations();renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
   showToast('شعبه ویرایش شد ✅','success');
@@ -1366,7 +1366,7 @@ function renderPersonnelList(){
     const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===today);
     const last=logs[logs.length-1];
     const statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
-    const locs=p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
+    const locs=p.locations.map(id=>function(id){var _l=state.locations.find(function(l){return l.id===id;});return _l?_l.name:null;}(id)).filter(Boolean).join('، ');
     return `<div class="card">
       <div class="card-header">
         <div style="display:flex;align-items:center;gap:10px">
@@ -1398,7 +1398,7 @@ function addPersonnel(){
   const lname=document.getElementById('per-lname').value.trim();
   const nid=document.getElementById('per-id').value.trim();
   const pass=document.getElementById('per-pass').value.trim();
-  const checked=[...document.querySelectorAll('#loc-checkboxes input:checked')].map(c=>c.value);
+  const checked=Array.from(document.querySelectorAll('#loc-checkboxes input:checked')).map(c=>c.value);
   if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
   if(state.personnel.find(p=>p.nationalId===nid)){showToast('این کد ملی قبلاً ثبت شده','error');return;}
   const newP={id:'p_'+Date.now(),fname,lname,nationalId:nid,password:pass,locations:checked};
@@ -1427,7 +1427,7 @@ function saveEditPersonnel(){
   const lname=document.getElementById('edit-per-lname').value.trim();
   const nid=document.getElementById('edit-per-nid').value.trim();
   const pass=document.getElementById('edit-per-pass').value.trim();
-  const locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(c=>c.value);
+  const locs=Array.from(document.querySelectorAll('#edit-loc-checkboxes input:checked')).map(c=>c.value);
   if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
   if(state.personnel.find(p=>p.nationalId===nid&&p.id!==id)){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
   const idx=state.personnel.findIndex(p=>p.id===id);if(idx<0)return;
@@ -1437,7 +1437,7 @@ function saveEditPersonnel(){
   const upd={fname,lname,national_id:nid,locations:locs};
   if(pass) upd.password=pass;
   dbUpdate('personnel',id,upd);
-  state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
+  state.personnel[idx]=Object.assign({},state.personnel[idx],{fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}):{})};
   renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
   showToast('پرسنل ویرایش شد ✅','success');
@@ -1487,14 +1487,14 @@ function useMyLocationForMap(){
 function loadReportFilters(){
   document.getElementById('filter-person').innerHTML='<option value="">همه پرسنل</option>'+
     state.personnel.map(p=>`<option value="${p.nationalId}">${p.fname} ${p.lname}</option>`).join('');
-  const dates=[...new Set(state.logs.map(l=>l.date))].sort().reverse();
+  const dates=Array.from(new Set(state.logs.map(function(l){return l.date;}))).sort().reverse();
   document.getElementById('filter-date').innerHTML='<option value="">همه تاریخ‌ها</option>'+dates.map(d=>`<option value="${d}">${d}</option>`).join('');
 }
 
 function loadReports(){
   const pid=document.getElementById('filter-person').value;
   const date=document.getElementById('filter-date').value;
-  let logs=[...state.logs];
+  let logs=state.logs.slice();
   if(pid)logs=logs.filter(l=>l.userId===pid);
   if(date)logs=logs.filter(l=>l.date===date);
   logs.reverse();
@@ -1522,7 +1522,7 @@ function loadReports(){
 function exportExcel(){
   const pid=document.getElementById('filter-person').value;
   const date=document.getElementById('filter-date').value;
-  let logs=[...state.logs];
+  let logs=state.logs.slice();
   if(pid)logs=logs.filter(l=>l.userId===pid);
   if(date)logs=logs.filter(l=>l.date===date);
   if(!logs.length){showToast('هیچ رکوردی وجود ندارد','error');return;}
@@ -1615,13 +1615,13 @@ function sendMessage(){
 function renderSentMessages(){
   const list=document.getElementById('sent-messages-list');
   if(!list)return;
-  const msgs=[...state.messages].reverse();
+  const msgs=state.messages.slice().reverse();
   if(!msgs.length){list.innerHTML='<div class="empty-state"><div class="icon">📭</div>هیچ پیامی ارسال نشده</div>';return;}
   list.innerHTML=msgs.map(m=>{
     let targetLabel='همه پرسنل';
     if(m.target.startsWith('loc:')){
       const loc=state.locations.find(l=>l.id===m.target.replace('loc:',''));
-      targetLabel='شعبه: '+(loc?.name||'—');
+      targetLabel='شعبه: '+(loc?loc.name:''||'—');
     } else if(m.target.startsWith('user:')){
       const p=state.personnel.find(x=>x.nationalId===m.target.replace('user:',''));
       targetLabel=p?p.fname+' '+p.lname:'—';
@@ -1668,7 +1668,7 @@ function renderDashboard(){
     const last=logs[logs.length-1];
     const dur=calcTodayDuration(logs);
     const firstIn=logs.find(l=>l.type==='in');
-    const lastOut=[...logs].reverse().find(l=>l.type==='out');
+    const lastOut=logs.slice().reverse().find(function(l){return l.type==='out';});
     const statusColor=!last?'var(--orange)':last.type==='in'?'var(--green)':'var(--red)';
     const statusText=!last?'غایب':last.type==='in'?'حاضر':'خروج';
     return `<div class="card" style="margin-bottom:8px">
@@ -1676,7 +1676,7 @@ function renderDashboard(){
         <div class="report-avatar">${p.fname[0]}</div>
         <div style="flex:1">
           <div style="font-weight:700;font-size:14px">${p.fname} ${p.lname}</div>
-          <div style="font-size:11px;color:var(--text2)">${p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ')||'—'}</div>
+          <div style="font-size:11px;color:var(--text2)">${p.locations.map(id=>function(id){var _l=state.locations.find(function(l){return l.id===id;});return _l?_l.name:null;}(id)).filter(Boolean).join('، ')||'—'}</div>
         </div>
         <span style="color:${statusColor};font-size:12px;font-weight:700;background:${statusColor}22;padding:4px 10px;border-radius:20px;border:1px solid ${statusColor}44">${statusText}</span>
       </div>
@@ -1868,7 +1868,7 @@ function renderTrackTab(){
     state.locationLogs=(data||[]).map(function(l){
       return {id:l.id,userId:l.user_id,userName:l.user_name,lat:l.lat,lng:l.lng,accuracy:l.accuracy,date:l.date,time:l.time,timestamp:l.timestamp};
     });
-    var allDates=[...new Set([].concat(
+    var allDates=Array.from(new Set([].concat(
       state.locationLogs.map(function(l){return l.date;}),
       state.logs.map(function(l){return l.date;})
     ))].sort().reverse();
@@ -1879,7 +1879,7 @@ function renderTrackTab(){
       if(noData) noData.style.display='block';
     }
   }).catch(function(){
-    var allDates=[...new Set(state.logs.map(function(l){return l.date;}))].sort().reverse();
+    var allDates=Array.from(new Set(state.logs.map(function(l){return l.date;}))].sort().reverse();
     dSel.innerHTML=allDates.map(function(d){return '<option value="'+d+'">'+d+'</option>';}).join('');
     if(allDates.length) loadTrackMap();
   });
@@ -1890,13 +1890,13 @@ function _renderTrackSelects(){
   const dSel=document.getElementById('track-date');
   if(!pSel||!dSel)return;
   pSel.innerHTML=state.personnel.map(p=>`<option value="${p.nationalId}">${p.fname} ${p.lname}</option>`).join('');
-  const dates=[...new Set([...state.locationLogs,...state.logs].map(l=>l.date))].sort().reverse();
+  const dates=Array.from(new Set(state.locationLogs.concat(state.logs).map(function(l){return l.date;}))).sort().reverse();
   dSel.innerHTML=dates.map(d=>`<option value="${d}">${d}</option>`).join('');
   if(dates.length)loadTrackMap();
 }
 function loadTrackMap(){
-  const pid=document.getElementById('track-person')?.value;
-  const date=document.getElementById('track-date')?.value;
+  const pid=(document.getElementById('track-person')?document.getElementById('track-person').value:'');
+  const date=(document.getElementById('track-date')?document.getElementById('track-date').value:'');
   if(!pid||!date)return;
 
   // Get track points
@@ -1904,7 +1904,7 @@ function loadTrackMap(){
   // Get checkin points
   const checkins=state.logs.filter(l=>l.userId===pid&&l.date===date&&l.lat);
 
-  const allPoints=[...tracks,...checkins].filter(l=>l.lat&&l.lng);
+  const allPoints=tracks.concat(checkins).filter(function(l){return l.lat&&l.lng;});
 
   // Stats
   const statsEl=document.getElementById('track-stats');
@@ -1972,7 +1972,7 @@ function loadTrackMap(){
     if(!allPoints.length){
       coordsList.innerHTML='<p style="color:var(--text3);text-align:center;padding:8px">نقطه‌ای ثبت نشده</p>';
     } else {
-      var sorted=[...allPoints].sort(function(a,b){return new Date(a.timestamp)-new Date(b.timestamp);});
+      var sorted=allPoints.slice().sort(function(a,b){return new Date(a.timestamp)-new Date(b.timestamp);});
       coordsList.innerHTML='<table class="att-table" style="font-size:11px">'+
         '<thead><tr><th>#</th><th>ساعت</th><th>نوع</th><th>عرض</th><th>طول</th><th>دقت</th></tr></thead>'+
         '<tbody>'+sorted.map(function(p,i){
@@ -2104,7 +2104,7 @@ function addConference(){
   const minute=document.getElementById('conf-minute').value||'00';
   const time=hour+':'+minute;
   const manager=document.getElementById('conf-manager').value;
-  const participants=[...document.querySelectorAll('#conf-participants input:checked')].map(c=>c.value);
+  const participants=Array.from(document.querySelectorAll('#conf-participants input:checked')).map(c=>c.value);
   if(!title||!date||!time||!manager){showToast('عنوان، تاریخ، ساعت و مدیر الزامی است','error');return;}
   if(!participants.includes(manager)) participants.push(manager);
   const newConf={id:'conf_'+Date.now(),title,desc,date,time,manager,participants,status:'upcoming',startedAt:null,endedAt:null};
@@ -2121,10 +2121,10 @@ function renderConferenceList(){
   const list=document.getElementById('conference-list');
   if(!list)return;
   if(!state.conferences.length){list.innerHTML='<div class="empty-state"><div class="icon">📅</div>جلسه‌ای ثبت نشده</div>';return;}
-  const sorted=[...state.conferences].sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
+  const sorted=state.conferences.slice().sort((a,b)=>a.date+a.time>b.date+b.time?1:-1);
   list.innerHTML=sorted.map(c=>{
     const mgr=state.personnel.find(p=>p.nationalId===c.manager);
-    const partNames=c.participants.map(id=>state.personnel.find(p=>p.nationalId===id)?.fname).filter(Boolean).join('، ');
+    const partNames=c.participants.map(id=>function(id){var _p=state.personnel.find(function(p){return p.nationalId===id;});return _p?_p.fname:null;}(id)).filter(Boolean).join('، ');
     const statusBadge=c.status==='live'?
       `<span class="conf-live"><span class="conf-live-dot"></span>در حال برگزاری</span>`:
       c.status==='done'?`<span class="conf-done">✓ پایان یافته</span>`:
@@ -2345,7 +2345,7 @@ function openProfilePanel(){
   if(!msgs.length){
     inbox.innerHTML='<div class="empty-state"><div class="icon">📭</div>پیامی وجود ندارد</div>';
   } else {
-    inbox.innerHTML=[...msgs].reverse().map(m=>`
+    inbox.innerHTML=msgs.slice().reverse().map(m=>`
       <div style="padding:12px;background:var(--bg3);border-radius:10px;margin-bottom:8px;border:1px solid var(--border)">
         <div style="font-size:13px;line-height:1.6">${m.text}</div>
         <div style="font-size:11px;color:var(--text3);margin-top:6px">📅 ${m.date} ${m.time}</div>
