@@ -543,13 +543,15 @@ function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
   var timeStr=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
     email: userEmail,
+    to_email: userEmail,
     to_name: userName,
     name: userName,
+    from_name: 'سیستم حضور و غیاب',
     location_name: locName,
     time: timeStr,
     date: todayStr(),
-    message: 'GPS دریافت نشد. برای ثبت حضور در شعبه '+locName+' تاریخ '+todayStr()+' ساعت '+timeStr+' QR زیر را اسکن کنید.',
-    qr_image: qrDataUrl
+    message: 'GPS دریافت نشد. QR ورود شعبه '+locName+' — '+todayStr()+' ساعت '+timeStr,
+    qr_image: qrDataUrl||'(QR در سیستم موجود است)'
   }).then(function(){
     showToast('QR Code به ایمیل شما ارسال شد','success');
     return true;
@@ -1040,10 +1042,12 @@ function handleGPSFail(type, userLocs, u){
   openQRScan(type);
   
   // Then send email and show popup
-  if(email&&email.indexOf('@')>0&&EMAILJS_PUBLIC_KEY!=='YOUR_PUBLIC_KEY'){
+  if(email&&email.indexOf('@')>0){
+    showToast('در حال ارسال QR به '+email+'...','info');
     generateQRDataUrl(qrToken, function(dataUrl){
       sendQRByEmail(email, u.fname+' '+u.lname, loc.name, dataUrl).then(function(ok){
-        if(ok) showEmailSentPopup(email);
+        if(ok)showEmailSentPopup(email);
+        else showNoGPSPopup();
       });
     });
   } else {
@@ -1111,18 +1115,29 @@ function showNoGPSPopup(){
 }
 
 function generateQRDataUrl(text, callback){
-  // Use existing QR library (qrcode.js)
-  var canvas=document.createElement('canvas');
-  canvas.width=200;canvas.height=200;
-  if(typeof QRCode!=='undefined'){
-    try{
-      QRCode.toCanvas(canvas,text,{width:200},function(err){
-        callback(err?'':canvas.toDataURL());
-      });
-      return;
-    }catch(e){}
+  if(typeof QRCode==='undefined'){callback('');return;}
+  try{
+    // Use hidden div to generate QR then extract image
+    var div=document.createElement('div');
+    div.style.cssText='position:fixed;left:-9999px;top:-9999px';
+    document.body.appendChild(div);
+    var qr=new QRCode(div,{
+      text:text,width:200,height:200,
+      colorDark:'#000000',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.H
+    });
+    setTimeout(function(){
+      var img=div.querySelector('img');
+      var canvas=div.querySelector('canvas');
+      var dataUrl='';
+      if(canvas)dataUrl=canvas.toDataURL('image/png');
+      else if(img)dataUrl=img.src;
+      document.body.removeChild(div);
+      callback(dataUrl);
+    },300);
+  }catch(e){
+    callback('');
   }
-  callback('');
 }
 
 function calcDistance(lat1,lng1,lat2,lng2){
