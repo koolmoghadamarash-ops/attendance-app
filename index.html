@@ -12,7 +12,7 @@
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <meta name="apple-mobile-web-app-title" content="حضور و غیاب">
-<title>حضور و غیاب هوشمند v2.5</title>
+<title>حضور و غیاب هوشمند v3.0</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -88,9 +88,9 @@ body{font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;background:var(--bg)
 .info-label{color:var(--text2)}.info-val{font-weight:600}
 .form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
 .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
-.stat-num{font-size:26px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer}
+.stat-num{font-size:18px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
 .report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
 .report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
 .report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
@@ -527,11 +527,11 @@ function loadDB(){
 // ════ EMAIL CONFIG (EmailJS) ════
 var EMAILJS_PUBLIC_KEY = '3anIyHG6kBYcVT4vS';
 var EMAILJS_SERVICE_ID = 'service_yflkjr8';
-var EMAILJS_TEMPLATE_ID = 'template_yn80z08';
+var EMAILJS_TEMPLATE_ID = 'template_2mbmjlr';
 
 function initEmailJS(){
   if(typeof emailjs==='undefined')return false;
-  emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
+  try{emailjs.init({publicKey:EMAILJS_PUBLIC_KEY});}catch(e){emailjs.init(EMAILJS_PUBLIC_KEY);}
   return true;
 }
 
@@ -556,8 +556,9 @@ function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
     showToast('QR Code به ایمیل شما ارسال شد','success');
     return true;
   }).catch(function(e){
-    console.log('Email error:', e);
-    showToast('خطا در ارسال ایمیل','error');
+    var msg=e&&e.text?e.text:(e&&e.message?e.message:JSON.stringify(e));
+    console.log('Email error:', msg);
+    showToast('خطا: '+msg,'error');
     return false;
   });
 }
@@ -1482,6 +1483,12 @@ function renderLocationsList(){
     '</div>';
   });
   list.innerHTML=html;
+  list.onclick=function(e){
+    var eb=e.target.closest('[data-edit-loc]');
+    var db=e.target.closest('[data-del-loc]');
+    if(eb)openEditLocation(eb.getAttribute('data-edit-loc'));
+    if(db)deleteLocation(db.getAttribute('data-del-loc'));
+  };
 }
 function addLocation(){
   var name=document.getElementById('loc-name').value.trim();
@@ -1583,6 +1590,12 @@ function renderPersonnelList(){
     '</div>';
   });
   list.innerHTML=html;
+  list.onclick=function(e){
+    var eb=e.target.closest('[data-edit-per]');
+    var db=e.target.closest('[data-del-per]');
+    if(eb)openEditPersonnel(eb.getAttribute('data-edit-per'));
+    if(db)deletePersonnel(db.getAttribute('data-del-per'));
+  };
 }
 
 function addPersonnel(){
