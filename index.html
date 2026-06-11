@@ -893,14 +893,15 @@ function renderTodayLogs(){
 function initWorkHoursTab(){
   var sel=document.getElementById('wh-loc-select');
   if(!sel)return;
-  sel.innerHTML='<option value="">انتخاب شعبه (همه = پیش‌فرض)</option>'+
+  // Populate locations (state already loaded at login)
+  sel.innerHTML='<option value="">انتخاب شعبه</option>'+
     '<option value="default">&#127970; پیش‌فرض همه شعبه‌ها</option>';
   state.locations.forEach(function(l){
     sel.innerHTML+='<option value="'+l.id+'">&#127970; '+l.name+'</option>';
   });
-  // Load existing if saved
+  // Load saved work hours
   var saved=localStorage.getItem('hg_workhours');
-  if(saved)state.workHours=JSON.parse(saved);
+  state.workHours=saved?JSON.parse(saved):{};
   renderWHList();
 }
 
@@ -944,8 +945,9 @@ function saveWorkHours(){
   wh[locId]={start:start,end:end,late:parseInt(late),days:days};
   localStorage.setItem('hg_workhours',JSON.stringify(wh));
   state.workHours=wh;
-  // Save to DB too
-  dbEdit('work_hours',locId,{location_id:locId,start_time:start,end_time:end,late_minutes:parseInt(late),work_days:days});
+  // Save to DB
+  var whRow={id:'wh_'+locId,location_id:locId,start_time:start,end_time:end,late_minutes:parseInt(late),work_days:days};
+  dbAdd('work_hours',whRow);
   renderWHList();
   showToast('ساعت کاری ذخیره شد','success');
 }
@@ -1311,23 +1313,29 @@ function renderAdminStats(){
   var presentToday=uids.length;
   var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
   var absentToday=state.personnel.length-presentToday;
-  document.getElementById('admin-stats').innerHTML=
-    '<div class="stat-box" onclick="showStatsModal(\"locations\")" style="cursor:pointer">'+
+  var statsEl=document.getElementById('admin-stats');
+  statsEl.innerHTML=
+    '<div class="stat-box" data-modal="locations" style="cursor:pointer">'+
       '<div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div>'+
       '<div class="stat-label">شعبه</div>'+
     '</div>'+
-    '<div class="stat-box" onclick="showStatsModal(\"personnel\")" style="cursor:pointer">'+
+    '<div class="stat-box" data-modal="personnel" style="cursor:pointer">'+
       '<div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div>'+
       '<div class="stat-label">پرسنل</div>'+
     '</div>'+
-    '<div class="stat-box" onclick="showStatsModal(\"present\")" style="cursor:pointer">'+
+    '<div class="stat-box" data-modal="present" style="cursor:pointer">'+
       '<div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div>'+
       '<div class="stat-label">حاضر امروز</div>'+
     '</div>'+
-    '<div class="stat-box" onclick="showStatsModal(\"logs\")" style="cursor:pointer">'+
+    '<div class="stat-box" data-modal="logs" style="cursor:pointer">'+
       '<div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div>'+
       '<div class="stat-label">ثبت امروز</div>'+
     '</div>';
+  // Attach click handlers via event delegation
+  statsEl.onclick=function(e){
+    var box=e.target.closest('.stat-box');
+    if(box&&box.dataset.modal)showStatsModal(box.dataset.modal);
+  };
 }
 
 function showStatsModal(type){
