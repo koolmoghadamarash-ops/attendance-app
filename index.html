@@ -926,10 +926,15 @@ function renderWHList(){
         '<div style="font-size:12px;color:var(--accent)">&#128336; '+w.start+' تا '+w.end+'</div>'+
         '<div style="font-size:11px;color:var(--text3)">تاخیر مجاز: '+toPersianNum(w.late)+' دقیقه | '+daysText+'</div>'+
       '</div>'+
-      '<button onclick="deleteWorkHours(\"'+k+'\")" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">حذف</button>'+
+      '<button data-wh-del="'+k+'" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">حذف</button>'+
     '</div>';
   });
   list.innerHTML=html;
+  // Event delegation for delete buttons
+  list.onclick=function(e){
+    var btn=e.target.closest('[data-wh-del]');
+    if(btn)deleteWorkHours(btn.getAttribute('data-wh-del'));
+  };
 }
 
 function saveWorkHours(){
