@@ -1562,8 +1562,8 @@ function renderPersonnelList(){
       '</div>'+
       '<div class="info-row"><span class="info-label">شعبه</span><span class="info-val">'+(locNames||'—')+'</span></div>'+
       '<div style="display:flex;gap:8px;margin-top:10px">'+
-        '<button onclick="openEditPersonnel(\"'+p.id+'\")" class="btn btn-sm btn-outline" style="flex:1">ویرایش</button>'+
-        '<button onclick="deletePersonnel(\"'+p.id+'\")" class="btn btn-sm" style="flex:1;background:var(--red);color:#fff">حذف</button>'+
+        '<button data-edit-per="'+p.id+'" class="btn btn-sm btn-outline" style="flex:1">ویرایش</button>'+
+        '<button data-del-per="'+p.id+'" class="btn btn-sm" style="flex:1;background:var(--red);color:#fff">حذف</button>'+
       '</div>'+
     '</div>';
   });
