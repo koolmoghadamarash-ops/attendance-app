@@ -543,15 +543,12 @@ function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
   var timeStr=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
     email: userEmail,
-    to_email: userEmail,
     to_name: userName,
     name: userName,
-    from_name: 'سیستم حضور و غیاب',
     location_name: locName,
     time: timeStr,
     date: todayStr(),
-    message: 'GPS دریافت نشد. QR ورود شعبه '+locName+' — '+todayStr()+' ساعت '+timeStr,
-    qr_image: qrDataUrl||'(QR در سیستم موجود است)'
+    message: 'GPS دریافت نشد. برای ثبت حضور در شعبه '+locName+' لطفا QR Code را اسکن کنید. تاریخ: '+todayStr()+' ساعت: '+timeStr
   }).then(function(){
     showToast('QR Code به ایمیل شما ارسال شد','success');
     return true;
@@ -883,11 +880,26 @@ function renderTodayLogs(){
   summary.innerHTML=logs.length>0?`<span class="duration-badge">⏱ ${calcTodayDuration(logs)}</span>`:'';
   var list=document.getElementById('today-logs-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
-  list.innerHTML=logs.map(function(l){return `
-    <div class="log-item">
-      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
-      <div style="font-weight:600">${l.time}</div>
-    </div>`;}).join('');
+  var html='';
+  logs.forEach(function(l){
+    var typeColor=l.type==='in'?'var(--green)':'var(--red)';
+    var typeText=l.type==='in'?'&#128994; ورود':'&#128308; خروج';
+    var coords=l.lat&&l.lng?
+      '<div style="font-size:10px;color:var(--text3);margin-top:3px;direction:ltr">&#128205; '+
+      parseFloat(l.lat).toFixed(5)+', '+parseFloat(l.lng).toFixed(5)+'</div>':'';
+    html+='<div class="log-item">'+
+      '<div class="log-type">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+typeColor+';flex-shrink:0"></div>'+
+        '<div>'+
+          '<span style="font-weight:600">'+typeText+'</span>'+
+          '<span style="font-size:11px;color:var(--text3);margin-right:6px"> '+l.locationName+'</span>'+
+          coords+
+        '</div>'+
+      '</div>'+
+      '<div style="font-weight:700;font-size:14px;white-space:nowrap">'+l.time+'</div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
 }
 
 
@@ -1753,7 +1765,7 @@ function exportExcel(){
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
-// ════ UTILS ═══
+// ════ UTILS ════
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
