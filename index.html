@@ -307,22 +307,75 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <!-- Tab Personnel -->
     <div id="tab-personnel" class="tab-content" style="display:none">
+      <!-- Sub tabs -->
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px">
+        <button class="sub-tab active" id="stab-add" onclick="perSubTab('add',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;cursor:pointer">&#10133; افزودن</button>
+        <button class="sub-tab" id="stab-list" onclick="perSubTab('list',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128101; لیست</button>
+        <button class="sub-tab" id="stab-report" onclick="perSubTab('report',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128203; گزارش ماهانه</button>
+        <button class="sub-tab" id="stab-leave" onclick="perSubTab('leave',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128197; مرخصی</button>
+      </div>
+
+      <!-- Add Personnel -->
+      <div id="stab-add-content">
       <div class="form-card">
-        <div class="section-title">➕ افزودن پرسنل</div>
+        <div class="section-title">&#10133; افزودن پرسنل</div>
         <div class="form-grid">
           <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
           <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
         </div>
         <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
-        <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" value="1234"></div>
-        <div class="field"><label>ایمیل سازمانی <span style="color:#e53e3e">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir" inputmode="email"></div>
-        <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
-        <button class="btn btn-primary" onclick="addPersonnel()">💾 ذخیره پرسنل</button>
+        <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز ورود" value="1234"></div>
+        <div class="field"><label>ایمیل سازمانی <span style="color:var(--red)">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir" inputmode="email"></div>
+        <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" class="checkbox-group"></div></div>
+        <button class="btn btn-primary" onclick="addPersonnel()">ذخیره پرسنل</button>
       </div>
-      <div class="section-title">لیست پرسنل</div>
-      <div id="personnel-list"></div>
-    </div>
+      </div>
 
+      <!-- List Personnel -->
+      <div id="stab-list-content" style="display:none">
+        <div id="personnel-list"></div>
+      </div>
+
+      <!-- Monthly Report -->
+      <div id="stab-report-content" style="display:none">
+        <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+          <select id="report-per-select" style="flex:1;min-width:140px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+            <option value="">انتخاب پرسنل</option>
+          </select>
+          <select id="report-month-select" style="flex:1;min-width:120px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+          </select>
+          <button onclick="loadMonthlyReport()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
+        </div>
+        <div id="monthly-report-result"></div>
+      </div>
+
+      <!-- Leave Management -->
+      <div id="stab-leave-content" style="display:none">
+        <div class="form-card" style="margin-bottom:14px">
+          <div class="section-title">&#128197; ثبت مرخصی</div>
+          <div class="field"><label>پرسنل</label>
+            <select id="leave-per" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px">
+              <option value="">انتخاب پرسنل</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field"><label>از تاریخ</label><input type="date" id="leave-from" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;box-sizing:border-box"></div>
+            <div class="field"><label>تا تاریخ</label><input type="date" id="leave-to" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;box-sizing:border-box"></div>
+          </div>
+          <div class="field"><label>نوع مرخصی</label>
+            <select id="leave-type" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px">
+              <option value="annual">مرخصی سالانه</option>
+              <option value="sick">مرخصی استعلاجی</option>
+              <option value="unpaid">مرخصی بدون حقوق</option>
+              <option value="mission">ماموریت</option>
+            </select>
+          </div>
+          <div class="field"><label>توضیحات</label><textarea id="leave-desc" rows="2" placeholder="توضیحات (اختیاری)"></textarea></div>
+          <button onclick="saveLeave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">ثبت مرخصی</button>
+        </div>
+        <div class="section-title">لیست مرخصی‌ها</div>
+        <div id="leaves-list"></div>
+      </div>
 
     <!-- Tab Messages -->
     <div id="tab-messages" class="tab-content" style="display:none">
@@ -766,7 +819,8 @@ var state={
   personnel:[],
   logs:[],
   messages:[],
-  workHours:{}
+  workHours:{},
+  leaves:[]
 };
 var addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
@@ -990,6 +1044,271 @@ function deleteWorkHours(locId){
 function getWorkHoursForLoc(locId){
   var wh=state.workHours||{};
   return wh[locId]||wh['default']||{start:'08:00',end:'17:00',late:15,days:'6'};
+}
+
+
+// ════ PERSONNEL SUB TABS ════
+function perSubTab(tab, el){
+  var tabs=['add','list','report','leave'];
+  tabs.forEach(function(t){
+    var btn=document.getElementById('stab-'+t);
+    var cnt=document.getElementById('stab-'+t+'-content');
+    if(btn){btn.style.background=t===tab?'var(--accent)':'var(--bg3)';btn.style.color=t===tab?'#000':'var(--text)';btn.style.border=t===tab?'none':'1px solid var(--border)';}
+    if(cnt)cnt.style.display=t===tab?'block':'none';
+  });
+  if(tab==='list')renderPersonnelList();
+  if(tab==='report')initMonthlyReport();
+  if(tab==='leave')initLeaveTab();
+}
+
+// ════ MONTHLY REPORT ════
+function initMonthlyReport(){
+  var sel=document.getElementById('report-per-select');
+  if(!sel)return;
+  sel.innerHTML='<option value="">انتخاب پرسنل</option>';
+  state.personnel.forEach(function(p){
+    sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+  });
+  // Populate months from logs
+  var mSel=document.getElementById('report-month-select');
+  var months=[];
+  state.logs.forEach(function(l){
+    var m=l.date?l.date.substring(0,7):'';
+    if(m&&months.indexOf(m)<0)months.push(m);
+  });
+  months.sort().reverse();
+  // Add current month if not there
+  var now=new Date();
+  var curM=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
+  if(months.indexOf(curM)<0)months.unshift(curM);
+  mSel.innerHTML='';
+  months.forEach(function(m){
+    var parts=m.split('-');
+    var label=parts[0]+'/' +parts[1];
+    mSel.innerHTML+='<option value="'+m+'">'+label+'</option>';
+  });
+}
+
+function loadMonthlyReport(){
+  var pid=document.getElementById('report-per-select').value;
+  var month=document.getElementById('report-month-select').value;
+  var res=document.getElementById('monthly-report-result');
+  if(!pid||!month){showToast('پرسنل و ماه را انتخاب کنید','error');return;}
+  
+  var p=state.personnel.find(function(x){return x.nationalId===pid;});
+  if(!p)return;
+  
+  // Get work hours config for this person's location
+  var locId=(p.locations||[])[0]||'';
+  var wh=getWorkHoursForLoc(locId);
+  var startTime=wh.start||'08:00';
+  var endTime=wh.end||'17:00';
+  var lateAllowed=wh.late||15;
+  
+  // Get all days in month
+  var parts=month.split('-');
+  var year=parseInt(parts[0]),mon=parseInt(parts[1]);
+  var daysInMonth=new Date(year,mon,0).getDate();
+  
+  var totalWorkMins=0,totalLateMins=0,totalOvertimeMins=0,totalAbsent=0,totalLeave=0;
+  var rows='';
+  
+  for(var d=1;d<=daysInMonth;d++){
+    var dateStr=year+'-'+(mon<10?'0':'')+mon+'-'+(d<10?'0':'')+d;
+    var dayLogs=state.logs.filter(function(l){return l.userId===pid&&l.date===dateStr;});
+    
+    // Check leave
+    var leave=state.leaves.filter(function(lv){return lv.userId===pid&&lv.from<=dateStr&&lv.to>=dateStr;})[0];
+    
+    // Check if work day (skip Friday = day 5)
+    var dayOfWeek=new Date(dateStr).getDay(); // 0=Sun,5=Fri,6=Sat
+    var isWorkDay=dayOfWeek!==5; // Skip Friday
+    
+    var firstIn=null,lastOut=null;
+    dayLogs.forEach(function(l){
+      if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;
+      if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;
+    });
+    
+    var workMins=0,lateMins=0,overtimeMins=0;
+    var status='';
+    var statusColor='var(--text3)';
+    
+    if(leave){
+      var leaveLabels={annual:'مرخصی',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+      status=leaveLabels[leave.type]||'مرخصی';
+      statusColor='var(--accent)';
+      totalLeave++;
+    } else if(!isWorkDay){
+      status='تعطیل';
+      statusColor='var(--text3)';
+    } else if(!firstIn&&!lastOut){
+      status='غیبت';
+      statusColor='var(--red)';
+      totalAbsent++;
+    } else {
+      // Calculate work time
+      if(firstIn&&lastOut){
+        var inParts=firstIn.split(':');
+        var outParts=lastOut.split(':');
+        var inMins=parseInt(inParts[0])*60+parseInt(inParts[1]);
+        var outMins=parseInt(outParts[0])*60+parseInt(outParts[1]);
+        workMins=outMins-inMins;
+        
+        // Late calculation
+        var startParts=startTime.split(':');
+        var startMins=parseInt(startParts[0])*60+parseInt(startParts[1]);
+        if(inMins>startMins+lateAllowed){
+          lateMins=inMins-startMins;
+          totalLateMins+=lateMins;
+        }
+        
+        // Overtime calculation
+        var endParts=endTime.split(':');
+        var endMins=parseInt(endParts[0])*60+parseInt(endParts[1]);
+        var stdMins=endMins-startMins;
+        if(workMins>stdMins){
+          overtimeMins=workMins-stdMins;
+          totalOvertimeMins+=overtimeMins;
+        }
+        totalWorkMins+=workMins;
+      }
+      status=firstIn?'حاضر':'ناقص';
+      statusColor=firstIn?'var(--green)':'var(--orange)';
+    }
+    
+    function minsToStr(m){
+      if(!m)return '—';
+      var h=Math.floor(m/60),mn=m%60;
+      return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);
+    }
+    
+    var rowBg=d%2===0?'var(--bg3)':'var(--card)';
+    rows+='<tr style="background:'+rowBg+'">'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:12px">'+toPersianNum(d)+'/'+toPersianNum(mon)+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2)">'+(firstIn||'—')+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--text2)">'+(lastOut||'—')+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px">'+minsToStr(workMins)+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--red)">'+( lateMins?minsToStr(lateMins):'—')+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px;color:var(--green)">'+(overtimeMins?minsToStr(overtimeMins):'—')+'</td>'+
+      '<td style="padding:7px 8px;border-bottom:1px solid var(--border);font-size:11px;color:'+statusColor+';font-weight:600">'+status+'</td>'+
+    '</tr>';
+  }
+  
+  function minsToStr(m){
+    if(!m)return '—';
+    var h=Math.floor(m/60),mn=m%60;
+    return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);
+  }
+  
+  var totalH=Math.floor(totalWorkMins/60),totalM=totalWorkMins%60;
+  var lateH=Math.floor(totalLateMins/60),lateM=totalLateMins%60;
+  var otH=Math.floor(totalOvertimeMins/60),otM=totalOvertimeMins%60;
+  
+  var html=
+    // Summary cards
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px">'+
+      '<div style="background:var(--card);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)">'+
+        '<div style="font-size:15px;font-weight:700;color:var(--accent)">'+toPersianNum(totalH)+':'+toPersianNum(totalM<10?'0'+totalM:totalM)+'</div>'+
+        '<div style="font-size:10px;color:var(--text2)">کل کارکرد</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)">'+
+        '<div style="font-size:15px;font-weight:700;color:var(--red)">'+toPersianNum(lateH)+':'+toPersianNum(lateM<10?'0'+lateM:lateM)+'</div>'+
+        '<div style="font-size:10px;color:var(--text2)">تاخیر</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)">'+
+        '<div style="font-size:15px;font-weight:700;color:var(--green)">'+toPersianNum(otH)+':'+toPersianNum(otM<10?'0'+otM:otM)+'</div>'+
+        '<div style="font-size:10px;color:var(--text2)">اضافه‌کاری</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:10px;text-align:center;border:1px solid var(--border)">'+
+        '<div style="font-size:15px;font-weight:700;color:var(--red)">'+toPersianNum(totalAbsent)+'</div>'+
+        '<div style="font-size:10px;color:var(--text2)">غیبت</div></div>'+
+    '</div>'+
+    // Table
+    '<div style="overflow-x:auto">'+
+    '<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+      '<thead><tr style="background:var(--accent);color:#000">'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">تاریخ</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">ورود</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">خروج</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">کارکرد</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">تاخیر</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">اضافه</th>'+
+        '<th style="padding:8px;text-align:right;white-space:nowrap">وضعیت</th>'+
+      '</tr></thead>'+
+      '<tbody>'+rows+'</tbody>'+
+    '</table></div>';
+  
+  res.innerHTML=html;
+}
+
+// ════ LEAVE MANAGEMENT ════
+function initLeaveTab(){
+  var sel=document.getElementById('leave-per');
+  if(!sel)return;
+  sel.innerHTML='<option value="">انتخاب پرسنل</option>';
+  state.personnel.forEach(function(p){
+    sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+  });
+  renderLeavesList();
+}
+
+function saveLeave(){
+  var pid=document.getElementById('leave-per').value;
+  var from=document.getElementById('leave-from').value;
+  var to=document.getElementById('leave-to').value;
+  var type=document.getElementById('leave-type').value;
+  var desc=document.getElementById('leave-desc').value;
+  if(!pid||!from||!to){showToast('همه فیلدها الزامی است','error');return;}
+  if(from>to){showToast('تاریخ شروع باید قبل از پایان باشد','error');return;}
+  var p=state.personnel.find(function(x){return x.nationalId===pid;});
+  var leave={
+    id:'lv_'+Date.now(),
+    userId:pid,
+    userName:p?p.fname+' '+p.lname:'',
+    from:from,to:to,type:type,desc:desc,
+    date:todayStr()
+  };
+  state.leaves.push(leave);
+  localStorage.setItem('hg_leaves',JSON.stringify(state.leaves));
+  dbAdd('leaves',{id:leave.id,user_id:pid,user_name:leave.userName,from_date:from,to_date:to,type:type,description:desc});
+  document.getElementById('leave-from').value='';
+  document.getElementById('leave-to').value='';
+  document.getElementById('leave-desc').value='';
+  renderLeavesList();
+  showToast('مرخصی ثبت شد','success');
+}
+
+function renderLeavesList(){
+  var list=document.getElementById('leaves-list');
+  if(!list)return;
+  var saved=localStorage.getItem('hg_leaves');
+  if(saved)state.leaves=JSON.parse(saved);
+  if(!state.leaves.length){
+    list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div>';
+    return;
+  }
+  var types={annual:'سالانه',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+  var html='';
+  state.leaves.slice().reverse().forEach(function(lv){
+    html+='<div style="padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)">'+
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'+
+        '<div style="font-weight:700;font-size:14px">'+lv.userName+'</div>'+
+        '<span style="background:var(--accent);color:#000;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700">'+( types[lv.type]||lv.type)+'</span>'+
+      '</div>'+
+      '<div style="font-size:12px;color:var(--text2)">از '+lv.from+' تا '+lv.to+'</div>'+
+      (lv.desc?'<div style="font-size:11px;color:var(--text3);margin-top:4px">'+lv.desc+'</div>':'')+
+      '<button data-del-leave="'+lv.id+'" style="margin-top:8px;padding:5px 12px;background:var(--red);color:#fff;border:none;border-radius:8px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">حذف</button>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+  list.onclick=function(e){
+    var btn=e.target.closest('[data-del-leave]');
+    if(btn){
+      var id=btn.getAttribute('data-del-leave');
+      state.leaves=state.leaves.filter(function(l){return l.id!==id;});
+      localStorage.setItem('hg_leaves',JSON.stringify(state.leaves));
+      renderLeavesList();
+      showToast('مرخصی حذف شد','success');
+    }
+  };
 }
 
 // ════ CHECKIN FLOW ════
@@ -1335,6 +1654,8 @@ function adminTab(tab,el){
 }
 
 function renderAdmin(){
+  var savedLeaves=localStorage.getItem('hg_leaves');
+  if(savedLeaves)state.leaves=JSON.parse(savedLeaves);
   loadDB().then(function(){
     renderAdminStats();
     renderLocationsList();
