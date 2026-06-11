@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a1628">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<meta name="apple-mobile-web-app-title" content="حضور و غیاب">
+<title>حضور و غیاب هوشمند v2.5</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+.screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
+#screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
+.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
+.login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
+.field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
+.field select option{background:var(--bg3)}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-ghost:active{background:var(--bg3)}
+.btn-green{background:linear-gradient(135deg,#00c853,#00e676);color:#001a08;box-shadow:0 4px 16px rgba(0,230,118,0.3)}
+.btn-red{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;box-shadow:0 4px 16px rgba(255,68,68,0.3)}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
+.btn-xs{padding:5px 10px;font-size:12px;width:auto;border-radius:7px}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:700;flex:1}.topbar-sub{font-size:12px;color:var(--text2)}
+.avatar{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;padding:4px}
+#screen-emp{background:radial-gradient(ellipse at 50% -20%,#0d2a4a 0%,var(--bg) 60%)}
+.emp-content{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding-bottom:24px}
+.clock-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;box-shadow:var(--shadow)}
+.clock-time{font-size:44px;font-weight:300;color:var(--accent);letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.clock-date{font-size:13px;color:var(--text2)}
+.status-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.status-title{font-size:14px;font-weight:600}
+.badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-green{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3)}
+.badge-red{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
+.badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
+.badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
+.badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-item:last-child{border-bottom:none}
+.log-type{display:flex;align-items:center;gap:8px;color:var(--text2)}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
+/* QR Scanner */
+.qr-scan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+#reader{width:100%;border-radius:12px;overflow:hidden;margin:10px 0}
+.qr-result{background:var(--bg3);border-radius:10px;padding:12px;font-size:13px;margin-top:8px;text-align:center;display:none}
+.qr-result.success{border:1px solid var(--green);color:var(--green)}
+.qr-result.error{border:1px solid var(--red);color:var(--red)}
+/* Admin */
+#screen-admin{background:var(--bg)}
+.admin-content{flex:1;padding:14px;overflow-y:auto}
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
+.tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:700}.card-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.card-actions{display:flex;gap:6px;flex-shrink:0}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
+.info-label{color:var(--text2)}.info-val{font-weight:600}
+.form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center}
+.stat-num{font-size:26px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+.report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
+/* QR Display */
+.qr-display-card{background:linear-gradient(135deg,#0f1e35,#1a2d4a);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;margin-bottom:14px}
+.qr-display-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.qr-display-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
+#qr-display-container{background:#fff;border-radius:16px;padding:16px;display:inline-block;margin:0 auto}
+.qr-timer{margin-top:12px;font-size:13px;color:var(--text2)}
+.qr-timer span{color:var(--orange);font-weight:700}
+.qr-loc-select{margin-bottom:12px}
+/* Map */
+#map-container{height:200px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
+.map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:1000;pointer-events:none}
+.map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--accent)}
+.map-crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+.map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
+.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none}
+.city-search{display:flex;gap:8px;margin-bottom:8px}
+.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:13px;outline:none}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:90vw;text-align:center}
+.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}.empty-state .icon{font-size:36px;margin-bottom:10px}
+.report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+input[type=range]{accent-color:var(--accent);width:100%}
+.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
+/* QR Scanner video */
+#qr-video{width:100%;border-radius:12px;display:none}
+.scan-overlay{position:relative}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon-wrap">📍</div>
+      <h1>حضور و غیاب هوشمند</h1>
+      <p>سیستم ثبت ورود و خروج</p>
+    </div>
+    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی را وارد کنید" autocomplete="username" inputmode="numeric"></div>
+    <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
+    <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
+    <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
+  </div>
+</div>
+
+<!-- EMPLOYEE -->
+<div id="screen-emp" class="screen">
+  <div class="topbar" style="position:relative;z-index:10">
+    <div class="avatar" id="emp-avatar" onclick="openProfile()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="openProfile()">
+      <div class="topbar-title" id="emp-name">نام پرسنل</div>
+      <div class="topbar-sub" id="emp-location-name">شعبه</div>
+    </div>
+    <div onclick="openInboxModal()" style="position:relative;cursor:pointer;padding:6px 10px;display:flex;align-items:center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text2)"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      <div id="inbox-dot" style="display:none;position:absolute;top:3px;right:7px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid var(--card)"></div>
+    </div>
+    <button onclick="toggleEmpMenu()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px 8px;display:flex;align-items:center">&#9776;</button>
+  </div>
+
+  <!-- Dropdown Menu -->
+  <div id="emp-dropdown" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:100;background:var(--card);border-bottom:2px solid var(--accent);box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg3)">
+      <div id="menu-uname" style="font-weight:700;font-size:15px;color:var(--text)">---</div>
+      <div id="menu-uloc" style="font-size:12px;color:var(--accent);margin-top:3px">---</div>
+    </div>
+    <button onclick="openProfile();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#128100;</span><span>پروفایل و صندوق پیام</span></button>
+    <button onclick="openChangePassModal();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#128273;</span><span>تغییر رمز عبور</span></button>
+    <button onclick="doLogout()" style="width:100%;padding:14px 18px;background:none;border:none;color:#e53e3e;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#9167;</span><span>خروج از حساب</span></button>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div class="avatar" id="prf-avatar" style="width:54px;height:54px;font-size:22px;margin:0 auto 8px">A</div>
+        <div style="font-size:17px;font-weight:700" id="prf-name">---</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px" id="prf-id">---</div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text)">&#128235; صندوق پیام</div>
+      <div id="prf-msgs" style="max-height:260px;overflow-y:auto;margin-bottom:16px">
+        <div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openChangePassModal();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer;font-weight:600">&#128273; تغییر رمز</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="cp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:16px">&#128273; تغییر رمز عبور</div>
+      <div class="field"><label>رمز فعلی</label><input type="password" id="cp-cur" placeholder="رمز فعلی را وارد کنید"></div>
+      <div class="field"><label>رمز جدید</label><input type="password" id="cp-new" placeholder="رمز جدید (حداقل ۴ کاراکتر)"></div>
+      <div class="field"><label>تکرار رمز جدید</label><input type="password" id="cp-rep" placeholder="تکرار رمز جدید"></div>
+      <button onclick="doChangePass()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;cursor:pointer">ذخیره رمز جدید</button>
+    </div>
+  </div>
+
+  <div class="emp-content">
+    <div class="clock-card">
+      <div class="clock-time" id="clock-display">--:--:--</div>
+      <div class="clock-date" id="date-display">---</div>
+    </div>
+
+    <div class="status-card">
+      <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">ابتدا GPS بررسی می‌شود — در صورت عدم دریافت، QR به ایمیل ارسال می‌شود:</p>
+      <div class="action-btns">
+        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
+        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">📷 اسکن خروج</button>
+      </div>
+    </div>
+
+    <div class="today-log">
+      <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
+      <div style="margin-top:8px" id="today-summary"></div>
+      <div class="divider"></div>
+      <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <div class="topbar">
+    <div class="avatar" style="background:linear-gradient(135deg,#ff6b35,#f7931e)">A</div>
+    <div style="flex:1"><div class="topbar-title">پنل مدیریت</div><div class="topbar-sub">مدیر سیستم</div></div>
+    <button class="logout-btn" onclick="doLogout()">⏏</button>
+  </div>
+  <!-- Stats Modal -->
+  <div id="stats-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text)" id="stats-modal-title"></div>
+      <div id="stats-modal-body" style="overflow-y:auto;flex:1"></div>
+      <button onclick="document.getElementById('stats-modal').style.display='none'" style="margin-top:14px;width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">بستن</button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <div class="stats-grid" id="admin-stats"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="adminTab('qr',this)">QR شعبه</button>
+      <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
+      <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
+      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="adminTab('messages',this)">📨 پیام‌ها</button>
+      <button class="tab" onclick="adminTab('tracking',this)">📍 ردیابی</button>
+      <button class="tab" onclick="adminTab('workhours',this)">🕐 ساعت کاری</button>
+    </div>
+
+    <!-- Tab QR -->
+    <div id="tab-qr" class="tab-content">
+      <div class="qr-display-card">
+        <h3>🔐 QR Code شعبه</h3>
+        <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
+        <div class="qr-loc-select">
+          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif,sans-serif;font-size:14px;outline:none">
+            <option value="">-- شعبه را انتخاب کنید --</option>
+          </select>
+        </div>
+        <div id="qr-display-container"><div id="qr-code-div"></div></div>
+        <div class="qr-timer">تغییر بعدی: <span id="qr-countdown">--:--</span></div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="generateQR()">🔄 تولید مجدد</button>
+        <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="openFullscreenQR()">⛶ نمایش تمام‌صفحه</button>
+      </div>
+    </div>
+
+    <!-- Tab Locations -->
+    <div id="tab-locations" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">➕ افزودن مکان جدید</div>
+        <div class="field"><label>نام مکان / شعبه</label><input type="text" id="loc-name" placeholder="مثلاً: شعبه مرکزی"></div>
+        <div class="field"><label>آدرس (اختیاری)</label><input type="text" id="loc-addr" placeholder="آدرس مکان"></div>
+        <div class="field">
+          <label>انتخاب موقعیت روی نقشه (اختیاری)</label>
+          <div class="city-search">
+            <input type="text" id="city-search-input" placeholder="جستجوی شهر...">
+            <button class="btn btn-primary btn-sm" onclick="searchCity()">🔍</button>
+          </div>
+          <div id="map-container">
+            <div id="add-map" style="width:100%;height:100%"></div>
+            <div class="map-crosshair"></div><div class="map-pin-dot"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
+            <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
+            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">📍</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addLocation()">💾 ذخیره مکان</button>
+      </div>
+      <div class="section-title">مکان‌های ثبت‌شده</div>
+      <div id="locations-list"></div>
+    </div>
+
+    <!-- Tab Personnel -->
+    <div id="tab-personnel" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">➕ افزودن پرسنل</div>
+        <div class="form-grid">
+          <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
+          <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
+        </div>
+        <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
+        <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" value="1234"></div>
+        <div class="field"><label>ایمیل سازمانی <span style="color:#e53e3e">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir" inputmode="email"></div>
+        <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
+        <button class="btn btn-primary" onclick="addPersonnel()">💾 ذخیره پرسنل</button>
+      </div>
+      <div class="section-title">لیست پرسنل</div>
+      <div id="personnel-list"></div>
+    </div>
+
+
+    <!-- Tab Messages -->
+    <div id="tab-messages" class="tab-content" style="display:none">
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)">&#128233; ارسال پیام جدید</div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">گیرنده</label>
+          <select id="msg-target" style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;appearance:none;-webkit-appearance:none">
+            <option value="all">&#128101; همه پرسنل</option>
+          </select>
+        </div>
+        <div style="margin-bottom:14px">
+          <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">متن پیام</label>
+          <textarea id="msg-text" rows="4" placeholder="پیام خود را اینجا بنویسید..." style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;resize:none;box-sizing:border-box;line-height:1.7"></textarea>
+        </div>
+        <button onclick="sendMessage()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;cursor:pointer">&#128228; ارسال پیام</button>
+      </div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px">پیام‌های ارسال‌شده</div>
+      <div id="msgs-list"><div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div></div>
+    </div>
+
+    <!-- Tab Tracking -->
+    <div id="tab-tracking" class="tab-content" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center">
+        <select id="track-person" style="flex:1;min-width:120px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
+          <option value="">انتخاب پرسنل</option>
+        </select>
+        <select id="track-date" style="flex:1;min-width:120px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px">
+          <option value="">انتخاب تاریخ</option>
+        </select>
+        <button class="btn btn-primary" onclick="doTracking()" style="padding:10px 16px">نمایش</button>
+      </div>
+      <div id="tracking-result"></div>
+    </div>
+
+    <!-- Tab Work Hours -->
+    <div id="tab-workhours" class="tab-content" style="display:none">
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)">&#128336; تنظیم ساعت کاری شعبه‌ها</div>
+        <div id="wh-locations-list"></div>
+        <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent)">&#128394; ویرایش ساعت کاری</div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">شعبه</label>
+            <select id="wh-loc-select" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+              <option value="">انتخاب شعبه</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ساعت شروع</label>
+              <input type="time" id="wh-start" value="08:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ساعت پایان</label>
+              <input type="time" id="wh-end" value="17:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">تاخیر مجاز (دقیقه)</label>
+              <input type="number" id="wh-late" value="15" min="0" max="120" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">روزهای کاری</label>
+              <select id="wh-days" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+                <option value="6">شنبه تا پنجشنبه</option>
+                <option value="5">شنبه تا چهارشنبه</option>
+                <option value="7">همه روزها</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="saveWorkHours()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">&#128190; ذخیره ساعت کاری</button>
+        </div>
+      </div>
+    </div>
+    <!-- Tab Reports -->
+    <div id="tab-reports" class="tab-content" style="display:none">
+      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
+      <div class="report-filter">
+        <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+          <option value="">همه پرسنل</option>
+        </select>
+        <select id="filter-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+          <option value="">همه تاریخ‌ها</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadReports()">🔍</button>
+      </div>
+      <div id="reports-summary" style="margin-bottom:12px"></div>
+      <div id="reports-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR SCAN MODAL -->
+<div class="modal-overlay" id="qr-scan-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
+    <div class="scan-overlay">
+      <video id="qr-video" autoplay playsinline></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+    </div>
+    <div id="qr-scan-result" class="qr-result"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT LOCATION MODAL -->
+<div class="modal-overlay" id="edit-loc-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش مکان</div>
+    <input type="hidden" id="edit-loc-id">
+    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
+    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
+    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT PERSONNEL MODAL -->
+<div class="modal-overlay" id="edit-per-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش پرسنل</div>
+    <input type="hidden" id="edit-per-id">
+    <div class="form-grid">
+      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
+      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
+    </div>
+    <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
+    <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
+    <div class="field"><label>شعبه‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
+    <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-per-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- FULLSCREEN QR -->
+<div id="fullscreen-qr" style="display:none;position:fixed;inset:0;background:#fff;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+  <div id="fullscreen-qr-code" style="background:#fff;padding:20px;border-radius:16px"></div>
+  <div style="font-size:18px;font-weight:700;color:#1a2d4a" id="fullscreen-loc-name"></div>
+  <div style="font-size:14px;color:#4a7a9b" id="fullscreen-timer"></div>
+  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
+</div>
+
+<script>
+
+// ════ SUPABASE ════
+var SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';
+var SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';
+var sb=null;
+function initSB(){
+  if(sb)return true;
+  try{
+    if(typeof supabase==='undefined')return false;
+    sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+    return true;
+  }catch(e){return false;}
+}
+function dbGet(t){
+  if(!initSB())return Promise.resolve([]);
+  return sb.from(t).select('*').then(function(r){return r.data||[];}).catch(function(){return [];});
+}
+function dbAdd(t,row){
+  if(!initSB()){showToast('خطا: اتصال به دیتابیس برقرار نیست','error');return Promise.resolve();}
+  return sb.from(t).insert(row).then(function(r){
+    if(r.error){console.log('dbAdd error:',r.error.message);showToast('خطا در ذخیره: '+r.error.message,'error');}
+    return r;
+  }).catch(function(e){console.log('dbAdd catch:',e);});
+}
+function dbEdit(t,id,upd){
+  if(!initSB())return;
+  sb.from(t).update(upd).eq('id',id).catch(function(){});
+}
+function dbDel(t,id){
+  if(!initSB())return;
+  sb.from(t).delete().eq('id',id).catch(function(){});
+}
+function loadDB(){
+  if(!initSB())return Promise.resolve();
+  return Promise.all([
+    dbGet('locations'),
+    dbGet('personnel'),
+    dbGet('logs'),
+    dbGet('messages')
+  ]).then(function(res){
+    if(res[0]&&res[0].length)
+      state.locations=res[0].map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};});
+    if(res[1]&&res[1].length)
+      state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};});
+    if(res[2]&&res[2].length)
+      state.logs=res[2].map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng};});
+    if(res[3]&&res[3].length)
+      state.messages=res[3].map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};});
+  }).catch(function(e){console.log('loadDB err',e);});
+}
+
+
+// ════ EMAIL CONFIG (EmailJS) ════
+var EMAILJS_PUBLIC_KEY = '3anIyHG6kBYcVT4vS';
+var EMAILJS_SERVICE_ID = 'service_yflkjr8';
+var EMAILJS_TEMPLATE_ID = 'template_yn80z08';
+
+function initEmailJS(){
+  if(typeof emailjs==='undefined')return false;
+  emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
+  return true;
+}
+
+function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
+  if(!initEmailJS()){
+    showToast('سرویس ایمیل در دسترس نیست','error');
+    return Promise.resolve(false);
+  }
+  var timeStr=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    email: userEmail,
+    to_name: userName,
+    name: userName,
+    location_name: locName,
+    time: timeStr,
+    date: todayStr(),
+    message: 'GPS دریافت نشد. برای ثبت حضور در شعبه '+locName+' تاریخ '+todayStr()+' ساعت '+timeStr+' QR زیر را اسکن کنید.',
+    qr_image: qrDataUrl
+  }).then(function(){
+    showToast('QR Code به ایمیل شما ارسال شد','success');
+    return true;
+  }).catch(function(e){
+    console.log('Email error:', e);
+    showToast('خطا در ارسال ایمیل','error');
+    return false;
+  });
+}
+
+// ════ EMP MENU ════
+function toggleEmpMenu(){
+  var u=state.currentUser;
+  var m=document.getElementById('emp-dropdown');
+  if(!m)return;
+  if(m.style.display==='none'||m.style.display===''){
+    document.getElementById('menu-uname').textContent=u.fname+' '+u.lname;
+    var locs=(u.locations||[]).map(function(id){
+      var l=state.locations.find(function(x){return x.id===id;});
+      return l?l.name:null;
+    }).filter(Boolean).join(' - ');
+    document.getElementById('menu-uloc').textContent=locs||'بدون شعبه';
+    m.style.display='block';
+  } else {
+    m.style.display='none';
+  }
+}
+function openEmpMenu(){toggleEmpMenu();}
+function closeEmpMenu(){
+  var m=document.getElementById('emp-dropdown');
+  if(m)m.style.display='none';
+}
+function openInboxModal(){openProfile();}
+function openProfile(){
+  var u=state.currentUser;
+  if(!u)return;
+  document.getElementById('prf-avatar').textContent=u.fname[0];
+  document.getElementById('prf-name').textContent=u.fname+' '+u.lname;
+  document.getElementById('prf-id').textContent='کد ملی: '+u.nationalId;
+  var myMsgs=state.messages.filter(function(m){
+    return m.target==='all'||m.target===u.nationalId||
+      (u.locations||[]).some(function(lid){return m.target==='loc_'+lid;});
+  });
+  var box=document.getElementById('prf-msgs');
+  if(!myMsgs.length){
+    box.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">صندوق خالی است</div>';
+  }else{
+    var html='';
+    myMsgs.slice().reverse().forEach(function(m){
+      var isNew=(m.readBy||[]).indexOf(u.nationalId)<0;
+      if(isNew){
+        var idx=state.messages.findIndex(function(x){return x.id===m.id;});
+        if(idx>=0){
+          if(!state.messages[idx].readBy)state.messages[idx].readBy=[];
+          state.messages[idx].readBy.push(u.nationalId);
+        }
+      }
+      html+='<div style="padding:10px;background:'+(isNew?'rgba(0,212,255,0.07)':'var(--bg3)')+
+        ';border-radius:10px;margin-bottom:8px;border:1px solid '+(isNew?'rgba(0,212,255,0.3)':'var(--border)')+'">'+
+        (isNew?'<div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:4px">جدید</div>':'')+
+        '<div style="font-size:13px;line-height:1.7">'+m.text+'</div>'+
+        '<div style="font-size:11px;color:var(--text3);margin-top:5px">'+m.date+' '+m.time+'</div></div>';
+    });
+    box.innerHTML=html;
+  }
+  var dot=document.getElementById('inbox-dot');
+  if(dot)dot.style.display='none';
+  document.getElementById('profile-modal').style.display='flex';
+}
+function checkInboxDot(){
+  var u=state.currentUser;
+  if(!u)return;
+  var unread=state.messages.filter(function(m){
+    var forMe=m.target==='all'||m.target===u.nationalId||
+      (u.locations||[]).some(function(lid){return m.target==='loc_'+lid;});
+    return forMe&&(m.readBy||[]).indexOf(u.nationalId)<0;
+  });
+  var dot=document.getElementById('inbox-dot');
+  if(dot)dot.style.display=unread.length?'block':'none';
+  if(unread.length)showToast(toPersianNum(unread.length)+' پیام جدید دارید','info');
+}
+function openChangePassModal(){
+  var f=['cp-cur','cp-new','cp-rep'];
+  for(var i=0;i<f.length;i++){var el=document.getElementById(f[i]);if(el)el.value='';}
+  document.getElementById('cp-modal').style.display='flex';
+}
+function doChangePass(){
+  var cur=document.getElementById('cp-cur').value;
+  var nw=document.getElementById('cp-new').value;
+  var rep=document.getElementById('cp-rep').value;
+  var u=state.currentUser;
+  if(cur!==u.password){showToast('رمز فعلی اشتباه است','error');return;}
+  if(nw.length<4){showToast('رمز جدید باید حداقل ۴ کاراکتر باشد','error');return;}
+  if(nw!==rep){showToast('تکرار رمز مطابقت ندارد','error');return;}
+  var idx=state.personnel.findIndex(function(p){return p.nationalId===u.nationalId;});
+  if(idx>=0){state.personnel[idx].password=nw;state.currentUser.password=nw;savePersonnel();
+    dbEdit('personnel',state.personnel[idx].id,{password:nw});}
+  document.getElementById('cp-modal').style.display='none';
+  showToast('رمز عبور با موفقیت تغییر کرد','success');
+}
+
+// ════ MESSAGES ════
+function sendMessage(){
+  var targetEl=document.getElementById('msg-target');
+  var textEl=document.getElementById('msg-text');
+  if(!targetEl||!textEl){showToast('خطا: فرم پیدا نشد','error');return;}
+  var target=targetEl.value;
+  var text=textEl.value.trim();
+  if(!text){showToast('متن پیام خالی است','error');return;}
+  if(!target){showToast('گیرنده را انتخاب کنید','error');return;}
+  var now=new Date();
+  var msg={id:'msg_'+Date.now(),target:target,text:text,date:todayStr(),
+    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),readBy:[]};
+  state.messages.push(msg);
+  dbAdd('messages',{id:msg.id,target:target,text:text,date:msg.date,time:msg.time,read_by:[]});
+  textEl.value='';
+  renderMsgsList();
+  showToast('پیام با موفقیت ارسال شد','success');
+}
+function renderMsgsList(){
+  var list=document.getElementById('msgs-list');
+  if(!list)return;
+  if(!state.messages.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#128235;</div>پیامی ارسال نشده</div>';
+    return;
+  }
+  var html='';
+  state.messages.slice().reverse().forEach(function(m){
+    var tl=m.target==='all'?'همه پرسنل':m.target.indexOf('loc_')===0?'شعبه خاص':'فرد خاص';
+    html+='<div class="card" style="margin-bottom:8px">'+
+      '<div style="font-size:13px;line-height:1.7">'+m.text+'</div>'+
+      '<div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--text3)">'+
+      '<span>'+m.date+' '+m.time+'</span><span>'+tl+'</span></div></div>';
+  });
+  list.innerHTML=html;
+}
+function initMessagesTab(){
+  var sel=document.getElementById('msg-target');
+  if(!sel)return;
+  sel.innerHTML='<option value="all">همه پرسنل</option>';
+  state.personnel.forEach(function(p){
+    sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+  });
+  state.locations.forEach(function(l){
+    sel.innerHTML+='<option value="loc_'+l.id+'">شعبه: '+l.name+'</option>';
+  });
+  renderMsgsList();
+}
+
+// ════ TRACKING ════
+function initTrackingTab(){
+  var ps=document.getElementById('track-person');
+  var ds=document.getElementById('track-date');
+  if(!ps||!ds)return;
+  ps.innerHTML='<option value="">انتخاب پرسنل</option>';
+  state.personnel.forEach(function(p){
+    ps.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+  });
+  var dates=[];
+  state.logs.forEach(function(l){if(l.date&&dates.indexOf(l.date)<0)dates.push(l.date);});
+  dates.sort().reverse();
+  ds.innerHTML='<option value="">انتخاب تاریخ</option>';
+  dates.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+d+'</option>';});
+}
+function doTracking(){
+  var pid=document.getElementById('track-person').value;
+  var date=document.getElementById('track-date').value;
+  var res=document.getElementById('tracking-result');
+  if(!pid||!date){showToast('پرسنل و تاریخ را انتخاب کنید','error');return;}
+  var logs=state.logs.filter(function(l){return l.userId===pid&&l.date===date;});
+  if(!logs.length){
+    res.innerHTML='<div class="empty-state"><div class="icon">&#128205;</div>رکوردی یافت نشد</div>';
+    return;
+  }
+  // Calc duration
+  var total=0,lastIn=null;
+  logs.forEach(function(l){
+    if(l.type==='in')lastIn=new Date(l.timestamp);
+    else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
+  });
+  if(lastIn)total+=Date.now()-lastIn;
+  var h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  var durText=h>0?toPersianNum(h)+' ساعت '+toPersianNum(m)+' دقیقه':toPersianNum(m)+' دقیقه';
+  var html='<div class="card" style="margin-bottom:12px;display:flex;justify-content:space-around;text-align:center">'+
+    '<div><div style="font-size:20px;font-weight:700;color:var(--accent)">'+durText+'</div><div style="font-size:12px;color:var(--text2)">مجموع حضور</div></div>'+
+    '<div><div style="font-size:20px;font-weight:700;color:var(--green)">'+toPersianNum(logs.length)+'</div><div style="font-size:12px;color:var(--text2)">تعداد ثبت</div></div></div>';
+  html+='<div style="font-size:13px;font-weight:600;margin-bottom:8px">لیست مختصات GPS</div>';
+  html+='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:var(--bg3)"><th style="padding:8px;border-bottom:1px solid var(--border);text-align:right">#</th><th style="padding:8px;border-bottom:1px solid var(--border);text-align:right">ساعت</th><th style="padding:8px;border-bottom:1px solid var(--border);text-align:right">نوع</th><th style="padding:8px;border-bottom:1px solid var(--border);text-align:right">عرض</th><th style="padding:8px;border-bottom:1px solid var(--border);text-align:right">طول</th></tr></thead><tbody>';
+  logs.forEach(function(l,i){
+    var tc=l.type==='in'?'var(--green)':'var(--red)';
+    var tt=l.type==='in'?'ورود':'خروج';
+    html+='<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:7px">'+toPersianNum(i+1)+'</td>'+
+      '<td style="padding:7px">'+l.time+'</td>'+
+      '<td style="padding:7px;color:'+tc+'">'+tt+'</td>'+
+      '<td style="padding:7px;direction:ltr;font-family:monospace">'+(l.lat?parseFloat(l.lat).toFixed(5):'-')+'</td>'+
+      '<td style="padding:7px;direction:ltr;font-family:monospace">'+(l.lng?parseFloat(l.lng).toFixed(5):'-')+'</td></tr>';
+  });
+  html+='</tbody></table></div>';
+  res.innerHTML=html;
+}
+
+// ════ STATE ════
+var state={
+  currentUser:null,
+  checkinType:'in',
+  locations:[],
+  personnel:[],
+  logs:[],
+  messages:[],
+  workHours:{}
+};
+var addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
+
+function saveLocations(){}
+function savePersonnel(){}
+function saveLogs(){}
+
+// ════ QR TOKEN ════
+function getQRToken(locId){
+  // Token changes every hour — based on locId + current hour
+  var now=new Date();
+  var hourKey=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
+  return btoa(`HG:${locId}:${hourKey}`).replace(/=/g,'');
+}
+
+function getNextHourSeconds(){
+  var now=new Date();
+  return 3600 - (now.getMinutes()*60 + now.getSeconds());
+}
+
+// ════ AUTH ════
+function doLogin(){
+  var user=document.getElementById('login-user').value.trim();
+  var pass=document.getElementById('login-pass').value.trim();
+  if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
+  var btn=document.querySelector('#screen-login .btn-primary');
+  if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
+  loadDB().then(function(){
+    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
+    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+    if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
+    showToast('نام کاربری یا رمز اشتباه است','error');
+  }).catch(function(){
+    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
+    showToast('خطا در اتصال به سرور','error');
+  });
+}
+function doLogout(){
+  state.currentUser=null;
+  stopQRScan();
+  document.getElementById('login-user').value='';
+  document.getElementById('login-pass').value='';
+  showScreen('login');
+}
+
+// ════ SCREENS ════
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
+  document.getElementById('screen-'+n).classList.add('active');
+  if(n==='admin') setTimeout(function(){initAddMap();renderQRLocSelect();},400);
+}
+
+// ════ CLOCK ════
+setInterval(function(){
+  var el=document.getElementById('clock-display');if(!el)return;
+  el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  // Update QR countdown
+  var cd=document.getElementById('qr-countdown');
+  if(cd&&cd.textContent!=='--:--'){
+    var s=getNextHourSeconds();
+    var m=Math.floor(s/60), sec=s%60;
+    cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+  var fst=document.getElementById('fullscreen-timer');
+  if(fst&&fst.style.display!=='none'){
+    var s=getNextHourSeconds();
+    var m=Math.floor(s/60),sec=s%60;
+    fst.textContent=`تغییر بعدی: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  }
+},1000);
+
+// ════ EMPLOYEE ════
+function initEmployee(){
+  var u=state.currentUser;
+  document.getElementById('emp-name').textContent=u.fname+' '+u.lname;
+  document.getElementById('emp-avatar').textContent=u.fname[0];
+  var locs=(u.locations||[]).map(function(id){
+    var l=state.locations.find(function(x){return x.id===id;});
+    return l?l.name:null;
+  }).filter(Boolean).join(' - ');
+  document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
+  updateEmpStatus();
+  renderTodayLogs();
+  checkInboxDot();
+}
+
+function updateEmpStatus(){
+  var today=todayStr();
+  var logs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
+  var last=logs[logs.length-1];
+  var badge=document.getElementById('emp-status-badge');
+  if(!last){badge.className='badge badge-orange';badge.textContent='حضور ثبت نشده';}
+  else if(last.type==='in'){badge.className='badge badge-green';badge.textContent='✓ حاضر';}
+  else{badge.className='badge badge-red';badge.textContent='✗ خارج شده';}
+}
+
+function calcTodayDuration(logs){
+  var total=0,lastIn=null;
+  for(var l of logs){
+    if(l.type==='in')lastIn=new Date(l.timestamp);
+    else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
+  }
+  if(lastIn)total+=Date.now()-lastIn;
+  var h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  return h>0?`${toPersianNum(h)} ساعت ${toPersianNum(m)} دقیقه`:`${toPersianNum(m)} دقیقه`;
+}
+
+function renderTodayLogs(){
+  var today=todayStr();
+  var logs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
+  document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
+  var summary=document.getElementById('today-summary');
+  summary.innerHTML=logs.length>0?`<span class="duration-badge">⏱ ${calcTodayDuration(logs)}</span>`:'';
+  var list=document.getElementById('today-logs-list');
+  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
+  list.innerHTML=logs.map(function(l){return `
+    <div class="log-item">
+      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
+      <div style="font-weight:600">${l.time}</div>
+    </div>`;}).join('');
+}
+
+
+
+// ════ WORK HOURS ════
+function initWorkHoursTab(){
+  var sel=document.getElementById('wh-loc-select');
+  if(!sel)return;
+  sel.innerHTML='<option value="">انتخاب شعبه (همه = پیش‌فرض)</option>'+
+    '<option value="default">&#127970; پیش‌فرض همه شعبه‌ها</option>';
+  state.locations.forEach(function(l){
+    sel.innerHTML+='<option value="'+l.id+'">&#127970; '+l.name+'</option>';
+  });
+  // Load existing if saved
+  var saved=localStorage.getItem('hg_workhours');
+  if(saved)state.workHours=JSON.parse(saved);
+  renderWHList();
+}
+
+function renderWHList(){
+  var list=document.getElementById('wh-locations-list');
+  if(!list)return;
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  var keys=Object.keys(wh);
+  if(!keys.length){
+    list.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">ساعت کاری تنظیم نشده</div>';
+    return;
+  }
+  var html='';
+  keys.forEach(function(k){
+    var w=wh[k];
+    var locName=k==='default'?'پیش‌فرض همه شعبه‌ها':(function(){var l=state.locations.find(function(x){return x.id===k;});return l?l.name:k;})();
+    var daysText=w.days==='6'?'ش تا پ':w.days==='5'?'ش تا چ':'همه روزها';
+    html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+      '<div>'+
+        '<div style="font-weight:600;font-size:13px;margin-bottom:4px">&#127970; '+locName+'</div>'+
+        '<div style="font-size:12px;color:var(--accent)">&#128336; '+w.start+' تا '+w.end+'</div>'+
+        '<div style="font-size:11px;color:var(--text3)">تاخیر مجاز: '+toPersianNum(w.late)+' دقیقه | '+daysText+'</div>'+
+      '</div>'+
+      '<button onclick="deleteWorkHours(\"'+k+'\")" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">حذف</button>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+}
+
+function saveWorkHours(){
+  var locId=document.getElementById('wh-loc-select').value;
+  var start=document.getElementById('wh-start').value;
+  var end=document.getElementById('wh-end').value;
+  var late=document.getElementById('wh-late').value||'15';
+  var days=document.getElementById('wh-days').value;
+  if(!locId){showToast('لطفاً شعبه را انتخاب کنید','error');return;}
+  if(!start||!end){showToast('ساعت شروع و پایان الزامی است','error');return;}
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  wh[locId]={start:start,end:end,late:parseInt(late),days:days};
+  localStorage.setItem('hg_workhours',JSON.stringify(wh));
+  state.workHours=wh;
+  // Save to DB too
+  dbEdit('work_hours',locId,{location_id:locId,start_time:start,end_time:end,late_minutes:parseInt(late),work_days:days});
+  renderWHList();
+  showToast('ساعت کاری ذخیره شد','success');
+}
+
+function deleteWorkHours(locId){
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  delete wh[locId];
+  localStorage.setItem('hg_workhours',JSON.stringify(wh));
+  state.workHours=wh;
+  renderWHList();
+  showToast('حذف شد','success');
+}
+
+function getWorkHoursForLoc(locId){
+  var wh=state.workHours||{};
+  return wh[locId]||wh['default']||{start:'08:00',end:'17:00',late:15,days:'6'};
+}
+
+// ════ CHECKIN FLOW ════
+function startCheckin(type){
+  state.checkinType=type;
+  var u=state.currentUser;
+  if(!u)return;
+
+  // Check order: must alternate in/out
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+  if(type==='in'&&last&&last.type==='in'){showToast('ابتدا باید خروج ثبت کنید','error');return;}
+  if(type==='out'&&(!last||last.type==='out')){showToast('ابتدا باید ورود ثبت کنید','error');return;}
+
+  // Check user has locations
+  var userLocs=(u.locations||[]).map(function(id){
+    return state.locations.find(function(l){return l.id===id;});
+  }).filter(Boolean);
+  if(!userLocs.length){showToast('شعبه‌ای برای شما تعریف نشده','error');return;}
+
+  // Show loading
+  var btn=document.getElementById('btn-checkin-'+type);
+  if(btn){btn.textContent='در حال بررسی GPS...';btn.disabled=true;}
+
+  // Try GPS first
+  if(!navigator.geolocation){
+    if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+    handleGPSFail(type, userLocs, u);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+      var lat=pos.coords.latitude, lng=pos.coords.longitude;
+      // Check if within any allowed location
+      var matched=null;
+      userLocs.forEach(function(loc){
+        if(!matched&&loc.lat&&loc.lng){
+          var dist=calcDistance(lat,lng,parseFloat(loc.lat),parseFloat(loc.lng));
+          if(dist<=(loc.radius||500))matched=loc;
+        }
+      });
+      if(matched){
+        // GPS OK - register directly
+        registerLog(matched.id, matched.name, lat, lng, 'gps');
+      } else {
+        // GPS got but outside range - try QR via email
+        showToast('خارج از محدوده شعبه — ارسال QR به ایمیل...','info');
+        handleGPSFail(type, userLocs, u);
+      }
+    },
+    function(err){
+      if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+      handleGPSFail(type, userLocs, u);
+    },
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+  );
+}
+
+function handleGPSFail(type, userLocs, u){
+  var loc=userLocs[0];
+  var qrToken=getQRToken(loc.id);
+  var email=u.email||'';
+  
+  // Open camera first
+  openQRScan(type);
+  
+  // Then send email and show popup
+  if(email&&email.indexOf('@')>0&&EMAILJS_PUBLIC_KEY!=='YOUR_PUBLIC_KEY'){
+    generateQRDataUrl(qrToken, function(dataUrl){
+      sendQRByEmail(email, u.fname+' '+u.lname, loc.name, dataUrl).then(function(ok){
+        if(ok) showEmailSentPopup(email);
+      });
+    });
+  } else {
+    showNoGPSPopup();
+  }
+}
+
+function closeEmailPopup(){var p=document.getElementById('email-sent-popup');if(p)p.remove();}
+function showEmailSentPopup(email){
+  var existing=document.getElementById('email-sent-popup');
+  if(existing)existing.remove();
+  
+  var popup=document.createElement('div');
+  popup.id='email-sent-popup';
+  popup.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;'+
+    'background:var(--card);border:2px solid var(--accent);border-radius:20px;'+
+    'padding:28px 24px;width:85%;max-width:320px;text-align:center;'+
+    'box-shadow:0 16px 48px rgba(0,0,0,0.7);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl';
+  
+  popup.innerHTML=
+    '<div style="font-size:48px;margin-bottom:12px">&#128233;</div>'+
+    '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">ایمیل ارسال شد</div>'+
+    '<div style="font-size:13px;color:var(--text2);margin-bottom:6px">QR Code به ایمیل</div>'+
+    '<div style="font-size:14px;font-weight:600;color:var(--accent);margin-bottom:16px;word-break:break-all">'+email+'</div>'+
+    '<div style="font-size:12px;color:var(--text3);margin-bottom:20px">ارسال شد — لطفاً QR را اسکن کنید</div>'+
+    '<button onclick="closeEmailPopup()" '+
+    'style="padding:12px 32px;background:linear-gradient(135deg,var(--accent),#0088cc);'+
+    'color:#000;font-weight:700;border:none;border-radius:12px;font-size:14px;cursor:pointer;'+
+    'font-family:Vazirmatn,Tahoma,sans-serif">متوجه شدم</button>';
+  
+  document.body.appendChild(popup);
+  
+  // Auto close after 6 seconds
+  setTimeout(function(){
+    var p=document.getElementById('email-sent-popup');
+    if(p)p.remove();
+  },6000);
+}
+
+function showNoGPSPopup(){
+  var existing=document.getElementById('email-sent-popup');
+  if(existing)existing.remove();
+  
+  var popup=document.createElement('div');
+  popup.id='email-sent-popup';
+  popup.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;'+
+    'background:var(--card);border:2px solid var(--orange);border-radius:20px;'+
+    'padding:28px 24px;width:85%;max-width:320px;text-align:center;'+
+    'box-shadow:0 16px 48px rgba(0,0,0,0.7);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl';
+  
+  popup.innerHTML=
+    '<div style="font-size:48px;margin-bottom:12px">&#128247;</div>'+
+    '<div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:8px">GPS دریافت نشد</div>'+
+    '<div style="font-size:13px;color:var(--text2);margin-bottom:20px">لطفاً QR Code شعبه را اسکن کنید</div>'+
+    '<button onclick="closeEmailPopup()" '+
+    'style="padding:12px 32px;background:var(--orange);'+
+    'color:#000;font-weight:700;border:none;border-radius:12px;font-size:14px;cursor:pointer;'+
+    'font-family:Vazirmatn,Tahoma,sans-serif">اسکن می‌کنم</button>';
+  
+  document.body.appendChild(popup);
+  setTimeout(function(){
+    var p=document.getElementById('email-sent-popup');
+    if(p)p.remove();
+  },5000);
+}
+
+function generateQRDataUrl(text, callback){
+  // Use existing QR library (qrcode.js)
+  var canvas=document.createElement('canvas');
+  canvas.width=200;canvas.height=200;
+  if(typeof QRCode!=='undefined'){
+    try{
+      QRCode.toCanvas(canvas,text,{width:200},function(err){
+        callback(err?'':canvas.toDataURL());
+      });
+      return;
+    }catch(e){}
+  }
+  callback('');
+}
+
+function calcDistance(lat1,lng1,lat2,lng2){
+  var R=6371000;
+  var dLat=(lat2-lat1)*Math.PI/180;
+  var dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function registerLog(locId, locName, lat, lng, method){
+  var u=state.currentUser;
+  var now=new Date();
+  var log={
+    id:'log_'+Date.now(),
+    userId:u.nationalId,
+    userName:u.fname+' '+u.lname,
+    locationId:locId,
+    locationName:locName,
+    type:state.checkinType,
+    date:todayStr(),
+    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    timestamp:now.toISOString(),
+    lat:lat,
+    lng:lng
+  };
+  state.logs.push(log);
+  dbAdd('logs',{
+    id:log.id,user_id:log.userId,user_name:log.userName,
+    location_id:log.locationId,location_name:log.locationName,
+    type:log.type,date:log.date,time:log.time,
+    timestamp:log.timestamp,lat:lat,lng:lng,method:method||'gps'
+  });
+  updateEmpStatus();
+  renderTodayLogs();
+  showToast(state.checkinType==='in'?'✅ ورود در '+locName+' ثبت شد':'✅ خروج از '+locName+' ثبت شد','success');
+}
+
+// ════ QR SCANNER ════
+function openQRScan(type){
+  state.checkinType=type;
+  document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
+  document.getElementById('qr-scan-result').style.display='none';
+  document.getElementById('qr-scan-modal').classList.add('open');
+  startCamera();
+}
+
+function closeQRScan(){
+  document.getElementById('qr-scan-modal').classList.remove('open');
+  stopQRScan();
+}
+
+function stopQRScan(){
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}
+  if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
+  var video=document.getElementById('qr-video');
+  video.style.display='none';
+  video.srcObject=null;
+}
+
+async function startCamera(){
+  var video=document.getElementById('qr-video');
+  try{
+    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
+    video.srcObject=scanStream;
+    video.style.display='block';
+    video.play();
+    scanInterval=setInterval(scanFrame,300);
+  } catch(e){
+    showToast('دسترسی به دوربین رد شد','error');
+    closeQRScan();
+  }
+}
+
+function scanFrame(){
+  var video=document.getElementById('qr-video');
+  if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+  var canvas=document.getElementById('qr-canvas');
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  var ctx=canvas.getContext('2d');
+  ctx.drawImage(video,0,0,canvas.width,canvas.height);
+  var imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  // Use BarcodeDetector if available
+  if('BarcodeDetector' in window){
+    var detector=new BarcodeDetector({formats:['qr_code']});
+    detector.detect(canvas).then(function(codes){
+      if(codes.length>0) processQRCode(codes[0].rawValue);
+    }).catch(function(){});
+  } else {
+    // Fallback: jsQR
+    if(typeof jsQR!=='undefined'){
+      var code=jsQR(imageData.data,imageData.width,imageData.height);
+      if(code) processQRCode(code.data);
+    }
+  }
+}
+
+function processQRCode(data){
+  var u=state.currentUser;
+  var matched=null;
+  state.locations.forEach(function(loc){
+    if(!matched){
+      var expected=getQRToken(loc.id);
+      if(data===expected){
+        var allowed=(u.locations||[]).indexOf(loc.id)>=0;
+        if(allowed)matched=loc;
+        else showToast('شما مجاز به ورود در این شعبه نیستید','error');
+      }
+    }
+  });
+  if(!matched){showToast('QR نامعتبر یا منقضی شده','error');return;}
+  stopQRScan();
+  document.getElementById('qr-scan-modal').classList.remove('open');
+  registerLog(matched.id, matched.name, null, null, 'qr');
+}
+
+function showResult(msg,type){
+  var el=document.getElementById('qr-scan-result');
+  el.textContent=msg;el.className='qr-result '+type;el.style.display='block';
+}
+
+// ════ QR GENERATOR ════
+function renderQRLocSelect(){
+  var sel=document.getElementById('qr-loc-select');
+  sel.innerHTML='<option value="">-- شعبه را انتخاب کنید --</option>'+
+    state.locations.map(function(l){return `<option value="${l.id}">${l.name}</option>`;}).join('');
+}
+
+function generateQR(){
+  var locId=document.getElementById('qr-loc-select').value;
+  if(!locId) return;
+  var token=getQRToken(locId);
+  var container=document.getElementById('qr-code-div');
+  container.innerHTML='';
+  if(qrInstance){qrInstance=null;}
+  qrInstance=new QRCode(container,{
+    text:token,width:200,height:200,
+    colorDark:'#0a1628',colorLight:'#ffffff',
+    correctLevel:QRCode.CorrectLevel.H
+  });
+  document.getElementById('qr-countdown').textContent='--:--';
+  // Start countdown
+  var s=getNextHourSeconds();
+  var m=Math.floor(s/60),sec=s%60;
+  document.getElementById('qr-countdown').textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+function openFullscreenQR(){
+  var locId=document.getElementById('qr-loc-select').value;
+  if(!locId){showToast('ابتدا شعبه را انتخاب کنید','error');return;}
+  var loc=state.locations.find(function(l){return l.id===locId;});
+  var token=getQRToken(locId);
+  var fs=document.getElementById('fullscreen-qr');
+  fs.style.display='flex';
+  document.getElementById('fullscreen-loc-name').textContent='📍 '+loc.name;
+  var container=document.getElementById('fullscreen-qr-code');
+  container.innerHTML='';
+  new QRCode(container,{text:token,width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+}
+function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
+
+// ════ ADMIN ════
+function adminTab(tab,el){
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+  el.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
+  document.getElementById('tab-'+tab).style.display='block';
+  if(tab==='personnel'){renderLocCheckboxes('loc-checkboxes',[]);}
+  if(tab==='reports'){loadReportFilters();loadReports();}
+  if(tab==='locations'){renderLocationsList();setTimeout(function(){if(addMap)addMap.invalidateSize();},200);}
+  if(tab==='qr')renderQRLocSelect();
+  if(tab==='messages')initMessagesTab();
+  if(tab==='tracking')initTrackingTab();
+  if(tab==='workhours')initWorkHoursTab();
+}
+
+function renderAdmin(){
+  loadDB().then(function(){
+    renderAdminStats();
+    renderLocationsList();
+    renderPersonnelList();
+    renderQRLocSelect();
+  });
+}
+
+function renderAdminStats(){
+  var today=todayStr();
+  var uids=[];
+  state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
+  var presentToday=uids.length;
+  var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
+  var absentToday=state.personnel.length-presentToday;
+  document.getElementById('admin-stats').innerHTML=
+    '<div class="stat-box" onclick="showStatsModal(\"locations\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div>'+
+      '<div class="stat-label">شعبه</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"personnel\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div>'+
+      '<div class="stat-label">پرسنل</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"present\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div>'+
+      '<div class="stat-label">حاضر امروز</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"logs\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div>'+
+      '<div class="stat-label">ثبت امروز</div>'+
+    '</div>';
+}
+
+function showStatsModal(type){
+  var today=todayStr();
+  var title='', html='';
+
+  if(type==='locations'){
+    title='&#127970; لیست شعبه‌ها';
+    if(!state.locations.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">شعبه‌ای ثبت نشده</div>';}
+    else{
+      state.locations.forEach(function(l){
+        var pCount=state.personnel.filter(function(p){return (p.locations||[]).indexOf(l.id)>=0;}).length;
+        html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)">'+
+          '<div style="font-weight:700;font-size:15px;margin-bottom:4px">'+l.name+'</div>'+
+          '<div style="font-size:12px;color:var(--text2)">'+( l.address||'—')+'</div>'+
+          '<div style="display:flex;gap:16px;margin-top:8px;font-size:12px">'+
+            '<span style="color:var(--accent)">&#128101; '+toPersianNum(pCount)+' پرسنل</span>'+
+            '<span style="color:var(--text3)">&#128205; '+(l.lat?parseFloat(l.lat).toFixed(4)+', '+parseFloat(l.lng).toFixed(4):'بدون مختصات')+'</span>'+
+          '</div>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='personnel'){
+    title='&#128101; لیست پرسنل';
+    if(!state.personnel.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">پرسنلی ثبت نشده</div>';}
+    else{
+      state.personnel.forEach(function(p){
+        var todayLogs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
+        var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+        var statusColor=!last?'var(--orange)':last.type==='in'?'var(--green)':'var(--red)';
+        var statusText=!last?'غایب':last.type==='in'?'حاضر':'خروج';
+        var locNames=(p.locations||[]).map(function(id){var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+        html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;align-items:center;gap:12px">'+
+          '<div class="avatar" style="width:40px;height:40px;font-size:16px;flex-shrink:0">'+p.fname[0]+'</div>'+
+          '<div style="flex:1">'+
+            '<div style="font-weight:700;font-size:14px">'+p.fname+' '+p.lname+'</div>'+
+            '<div style="font-size:11px;color:var(--text2)">'+p.nationalId+(p.email?' | '+p.email:'')+'</div>'+
+            '<div style="font-size:11px;color:var(--text3)">'+( locNames||'بدون شعبه')+'</div>'+
+          '</div>'+
+          '<span style="background:'+statusColor+';color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">'+statusText+'</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='present'){
+    title='&#9989; حاضرین امروز — '+today;
+    var presentIds=[];
+    state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&presentIds.indexOf(l.userId)<0)presentIds.push(l.userId);});
+    var presentPersonnel=state.personnel.filter(function(p){return presentIds.indexOf(p.nationalId)>=0;});
+    var absentPersonnel=state.personnel.filter(function(p){return presentIds.indexOf(p.nationalId)<0;});
+    if(!state.personnel.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">پرسنلی ثبت نشده</div>';}
+    else{
+      html+='<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">&#9989; حاضر ('+toPersianNum(presentPersonnel.length)+' نفر)</div>';
+      if(!presentPersonnel.length)html+='<div style="padding:10px;color:var(--text3);font-size:13px">کسی ثبت ورود نکرده</div>';
+      presentPersonnel.forEach(function(p){
+        var lastLog=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;}).pop();
+        html+='<div style="padding:10px 12px;background:rgba(0,200,83,0.08);border-radius:10px;margin-bottom:6px;border:1px solid rgba(0,200,83,0.2);display:flex;justify-content:space-between;align-items:center">'+
+          '<div><div style="font-weight:600;font-size:13px">'+p.fname+' '+p.lname+'</div>'+
+          '<div style="font-size:11px;color:var(--text3)">ورود: '+(lastLog?lastLog.time:'—')+'</div></div>'+
+          '<span style="font-size:18px">&#128994;</span>'+
+        '</div>';
+      });
+      html+='<div style="font-size:13px;font-weight:700;color:var(--red);margin:12px 0 8px">&#10060; غایب ('+toPersianNum(absentPersonnel.length)+' نفر)</div>';
+      if(!absentPersonnel.length)html+='<div style="padding:10px;color:var(--text3);font-size:13px">همه حاضر هستند</div>';
+      absentPersonnel.forEach(function(p){
+        html+='<div style="padding:10px 12px;background:rgba(255,68,68,0.08);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,68,68,0.2);display:flex;justify-content:space-between;align-items:center">'+
+          '<div style="font-weight:600;font-size:13px">'+p.fname+' '+p.lname+'</div>'+
+          '<span style="font-size:18px">&#128308;</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='logs'){
+    title='&#128203; ثبت‌های امروز — '+today;
+    var todayLogs=state.logs.filter(function(l){return l.date===today;}).reverse();
+    if(!todayLogs.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">هیچ ثبتی امروز وجود ندارد</div>';}
+    else{
+      todayLogs.forEach(function(l){
+        var typeColor=l.type==='in'?'var(--green)':'var(--red)';
+        var typeText=l.type==='in'?'&#128994; ورود':'&#128308; خروج';
+        html+='<div style="padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:6px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+          '<div>'+
+            '<div style="font-weight:600;font-size:13px">'+l.userName+'</div>'+
+            '<div style="font-size:11px;color:var(--text3)">'+l.locationName+' | '+l.time+'</div>'+
+          '</div>'+
+          '<span style="color:'+typeColor+';font-size:12px;font-weight:700">'+typeText+'</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  // Show modal
+  document.getElementById('stats-modal-title').textContent='';
+  document.getElementById('stats-modal-title').innerHTML=title;
+  document.getElementById('stats-modal-body').innerHTML=html;
+  document.getElementById('stats-modal').style.display='flex';
+}
+
+function renderLocationsList(){
+  var list=document.getElementById('locations-list');
+  if(!list)return;
+  if(!state.locations.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#127970;</div>هیچ شعبه‌ای ثبت نشده</div>';
+    return;
+  }
+  var html='';
+  state.locations.forEach(function(l){
+    var pCount=state.personnel.filter(function(p){return (p.locations||[]).indexOf(l.id)>=0;}).length;
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div><div class="card-title">&#127970; '+l.name+'</div>'+
+        '<div class="card-sub">'+(l.address||'&mdash;')+'</div></div>'+
+        '<div class="card-actions">'+
+          '<button class="btn btn-ghost btn-xs" onclick="openEditLocation(\''+l.id+'\')">&#9998;</button>'+
+          '<button class="btn btn-ghost btn-xs" onclick="deleteLocation(\''+l.id+'\')">&#128465;</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">'+toPersianNum(pCount)+' نفر</span></div>'+
+      '<div class="info-row"><span class="info-label">مختصات</span><span class="info-val" style="direction:ltr;font-size:11px">'+(l.lat?parseFloat(l.lat).toFixed(4)+', '+parseFloat(l.lng).toFixed(4):'ثبت نشده')+'</span></div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+}
+function addLocation(){
+  var name=document.getElementById('loc-name').value.trim();
+  var addr=document.getElementById('loc-addr').value.trim();
+  var lat=addMap?addMap.getCenter().lat:35.6892;
+  var lng=addMap?addMap.getCenter().lng:51.3890;
+  var radiusEl=document.getElementById('loc-radius');
+  var radius=radiusEl?parseInt(radiusEl.value)||500:500;
+  if(!name){showToast('نام شعبه الزامی است','error');return;}
+  var btn=document.querySelector('#tab-locations .btn-primary');
+  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
+  var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
+  var promise=dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
+  if(promise&&promise.then){
+    promise.then(function(r){
+      if(btn){btn.textContent='ذخیره شعبه';btn.disabled=false;}
+      if(r&&r.error)return;
+      state.locations.push(nl);
+      renderLocationsList();renderAdminStats();renderQRLocSelect();
+      document.getElementById('loc-name').value='';
+      document.getElementById('loc-addr').value='';
+      showToast('شعبه با موفقیت ذخیره شد','success');
+    });
+  } else {
+    if(btn){btn.textContent='ذخیره شعبه';btn.disabled=false;}
+    state.locations.push(nl);
+    renderLocationsList();renderAdminStats();renderQRLocSelect();
+    document.getElementById('loc-name').value='';
+    document.getElementById('loc-addr').value='';
+  }
+}
+
+function deleteLocation(id){
+  if(!confirm('آیا مطمئن هستید؟'))return;
+  state.locations=state.locations.filter(function(l){return l.id!==id;});
+  state.personnel.forEach(function(p){p.locations=p.locations.filter(function(lid){return lid!==id;});});
+  saveLocations();savePersonnel();renderLocationsList();renderAdminStats();renderQRLocSelect();
+  showToast('شعبه حذف شد','error');
+}
+
+function openEditLocation(id){
+  var loc=state.locations.find(function(l){return l.id===id;});if(!loc)return;
+  document.getElementById('edit-loc-id').value=id;
+  document.getElementById('edit-loc-name').value=loc.name;
+  document.getElementById('edit-loc-addr').value=loc.address||'';
+  document.getElementById('edit-loc-modal').classList.add('open');
+}
+
+function saveEditLocation(){
+  var id=document.getElementById('edit-loc-id').value;
+  var name=document.getElementById('edit-loc-name').value.trim();
+  var addr=document.getElementById('edit-loc-addr').value.trim();
+  if(!name){showToast('نام الزامی است','error');return;}
+  var idx=state.locations.findIndex(function(l){return l.id===id;});if(idx<0)return;
+  state.locations[idx]={...state.locations[idx],name,address:addr};
+  saveLocations();renderLocationsList();renderQRLocSelect();
+  document.getElementById('edit-loc-modal').classList.remove('open');
+  showToast('شعبه ویرایش شد ✅','success');
+}
+
+// ── Personnel ──
+function renderLocCheckboxes(divId,selectedIds){
+  var div=document.getElementById(divId);
+  div.innerHTML=state.locations.map(function(l){return `
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">
+      <input type="checkbox" value="${l.id}" ${selectedIds.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
+      <span style="font-size:13px">🏢 ${l.name}</span>
+    </label>`;}).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
+}
+
+function renderPersonnelList(){
+  var list=document.getElementById('personnel-list');
+  if(!list)return;
+  if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">&#128101;</div>هیچ پرسنلی ثبت نشده</div>';return;}
+  var today=todayStr();
+  var html='';
+  state.personnel.forEach(function(p){
+    var logs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
+    var last=logs.length?logs[logs.length-1]:null;
+    var statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
+    var locNames=(p.locations||[]).map(function(id){var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="avatar" style="width:38px;height:38px;font-size:15px">'+p.fname[0]+'</div>'+
+          '<div>'+
+            '<div style="font-weight:600;font-size:15px">'+p.fname+' '+p.lname+'</div>'+
+            '<div style="font-size:12px;color:var(--text2)">'+p.nationalId+'</div>'+
+            (p.email?'<div style="font-size:11px;color:var(--text3)">'+p.email+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        statusBadge+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">شعبه</span><span class="info-val">'+(locNames||'—')+'</span></div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+        '<button onclick="openEditPersonnel(\"'+p.id+'\")" class="btn btn-sm btn-outline" style="flex:1">ویرایش</button>'+
+        '<button onclick="deletePersonnel(\"'+p.id+'\")" class="btn btn-sm" style="flex:1;background:var(--red);color:#fff">حذف</button>'+
+      '</div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+}
+
+function addPersonnel(){
+  var fname=document.getElementById('per-fname').value.trim();
+  var lname=document.getElementById('per-lname').value.trim();
+  var nid=document.getElementById('per-id').value.trim();
+  var pass=document.getElementById('per-pass').value.trim();
+  var emailEl=document.getElementById('per-email');
+  var email=emailEl?emailEl.value.trim():'';
+  var checked=Array.from(document.querySelectorAll('#loc-checkboxes input:checked')).map(function(c){return c.value;});
+  if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
+  if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
+  var exists=state.personnel.find(function(p){return p.nationalId===nid;});
+  if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
+  var btn=document.querySelector('#tab-personnel .btn-primary');
+  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
+  var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
+  var perRow={id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked};
+  if(email)perRow.email=email;
+  var promise=dbAdd('personnel',perRow);
+  if(promise&&promise.then){
+    promise.then(function(r){
+      if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
+      if(r&&r.error)return;
+      state.personnel.push(np);
+      renderPersonnelList();renderAdminStats();
+      document.getElementById('per-fname').value='';
+      document.getElementById('per-lname').value='';
+      document.getElementById('per-id').value='';
+      document.getElementById('per-pass').value='1234';
+      if(emailEl)emailEl.value='';
+      showToast('پرسنل با موفقیت ذخیره شد','success');
+    });
+  } else {
+    if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
+  }
+}
+
+function openEditPersonnel(id){
+  var p=state.personnel.find(function(x){return x.id===id;});if(!p)return;
+  document.getElementById('edit-per-id').value=id;
+  document.getElementById('edit-per-fname').value=p.fname;
+  document.getElementById('edit-per-lname').value=p.lname;
+  document.getElementById('edit-per-nid').value=p.nationalId;
+  document.getElementById('edit-per-pass').value='';
+  renderLocCheckboxes('edit-loc-checkboxes',p.locations);
+  document.getElementById('edit-per-modal').classList.add('open');
+}
+
+function saveEditPersonnel(){
+  var id=document.getElementById('edit-per-id').value;
+  var fname=document.getElementById('edit-per-fname').value.trim();
+  var lname=document.getElementById('edit-per-lname').value.trim();
+  var nid=document.getElementById('edit-per-nid').value.trim();
+  var pass=document.getElementById('edit-per-pass').value.trim();
+  var locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(function(c){return c.value;});
+  if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
+  if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
+  var idx=state.personnel.findIndex(function(p){return p.id===id;});if(idx<0)return;
+  state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
+  savePersonnel();renderPersonnelList();
+  document.getElementById('edit-per-modal').classList.remove('open');
+  showToast('پرسنل ویرایش شد ✅','success');
+}
+
+function deletePersonnel(id){
+  if(!confirm('آیا مطمئن هستید؟'))return;
+  state.personnel=state.personnel.filter(function(p){return p.id!==id;});
+  savePersonnel();renderPersonnelList();renderAdminStats();
+  showToast('پرسنل حذف شد','error');
+}
+
+// ── Map ──
+function initAddMap(){
+  if(addMap)return;
+  var center=[35.6892,51.3890];
+  addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
+  addMap.on('move',function(){
+    var c=addMap.getCenter();
+    document.getElementById('loc-lat').value=c.lat.toFixed(6);
+    document.getElementById('loc-lng').value=c.lng.toFixed(6);
+  });
+}
+
+async function searchCity(){
+  var q=document.getElementById('city-search-input').value.trim();if(!q)return;
+  try{
+    var r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
+    var d=await r.json();
+    if(d&&d[0]){addMap.setView([+d[0].lat,+d[0].lon],15);showToast('شهر یافت شد ✅','success');}
+    else showToast('شهر پیدا نشد','error');
+  }catch(e){showToast('خطا در جستجو','error');}
+}
+
+function useMyLocationForMap(){
+  if(!navigator.geolocation){showToast('GPS در دسترس نیست','error');return;}
+  navigator.geolocation.getCurrentPosition(function(pos){
+    addMap.setView([pos.coords.latitude,pos.coords.longitude],17);
+    showToast('موقعیت فعلی دریافت شد','success');
+  },function(){showToast('دسترسی به GPS رد شد','error');},{enableHighAccuracy:true,timeout:10000});
+}
+
+// ── Reports ──
+function loadReportFilters(){
+  document.getElementById('filter-person').innerHTML='<option value="">همه پرسنل</option>'+
+    state.personnel.map(function(p){return `<option value="${p.nationalId}">${p.fname} ${p.lname}</option>`;}).join('');
+  var dates=[...new Set(state.logs.map(function(l){return l.date;}))].sort().reverse();
+  document.getElementById('filter-date').innerHTML='<option value="">همه تاریخ‌ها</option>'+dates.map(function(d){return `<option value="${d}">${d}</option>`;}).join('');
+}
+
+function loadReports(){
+  var pid=document.getElementById('filter-person').value;
+  var date=document.getElementById('filter-date').value;
+  var logs=[...state.logs];
+  if(pid)logs=logs.filter(function(l){return l.userId===pid;});
+  if(date)logs=logs.filter(function(l){return l.date===date;});
+  logs.reverse();
+  var summary=document.getElementById('reports-summary');
+  if(logs.length>0){
+    summary.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
+      <span class="badge badge-blue">${toPersianNum(logs.length)} رکورد</span>
+      <span class="badge badge-green">${toPersianNum(logs.filter(function(l){return l.type==='in';}).length)} ورود</span>
+      <span class="badge badge-red">${toPersianNum(logs.filter(function(l){return l.type==='out';}).length)} خروج</span>
+    </div>`;
+  } else summary.innerHTML='';
+  var list=document.getElementById('reports-list');
+  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📊</div>هیچ رکوردی یافت نشد</div>';return;}
+  list.innerHTML=logs.map(function(l){return `
+    <div class="report-item">
+      <div class="report-avatar">${l.userName[0]}</div>
+      <div class="report-info"><div class="report-name">${l.userName}</div><div class="report-meta">🏢 ${l.locationName} | 📅 ${l.date}</div></div>
+      <div style="text-align:left">
+        <div class="badge ${l.type==='in'?'badge-green':'badge-red'}" style="margin-bottom:4px">${l.type==='in'?'ورود':'خروج'}</div>
+        <div style="font-size:12px;color:var(--text2;})">${l.time}</div>
+      </div>
+    </div>`;}).join('');
+}
+
+function exportExcel(){
+  var pid=document.getElementById('filter-person').value;
+  var date=document.getElementById('filter-date').value;
+  var logs=[...state.logs];
+  if(pid)logs=logs.filter(function(l){return l.userId===pid;});
+  if(date)logs=logs.filter(function(l){return l.date===date;});
+  if(!logs.length){showToast('هیچ رکوردی وجود ندارد','error');return;}
+  var BOM='\﻿';
+  var header='نام پرسنل,کد ملی,نوع,شعبه,تاریخ,ساعت,روش ثبت\
+';
+  var rows=logs.map(function(l){return `"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}","${l.method||'qr'}"`;}).join('\
+');
+  var blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='گزارش_حضور_غیاب.csv';a.click();
+  URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
+}
+
+// ════ UTILS ════
+function todayStr(){return new Date().toLocaleDateString('fa-IR');}
+function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
+function showToast(msg,type){
+  var old=document.querySelector('.toast');if(old)old.remove();
+  var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.body.appendChild(t);setTimeout(function(){t.remove();},3500);
+}
+
+// Load jsQR fallback
+var s=document.createElement('script');
+s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
+document.head.appendChild(s);
+
+['edit-loc-modal','edit-per-modal'].forEach(function(id){
+  document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
+});
+document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
+document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
+</script>
+</body>
+</html>
