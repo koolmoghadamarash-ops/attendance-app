@@ -541,6 +541,9 @@ function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
     return Promise.resolve(false);
   }
   var timeStr=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'});
+  // Generate QR URL via Google Charts (works in email)
+  var qrUrl='https://chart.googleapis.com/chart?chs=250x250&cht=qr&chco=000000&chld=H%7C2&chl='+encodeURIComponent(qrDataUrl||'QR');
+  var emailMsg='GPS دریافت نشد.\n\nبرای ثبت حضور در شعبه '+locName+'\nتاریخ: '+todayStr()+' ساعت: '+timeStr+'\n\nQR Code زیر را اسکن کنید:';
   return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
     email: userEmail,
     to_name: userName,
@@ -548,7 +551,9 @@ function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
     location_name: locName,
     time: timeStr,
     date: todayStr(),
-    message: 'GPS دریافت نشد. برای ثبت حضور در شعبه '+locName+' لطفا QR Code را اسکن کنید. تاریخ: '+todayStr()+' ساعت: '+timeStr
+    message: emailMsg,
+    qr_url: qrUrl,
+    qr_code: qrDataUrl||''
   }).then(function(){
     showToast('QR Code به ایمیل شما ارسال شد','success');
     return true;
@@ -1057,11 +1062,10 @@ function handleGPSFail(type, userLocs, u){
   // Then send email and show popup
   if(email&&email.indexOf('@')>0){
     showToast('در حال ارسال QR به '+email+'...','info');
-    generateQRDataUrl(qrToken, function(dataUrl){
-      sendQRByEmail(email, u.fname+' '+u.lname, loc.name, dataUrl).then(function(ok){
-        if(ok)showEmailSentPopup(email);
-        else showNoGPSPopup();
-      });
+    // Pass token directly - Google Charts will generate QR image in email
+    sendQRByEmail(email, u.fname+' '+u.lname, loc.name, qrToken).then(function(ok){
+      if(ok)showEmailSentPopup(email);
+      else showNoGPSPopup();
     });
   } else {
     showNoGPSPopup();
