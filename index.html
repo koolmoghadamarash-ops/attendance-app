@@ -238,6 +238,16 @@ input[type=range]{accent-color:var(--accent);width:100%}
     <div style="flex:1"><div class="topbar-title">پنل مدیریت</div><div class="topbar-sub">مدیر سیستم</div></div>
     <button class="logout-btn" onclick="doLogout()">⏏</button>
   </div>
+  <!-- Stats Modal -->
+  <div id="stats-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:14px;color:var(--text)" id="stats-modal-title"></div>
+      <div id="stats-modal-body" style="overflow-y:auto;flex:1"></div>
+      <button onclick="document.getElementById('stats-modal').style.display='none'" style="margin-top:14px;width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">بستن</button>
+    </div>
+  </div>
+
   <div class="admin-content">
     <div class="stats-grid" id="admin-stats"></div>
     <div class="tabs">
@@ -462,7 +472,7 @@ function loadDB(){
     if(res[0]&&res[0].length)
       state.locations=res[0].map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};});
     if(res[1]&&res[1].length)
-      state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,locations:p.locations||[]};});
+      state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};});
     if(res[2]&&res[2].length)
       state.logs=res[2].map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng};});
     if(res[3]&&res[3].length)
@@ -1178,11 +1188,124 @@ function renderAdminStats(){
   state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
   var presentToday=uids.length;
   var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
+  var absentToday=state.personnel.length-presentToday;
   document.getElementById('admin-stats').innerHTML=
-    '<div class="stat-box"><div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div><div class="stat-label">شعبه</div></div>'+
-    '<div class="stat-box"><div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div><div class="stat-label">پرسنل</div></div>'+
-    '<div class="stat-box"><div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div><div class="stat-label">حاضر امروز</div></div>'+
-    '<div class="stat-box"><div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div><div class="stat-label">ثبت امروز</div></div>';
+    '<div class="stat-box" onclick="showStatsModal(\"locations\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div>'+
+      '<div class="stat-label">شعبه</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"personnel\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div>'+
+      '<div class="stat-label">پرسنل</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"present\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div>'+
+      '<div class="stat-label">حاضر امروز</div>'+
+    '</div>'+
+    '<div class="stat-box" onclick="showStatsModal(\"logs\")" style="cursor:pointer">'+
+      '<div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div>'+
+      '<div class="stat-label">ثبت امروز</div>'+
+    '</div>';
+}
+
+function showStatsModal(type){
+  var today=todayStr();
+  var title='', html='';
+
+  if(type==='locations'){
+    title='&#127970; لیست شعبه‌ها';
+    if(!state.locations.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">شعبه‌ای ثبت نشده</div>';}
+    else{
+      state.locations.forEach(function(l){
+        var pCount=state.personnel.filter(function(p){return (p.locations||[]).indexOf(l.id)>=0;}).length;
+        html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)">'+
+          '<div style="font-weight:700;font-size:15px;margin-bottom:4px">'+l.name+'</div>'+
+          '<div style="font-size:12px;color:var(--text2)">'+( l.address||'—')+'</div>'+
+          '<div style="display:flex;gap:16px;margin-top:8px;font-size:12px">'+
+            '<span style="color:var(--accent)">&#128101; '+toPersianNum(pCount)+' پرسنل</span>'+
+            '<span style="color:var(--text3)">&#128205; '+(l.lat?parseFloat(l.lat).toFixed(4)+', '+parseFloat(l.lng).toFixed(4):'بدون مختصات')+'</span>'+
+          '</div>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='personnel'){
+    title='&#128101; لیست پرسنل';
+    if(!state.personnel.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">پرسنلی ثبت نشده</div>';}
+    else{
+      state.personnel.forEach(function(p){
+        var todayLogs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
+        var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+        var statusColor=!last?'var(--orange)':last.type==='in'?'var(--green)':'var(--red)';
+        var statusText=!last?'غایب':last.type==='in'?'حاضر':'خروج';
+        var locNames=(p.locations||[]).map(function(id){var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+        html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;align-items:center;gap:12px">'+
+          '<div class="avatar" style="width:40px;height:40px;font-size:16px;flex-shrink:0">'+p.fname[0]+'</div>'+
+          '<div style="flex:1">'+
+            '<div style="font-weight:700;font-size:14px">'+p.fname+' '+p.lname+'</div>'+
+            '<div style="font-size:11px;color:var(--text2)">'+p.nationalId+(p.email?' | '+p.email:'')+'</div>'+
+            '<div style="font-size:11px;color:var(--text3)">'+( locNames||'بدون شعبه')+'</div>'+
+          '</div>'+
+          '<span style="background:'+statusColor+';color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap">'+statusText+'</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='present'){
+    title='&#9989; حاضرین امروز — '+today;
+    var presentIds=[];
+    state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&presentIds.indexOf(l.userId)<0)presentIds.push(l.userId);});
+    var presentPersonnel=state.personnel.filter(function(p){return presentIds.indexOf(p.nationalId)>=0;});
+    var absentPersonnel=state.personnel.filter(function(p){return presentIds.indexOf(p.nationalId)<0;});
+    if(!state.personnel.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">پرسنلی ثبت نشده</div>';}
+    else{
+      html+='<div style="font-size:13px;font-weight:700;color:var(--green);margin-bottom:8px">&#9989; حاضر ('+toPersianNum(presentPersonnel.length)+' نفر)</div>';
+      if(!presentPersonnel.length)html+='<div style="padding:10px;color:var(--text3);font-size:13px">کسی ثبت ورود نکرده</div>';
+      presentPersonnel.forEach(function(p){
+        var lastLog=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;}).pop();
+        html+='<div style="padding:10px 12px;background:rgba(0,200,83,0.08);border-radius:10px;margin-bottom:6px;border:1px solid rgba(0,200,83,0.2);display:flex;justify-content:space-between;align-items:center">'+
+          '<div><div style="font-weight:600;font-size:13px">'+p.fname+' '+p.lname+'</div>'+
+          '<div style="font-size:11px;color:var(--text3)">ورود: '+(lastLog?lastLog.time:'—')+'</div></div>'+
+          '<span style="font-size:18px">&#128994;</span>'+
+        '</div>';
+      });
+      html+='<div style="font-size:13px;font-weight:700;color:var(--red);margin:12px 0 8px">&#10060; غایب ('+toPersianNum(absentPersonnel.length)+' نفر)</div>';
+      if(!absentPersonnel.length)html+='<div style="padding:10px;color:var(--text3);font-size:13px">همه حاضر هستند</div>';
+      absentPersonnel.forEach(function(p){
+        html+='<div style="padding:10px 12px;background:rgba(255,68,68,0.08);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,68,68,0.2);display:flex;justify-content:space-between;align-items:center">'+
+          '<div style="font-weight:600;font-size:13px">'+p.fname+' '+p.lname+'</div>'+
+          '<span style="font-size:18px">&#128308;</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  else if(type==='logs'){
+    title='&#128203; ثبت‌های امروز — '+today;
+    var todayLogs=state.logs.filter(function(l){return l.date===today;}).reverse();
+    if(!todayLogs.length){html='<div style="text-align:center;padding:20px;color:var(--text3)">هیچ ثبتی امروز وجود ندارد</div>';}
+    else{
+      todayLogs.forEach(function(l){
+        var typeColor=l.type==='in'?'var(--green)':'var(--red)';
+        var typeText=l.type==='in'?'&#128994; ورود':'&#128308; خروج';
+        html+='<div style="padding:10px 12px;background:var(--bg3);border-radius:10px;margin-bottom:6px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+          '<div>'+
+            '<div style="font-weight:600;font-size:13px">'+l.userName+'</div>'+
+            '<div style="font-size:11px;color:var(--text3)">'+l.locationName+' | '+l.time+'</div>'+
+          '</div>'+
+          '<span style="color:'+typeColor+';font-size:12px;font-weight:700">'+typeText+'</span>'+
+        '</div>';
+      });
+    }
+  }
+
+  // Show modal
+  document.getElementById('stats-modal-title').textContent='';
+  document.getElementById('stats-modal-title').innerHTML=title;
+  document.getElementById('stats-modal-body').innerHTML=html;
+  document.getElementById('stats-modal').style.display='flex';
 }
 
 function renderLocationsList(){
@@ -1327,7 +1450,9 @@ function addPersonnel(){
   var btn=document.querySelector('#tab-personnel .btn-primary');
   if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
   var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
-  var promise=dbAdd('personnel',{id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,email:email,locations:checked});
+  var perRow={id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked};
+  if(email)perRow.email=email;
+  var promise=dbAdd('personnel',perRow);
   if(promise&&promise.then){
     promise.then(function(r){
       if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
