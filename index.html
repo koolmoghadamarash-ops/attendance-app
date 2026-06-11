@@ -257,6 +257,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
       <button class="tab" onclick="adminTab('messages',this)">📨 پیام‌ها</button>
       <button class="tab" onclick="adminTab('tracking',this)">📍 ردیابی</button>
+      <button class="tab" onclick="adminTab('workhours',this)">🕐 ساعت کاری</button>
     </div>
 
     <!-- Tab QR -->
@@ -1711,7 +1712,7 @@ function exportExcel(){
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
-// ════ UTILS ═══
+// ════ UTILS ════
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
