@@ -262,20 +262,22 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <!-- Tab Messages -->
     <div id="tab-messages" class="tab-content" style="display:none">
-      <div class="form-card">
-        <div class="section-title">ارسال پیام جدید</div>
-        <div class="field"><label>گیرنده</label>
-          <select id="msg-target" style="width:100%;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none">
-            <option value="all">همه پرسنل</option>
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:14px;color:var(--text)">&#128233; ارسال پیام جدید</div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">گیرنده</label>
+          <select id="msg-target" style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;appearance:none;-webkit-appearance:none">
+            <option value="all">&#128101; همه پرسنل</option>
           </select>
         </div>
-        <div class="field"><label>متن پیام</label>
-          <textarea id="msg-text" rows="3" placeholder="پیام خود را بنویسید..."></textarea>
+        <div style="margin-bottom:14px">
+          <label style="font-size:13px;color:var(--text2);display:block;margin-bottom:6px">متن پیام</label>
+          <textarea id="msg-text" rows="4" placeholder="پیام خود را اینجا بنویسید..." style="width:100%;padding:12px 14px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;resize:none;box-sizing:border-box;line-height:1.7"></textarea>
         </div>
-        <button class="btn btn-primary" onclick="sendMessage()">ارسال پیام</button>
+        <button onclick="sendMessage()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;cursor:pointer">&#128228; ارسال پیام</button>
       </div>
-      <div class="section-title">پیام‌های ارسال‌شده</div>
-      <div id="msgs-list"></div>
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:10px">پیام‌های ارسال‌شده</div>
+      <div id="msgs-list"><div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div></div>
     </div>
 
     <!-- Tab Tracking -->
@@ -528,20 +530,38 @@ function renderMsgsList(){
   list.innerHTML=html;
 }
 function initMessagesTab(){
+  // Reload data from DB first to get latest personnel
+  loadDB().then(function(){
+    populateMsgTargets();
+    renderMsgsList();
+  }).catch(function(){
+    populateMsgTargets();
+    renderMsgsList();
+  });
+}
+function populateMsgTargets(){
   var sel=document.getElementById('msg-target');
-  sel.innerHTML='<option value="all">همه پرسنل</option>';
+  if(!sel)return;
+  sel.innerHTML='<option value="all">&#128101; همه پرسنل</option>';
   state.personnel.forEach(function(p){
-    sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+    sel.innerHTML+='<option value="'+p.nationalId+'">&#128100; '+p.fname+' '+p.lname+'</option>';
   });
   state.locations.forEach(function(l){
-    sel.innerHTML+='<option value="loc_'+l.id+'">شعبه: '+l.name+'</option>';
+    sel.innerHTML+='<option value="loc_'+l.id+'">&#127970; شعبه: '+l.name+'</option>';
   });
-  renderMsgsList();
 }
 
 // ════ TRACKING ════
 function initTrackingTab(){
+  loadDB().then(function(){
+    populateTrackingFilters();
+  }).catch(function(){
+    populateTrackingFilters();
+  });
+}
+function populateTrackingFilters(){
   var ps=document.getElementById('track-person');
+  if(!ps)return;
   ps.innerHTML='<option value="">انتخاب پرسنل</option>';
   state.personnel.forEach(function(p){
     ps.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
@@ -882,16 +902,22 @@ function adminTab(tab,el){
   if(tab==='qr')renderQRLocSelect();
 }
 
-function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
+function renderAdmin(){
+  renderAdminStats();renderLocationsList();renderPersonnelList();
+  loadDB().then(function(){renderAdminStats();renderLocationsList();renderPersonnelList();}).catch(function(){});
+}
 
 function renderAdminStats(){
-  const today=todayStr();
-  const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
-  document.getElementById('admin-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">شعبه</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--purple)">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--green)">${toPersianNum(presentToday)}</div><div class="stat-label">حاضر امروز</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${toPersianNum(state.logs.filter(l=>l.date===today).length)}</div><div class="stat-label">ثبت امروز</div></div>`;
+  var today=todayStr();
+  var uids=[];
+  state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
+  var presentToday=uids.length;
+  var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
+  document.getElementById('admin-stats').innerHTML=
+    '<div class="stat-box"><div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div><div class="stat-label">شعبه</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div><div class="stat-label">پرسنل</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--green)">'+toPersianNum(presentToday)+'</div><div class="stat-label">حاضر امروز</div></div>'+
+    '<div class="stat-box"><div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div><div class="stat-label">ثبت امروز</div></div>';
 }
 
 function renderLocationsList(){
