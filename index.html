@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <meta name="apple-mobile-web-app-title" content="حضور و غیاب">
 <title>حضور و غیاب هوشمند</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -214,10 +215,10 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
     <div class="status-card">
       <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">برای ثبت حضور، QR code شعبه را اسکن کنید:</p>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">ابتدا GPS بررسی می‌شود — در صورت عدم دریافت، QR به ایمیل ارسال می‌شود:</p>
       <div class="action-btns">
-        <button class="btn btn-green" onclick="openQRScan('in')">📷 اسکن ورود</button>
-        <button class="btn btn-red" onclick="openQRScan('out')">📷 اسکن خروج</button>
+        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
+        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">📷 اسکن خروج</button>
       </div>
     </div>
 
@@ -467,6 +468,40 @@ function loadDB(){
     if(res[3]&&res[3].length)
       state.messages=res[3].map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};});
   }).catch(function(e){console.log('loadDB err',e);});
+}
+
+
+// ════ EMAIL CONFIG (EmailJS) ════
+var EMAILJS_PUBLIC_KEY = 'YOUR_PUBLIC_KEY';  // از emailjs.com بگیر
+var EMAILJS_SERVICE_ID = 'YOUR_SERVICE_ID';
+var EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';
+
+function initEmailJS(){
+  if(typeof emailjs==='undefined')return false;
+  emailjs.init({publicKey: EMAILJS_PUBLIC_KEY});
+  return true;
+}
+
+function sendQRByEmail(userEmail, userName, locName, qrDataUrl){
+  if(!initEmailJS()){
+    showToast('سرویس ایمیل در دسترس نیست','error');
+    return Promise.resolve(false);
+  }
+  return emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+    to_email: userEmail,
+    to_name: userName,
+    location_name: locName,
+    qr_image: qrDataUrl,
+    time: new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit'}),
+    date: todayStr()
+  }).then(function(){
+    showToast('QR Code به ایمیل شما ارسال شد','success');
+    return true;
+  }).catch(function(e){
+    console.log('Email error:', e);
+    showToast('خطا در ارسال ایمیل','error');
+    return false;
+  });
 }
 
 // ════ EMP MENU ════
@@ -795,6 +830,140 @@ function renderTodayLogs(){
     </div>`;}).join('');
 }
 
+
+// ════ CHECKIN FLOW ════
+function startCheckin(type){
+  state.checkinType=type;
+  var u=state.currentUser;
+  if(!u)return;
+
+  // Check order: must alternate in/out
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+  if(type==='in'&&last&&last.type==='in'){showToast('ابتدا باید خروج ثبت کنید','error');return;}
+  if(type==='out'&&(!last||last.type==='out')){showToast('ابتدا باید ورود ثبت کنید','error');return;}
+
+  // Check user has locations
+  var userLocs=(u.locations||[]).map(function(id){
+    return state.locations.find(function(l){return l.id===id;});
+  }).filter(Boolean);
+  if(!userLocs.length){showToast('شعبه‌ای برای شما تعریف نشده','error');return;}
+
+  // Show loading
+  var btn=document.getElementById('btn-checkin-'+type);
+  if(btn){btn.textContent='در حال بررسی GPS...';btn.disabled=true;}
+
+  // Try GPS first
+  if(!navigator.geolocation){
+    if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+    handleGPSFail(type, userLocs, u);
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    function(pos){
+      if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+      var lat=pos.coords.latitude, lng=pos.coords.longitude;
+      // Check if within any allowed location
+      var matched=null;
+      userLocs.forEach(function(loc){
+        if(!matched&&loc.lat&&loc.lng){
+          var dist=calcDistance(lat,lng,parseFloat(loc.lat),parseFloat(loc.lng));
+          if(dist<=(loc.radius||300))matched=loc;
+        }
+      });
+      if(matched){
+        // GPS OK - register directly
+        registerLog(matched.id, matched.name, lat, lng, 'gps');
+      } else {
+        // GPS got but outside range - try QR via email
+        showToast('خارج از محدوده شعبه — ارسال QR به ایمیل...','info');
+        handleGPSFail(type, userLocs, u);
+      }
+    },
+    function(err){
+      if(btn){btn.textContent=type==='in'?'&#128205; ثبت ورود':'&#128205; ثبت خروج';btn.disabled=false;}
+      handleGPSFail(type, userLocs, u);
+    },
+    {enableHighAccuracy:true, timeout:10000, maximumAge:0}
+  );
+}
+
+function handleGPSFail(type, userLocs, u){
+  // Send QR by email then open scanner
+  var loc=userLocs[0];
+  var qrToken=getQRToken(loc.id);
+  // Generate QR as data URL using canvas
+  generateQRDataUrl(qrToken, function(dataUrl){
+    var email=u.email||'';
+    if(email&&email.indexOf('@')>0&&EMAILJS_PUBLIC_KEY!=='YOUR_PUBLIC_KEY'){
+      // Send email with QR
+      showToast('در حال ارسال QR به ایمیل شما...','info');
+      sendQRByEmail(email, u.fname+' '+u.lname, loc.name, dataUrl).then(function(){
+        openQRScan(type);
+      });
+    } else {
+      // No email config - just open scanner
+      showToast('GPS دریافت نشد — لطفاً QR را اسکن کنید','info');
+      openQRScan(type);
+    }
+  });
+}
+
+function generateQRDataUrl(text, callback){
+  // Use existing QR library (qrcode.js)
+  var canvas=document.createElement('canvas');
+  canvas.width=200;canvas.height=200;
+  if(typeof QRCode!=='undefined'){
+    try{
+      QRCode.toCanvas(canvas,text,{width:200},function(err){
+        callback(err?'':canvas.toDataURL());
+      });
+      return;
+    }catch(e){}
+  }
+  callback('');
+}
+
+function calcDistance(lat1,lng1,lat2,lng2){
+  var R=6371000;
+  var dLat=(lat2-lat1)*Math.PI/180;
+  var dLng=(lng2-lng1)*Math.PI/180;
+  var a=Math.sin(dLat/2)*Math.sin(dLat/2)+
+    Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*
+    Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function registerLog(locId, locName, lat, lng, method){
+  var u=state.currentUser;
+  var now=new Date();
+  var log={
+    id:'log_'+Date.now(),
+    userId:u.nationalId,
+    userName:u.fname+' '+u.lname,
+    locationId:locId,
+    locationName:locName,
+    type:state.checkinType,
+    date:todayStr(),
+    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
+    timestamp:now.toISOString(),
+    lat:lat,
+    lng:lng
+  };
+  state.logs.push(log);
+  dbAdd('logs',{
+    id:log.id,user_id:log.userId,user_name:log.userName,
+    location_id:log.locationId,location_name:log.locationName,
+    type:log.type,date:log.date,time:log.time,
+    timestamp:log.timestamp,lat:lat,lng:lng,method:method||'gps'
+  });
+  updateEmpStatus();
+  renderTodayLogs();
+  showToast(state.checkinType==='in'?'✅ ورود در '+locName+' ثبت شد':'✅ خروج از '+locName+' ثبت شد','success');
+}
+
 // ════ QR SCANNER ════
 function openQRScan(type){
   state.checkinType=type;
@@ -856,44 +1025,22 @@ function scanFrame(){
 }
 
 function processQRCode(data){
-  // Validate QR token
-  var valid=false, locName='', locId='';
-  for(var loc of state.locations){
-    var expected=getQRToken(loc.id);
-    if(data===expected){
-      // Check if user is allowed in this location
-      if(state.currentUser.locations.includes(loc.id)){
-        valid=true; locName=loc.name; locId=loc.id;
-      } else {
-        showResult('❌ شما مجاز به ورود در این شعبه نیستید','error');
-        return;
+  var u=state.currentUser;
+  var matched=null;
+  state.locations.forEach(function(loc){
+    if(!matched){
+      var expected=getQRToken(loc.id);
+      if(data===expected){
+        var allowed=(u.locations||[]).indexOf(loc.id)>=0;
+        if(allowed)matched=loc;
+        else showToast('شما مجاز به ورود در این شعبه نیستید','error');
       }
-      break;
     }
-  }
-  if(!valid){
-    showResult('❌ QR Code نامعتبر یا منقضی شده است','error');
-    return;
-  }
-  stopQRScan();
-  // Register checkin
-  var now=new Date();
-  state.logs.push({
-    id:'log_'+Date.now(),
-    userId:state.currentUser.nationalId,
-    userName:state.currentUser.fname+' '+state.currentUser.lname,
-    locationId:locId,
-    locationName:locName,
-    type:state.checkinType,
-    date:todayStr(),
-    time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
-    timestamp:now.toISOString(),
-    method:'qr',
   });
-  saveLogs();
+  if(!matched){showToast('QR نامعتبر یا منقضی شده','error');return;}
+  stopQRScan();
   document.getElementById('qr-scan-modal').classList.remove('open');
-  showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
-  updateEmpStatus();renderTodayLogs();
+  registerLog(matched.id, matched.name, null, null, 'qr');
 }
 
 function showResult(msg,type){
