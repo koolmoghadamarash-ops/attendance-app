@@ -716,7 +716,7 @@ function doLogout(){
 
 // ════ SCREENS ════
 function showScreen(n){
-  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active';}));
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-'+n).classList.add('active');
   if(n==='admin') setTimeout(function(){initAddMap();renderQRLocSelect();},400);
 }
@@ -787,9 +787,9 @@ function renderTodayLogs(){
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
   list.innerHTML=logs.map(function(l){return `
     <div class="log-item">
-      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green;})':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
+      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
       <div style="font-weight:600">${l.time}</div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 // ════ QR SCANNER ════
@@ -807,7 +807,7 @@ function closeQRScan(){
 }
 
 function stopQRScan(){
-  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop(;}));scanStream=null;}
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}
   if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
   var video=document.getElementById('qr-video');
   video.style.display='none';
@@ -940,7 +940,7 @@ function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.disp
 
 // ════ ADMIN ════
 function adminTab(tab,el){
-  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active';}));
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
   document.getElementById('tab-'+tab).style.display='block';
@@ -982,8 +982,8 @@ function renderLocationsList(){
           <button class="btn btn-ghost btn-xs" onclick="deleteLocation('${l.id}')">🗑</button>
         </div>
       </div>
-      <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(function(p){return p.locations.includes(l.id;})).length)} نفر</span></div>
-    </div>`).join('');
+      <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(function(p){return p.locations.includes(l.id);}).length)} نفر</span></div>
+    </div>`;}).join('');
 }
 
 function addLocation(){
@@ -1034,39 +1034,43 @@ function saveEditLocation(){
 function renderLocCheckboxes(divId,selectedIds){
   var div=document.getElementById(divId);
   div.innerHTML=state.locations.map(function(l){return `
-    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3;});border-radius:8px">
+    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">
       <input type="checkbox" value="${l.id}" ${selectedIds.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
       <span style="font-size:13px">🏢 ${l.name}</span>
-    </label>`).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
+    </label>`;}).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
 }
 
 function renderPersonnelList(){
   var list=document.getElementById('personnel-list');
-  if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">👥</div>هیچ پرسنلی ثبت نشده</div>';return;}
+  if(!list)return;
+  if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">&#128101;</div>هیچ پرسنلی ثبت نشده</div>';return;}
   var today=todayStr();
-  list.innerHTML=state.personnel.map(function(p){return {
-    var logs=state.logs.filter(function(l;}){return l.userId===p.nationalId&&l.date===today;});
-    var last=logs[logs.length-1];
+  var html='';
+  state.personnel.forEach(function(p){
+    var logs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
+    var last=logs.length?logs[logs.length-1]:null;
     var statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
-    var locs=p.locations.map(function(id){return state.locations.find(function(l){return l.id===id;};})?.name).filter(Boolean).join('، ');
-    return `<div class="card">
-      <div class="card-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="report-avatar">${p.fname[0]}</div>
-          <div><div class="card-title">${p.fname} ${p.lname}</div><div class="card-sub">${p.nationalId}</div></div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          ${statusBadge}
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-xs" onclick="openEditPersonnel('${p.id}')">✏️</button>
-            <button class="btn btn-ghost btn-xs" onclick="deletePersonnel('${p.id}')">🗑</button>
-          </div>
-        </div>
-      </div>
-      ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${calcTodayDuration(logs)}</span></div>`:''}
-      <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
-    </div>`;
-  }).join('');
+    var locNames=(p.locations||[]).map(function(id){var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;}).filter(Boolean).join('، ');
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="avatar" style="width:38px;height:38px;font-size:15px">'+p.fname[0]+'</div>'+
+          '<div>'+
+            '<div style="font-weight:600;font-size:15px">'+p.fname+' '+p.lname+'</div>'+
+            '<div style="font-size:12px;color:var(--text2)">'+p.nationalId+'</div>'+
+            (p.email?'<div style="font-size:11px;color:var(--text3)">'+p.email+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        statusBadge+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">شعبه</span><span class="info-val">'+(locNames||'—')+'</span></div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+        '<button onclick="openEditPersonnel(\"'+p.id+'\")" class="btn btn-sm btn-outline" style="flex:1">ویرایش</button>'+
+        '<button onclick="deletePersonnel(\"'+p.id+'\")" class="btn btn-sm" style="flex:1;background:var(--red);color:#fff">حذف</button>'+
+      '</div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
 }
 
 function addPersonnel(){
@@ -1191,7 +1195,7 @@ function loadReports(){
         <div class="badge ${l.type==='in'?'badge-green':'badge-red'}" style="margin-bottom:4px">${l.type==='in'?'ورود':'خروج'}</div>
         <div style="font-size:12px;color:var(--text2;})">${l.time}</div>
       </div>
-    </div>`).join('');
+    </div>`;}).join('');
 }
 
 function exportExcel(){
