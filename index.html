@@ -356,6 +356,48 @@ input[type=range]{accent-color:var(--accent);width:100%}
       </div>
       <div id="tracking-result"></div>
     </div>
+
+    <!-- Tab Work Hours -->
+    <div id="tab-workhours" class="tab-content" style="display:none">
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:16px;color:var(--text)">&#128336; تنظیم ساعت کاری شعبه‌ها</div>
+        <div id="wh-locations-list"></div>
+        <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">
+          <div style="font-size:13px;font-weight:600;margin-bottom:10px;color:var(--accent)">&#128394; ویرایش ساعت کاری</div>
+          <div style="margin-bottom:10px">
+            <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">شعبه</label>
+            <select id="wh-loc-select" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+              <option value="">انتخاب شعبه</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ساعت شروع</label>
+              <input type="time" id="wh-start" value="08:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">ساعت پایان</label>
+              <input type="time" id="wh-end" value="17:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">تاخیر مجاز (دقیقه)</label>
+              <input type="number" id="wh-late" value="15" min="0" max="120" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">روزهای کاری</label>
+              <select id="wh-days" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+                <option value="6">شنبه تا پنجشنبه</option>
+                <option value="5">شنبه تا چهارشنبه</option>
+                <option value="7">همه روزها</option>
+              </select>
+            </div>
+          </div>
+          <button onclick="saveWorkHours()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">&#128190; ذخیره ساعت کاری</button>
+        </div>
+      </div>
+    </div>
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
       <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
@@ -717,7 +759,8 @@ var state={
   locations:[],
   personnel:[],
   logs:[],
-  messages:[]
+  messages:[],
+  workHours:{}
 };
 var addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
@@ -843,6 +886,83 @@ function renderTodayLogs(){
     </div>`;}).join('');
 }
 
+
+
+// ════ WORK HOURS ════
+function initWorkHoursTab(){
+  var sel=document.getElementById('wh-loc-select');
+  if(!sel)return;
+  sel.innerHTML='<option value="">انتخاب شعبه (همه = پیش‌فرض)</option>'+
+    '<option value="default">&#127970; پیش‌فرض همه شعبه‌ها</option>';
+  state.locations.forEach(function(l){
+    sel.innerHTML+='<option value="'+l.id+'">&#127970; '+l.name+'</option>';
+  });
+  // Load existing if saved
+  var saved=localStorage.getItem('hg_workhours');
+  if(saved)state.workHours=JSON.parse(saved);
+  renderWHList();
+}
+
+function renderWHList(){
+  var list=document.getElementById('wh-locations-list');
+  if(!list)return;
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  var keys=Object.keys(wh);
+  if(!keys.length){
+    list.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">ساعت کاری تنظیم نشده</div>';
+    return;
+  }
+  var html='';
+  keys.forEach(function(k){
+    var w=wh[k];
+    var locName=k==='default'?'پیش‌فرض همه شعبه‌ها':(function(){var l=state.locations.find(function(x){return x.id===k;});return l?l.name:k;})();
+    var daysText=w.days==='6'?'ش تا پ':w.days==='5'?'ش تا چ':'همه روزها';
+    html+='<div style="padding:12px;background:var(--bg3);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+      '<div>'+
+        '<div style="font-weight:600;font-size:13px;margin-bottom:4px">&#127970; '+locName+'</div>'+
+        '<div style="font-size:12px;color:var(--accent)">&#128336; '+w.start+' تا '+w.end+'</div>'+
+        '<div style="font-size:11px;color:var(--text3)">تاخیر مجاز: '+toPersianNum(w.late)+' دقیقه | '+daysText+'</div>'+
+      '</div>'+
+      '<button onclick="deleteWorkHours(\"'+k+'\")" style="background:var(--red);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">حذف</button>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+}
+
+function saveWorkHours(){
+  var locId=document.getElementById('wh-loc-select').value;
+  var start=document.getElementById('wh-start').value;
+  var end=document.getElementById('wh-end').value;
+  var late=document.getElementById('wh-late').value||'15';
+  var days=document.getElementById('wh-days').value;
+  if(!locId){showToast('لطفاً شعبه را انتخاب کنید','error');return;}
+  if(!start||!end){showToast('ساعت شروع و پایان الزامی است','error');return;}
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  wh[locId]={start:start,end:end,late:parseInt(late),days:days};
+  localStorage.setItem('hg_workhours',JSON.stringify(wh));
+  state.workHours=wh;
+  // Save to DB too
+  dbEdit('work_hours',locId,{location_id:locId,start_time:start,end_time:end,late_minutes:parseInt(late),work_days:days});
+  renderWHList();
+  showToast('ساعت کاری ذخیره شد','success');
+}
+
+function deleteWorkHours(locId){
+  var saved=localStorage.getItem('hg_workhours');
+  var wh=saved?JSON.parse(saved):{};
+  delete wh[locId];
+  localStorage.setItem('hg_workhours',JSON.stringify(wh));
+  state.workHours=wh;
+  renderWHList();
+  showToast('حذف شد','success');
+}
+
+function getWorkHoursForLoc(locId){
+  var wh=state.workHours||{};
+  return wh[locId]||wh['default']||{start:'08:00',end:'17:00',late:15,days:'6'};
+}
 
 // ════ CHECKIN FLOW ════
 function startCheckin(type){
@@ -1171,6 +1291,7 @@ function adminTab(tab,el){
   if(tab==='qr')renderQRLocSelect();
   if(tab==='messages')initMessagesTab();
   if(tab==='tracking')initTrackingTab();
+  if(tab==='workhours')initWorkHoursTab();
 }
 
 function renderAdmin(){
