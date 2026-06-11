@@ -436,8 +436,11 @@ function dbGet(t){
   return sb.from(t).select('*').then(function(r){return r.data||[];}).catch(function(){return [];});
 }
 function dbAdd(t,row){
-  if(!initSB())return;
-  sb.from(t).insert(row).catch(function(){});
+  if(!initSB()){showToast('خطا: اتصال به دیتابیس برقرار نیست','error');return Promise.resolve();}
+  return sb.from(t).insert(row).then(function(r){
+    if(r.error){console.log('dbAdd error:',r.error.message);showToast('خطا در ذخیره: '+r.error.message,'error');}
+    return r;
+  }).catch(function(e){console.log('dbAdd catch:',e);});
 }
 function dbEdit(t,id,upd){
   if(!initSB())return;
@@ -944,17 +947,21 @@ function adminTab(tab,el){
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
   document.getElementById('tab-'+tab).style.display='block';
-  if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
+  if(tab==='personnel'){renderLocCheckboxes('loc-checkboxes',[]);}
   if(tab==='reports'){loadReportFilters();loadReports();}
-  if(tab==='locations')setTimeout(function(){if(addMap)addMap.invalidateSize();},200);
+  if(tab==='locations'){renderLocationsList();setTimeout(function(){if(addMap)addMap.invalidateSize();},200);}
   if(tab==='qr')renderQRLocSelect();
+  if(tab==='messages')initMessagesTab();
+  if(tab==='tracking')initTrackingTab();
 }
 
 function renderAdmin(){
-  renderAdminStats();
-  renderLocationsList();
-  renderPersonnelList();
-  renderQRLocSelect();
+  loadDB().then(function(){
+    renderAdminStats();
+    renderLocationsList();
+    renderPersonnelList();
+    renderQRLocSelect();
+  });
 }
 
 function renderAdminStats(){
@@ -972,34 +979,58 @@ function renderAdminStats(){
 
 function renderLocationsList(){
   var list=document.getElementById('locations-list');
-  if(!state.locations.length){list.innerHTML='<div class="empty-state"><div class="icon">🏢</div>هیچ شعبه‌ای ثبت نشده</div>';return;}
-  list.innerHTML=state.locations.map(function(l){return `
-    <div class="card">
-      <div class="card-header">
-        <div><div class="card-title">🏢 ${l.name}</div><div class="card-sub">${l.address||'—'}</div></div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-xs" onclick="openEditLocation('${l.id}';})">✏️</button>
-          <button class="btn btn-ghost btn-xs" onclick="deleteLocation('${l.id}')">🗑</button>
-        </div>
-      </div>
-      <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(function(p){return p.locations.includes(l.id);}).length)} نفر</span></div>
-    </div>`;}).join('');
+  if(!list)return;
+  if(!state.locations.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#127970;</div>هیچ شعبه‌ای ثبت نشده</div>';
+    return;
+  }
+  var html='';
+  state.locations.forEach(function(l){
+    var pCount=state.personnel.filter(function(p){return (p.locations||[]).indexOf(l.id)>=0;}).length;
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div><div class="card-title">&#127970; '+l.name+'</div>'+
+        '<div class="card-sub">'+(l.address||'&mdash;')+'</div></div>'+
+        '<div class="card-actions">'+
+          '<button class="btn btn-ghost btn-xs" onclick="openEditLocation(\''+l.id+'\')">&#9998;</button>'+
+          '<button class="btn btn-ghost btn-xs" onclick="deleteLocation(\''+l.id+'\')">&#128465;</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">'+toPersianNum(pCount)+' نفر</span></div>'+
+      '<div class="info-row"><span class="info-label">مختصات</span><span class="info-val" style="direction:ltr;font-size:11px">'+(l.lat?parseFloat(l.lat).toFixed(4)+', '+parseFloat(l.lng).toFixed(4):'ثبت نشده')+'</span></div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
 }
-
 function addLocation(){
   var name=document.getElementById('loc-name').value.trim();
   var addr=document.getElementById('loc-addr').value.trim();
-  var lat=addMap?addMap.getCenter().lat:0;
-  var lng=addMap?addMap.getCenter().lng:0;
-  var radius=parseInt(document.getElementById('loc-radius')?document.getElementById('loc-radius').value||100:100);
+  var lat=addMap?addMap.getCenter().lat:35.6892;
+  var lng=addMap?addMap.getCenter().lng:51.3890;
+  var radiusEl=document.getElementById('loc-radius');
+  var radius=radiusEl?parseInt(radiusEl.value)||300:300;
   if(!name){showToast('نام شعبه الزامی است','error');return;}
+  var btn=document.querySelector('#tab-locations .btn-primary');
+  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
   var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
-  state.locations.push(nl);
-  dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
-  renderLocationsList();renderAdminStats();renderQRLocSelect();
-  document.getElementById('loc-name').value='';
-  document.getElementById('loc-addr').value='';
-  showToast('شعبه با موفقیت ذخیره شد','success');
+  var promise=dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
+  if(promise&&promise.then){
+    promise.then(function(r){
+      if(btn){btn.textContent='ذخیره شعبه';btn.disabled=false;}
+      if(r&&r.error)return;
+      state.locations.push(nl);
+      renderLocationsList();renderAdminStats();renderQRLocSelect();
+      document.getElementById('loc-name').value='';
+      document.getElementById('loc-addr').value='';
+      showToast('شعبه با موفقیت ذخیره شد','success');
+    });
+  } else {
+    if(btn){btn.textContent='ذخیره شعبه';btn.disabled=false;}
+    state.locations.push(nl);
+    renderLocationsList();renderAdminStats();renderQRLocSelect();
+    document.getElementById('loc-name').value='';
+    document.getElementById('loc-addr').value='';
+  }
 }
 
 function deleteLocation(id){
@@ -1085,16 +1116,26 @@ function addPersonnel(){
   if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
   var exists=state.personnel.find(function(p){return p.nationalId===nid;});
   if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
+  var btn=document.querySelector('#tab-personnel .btn-primary');
+  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
   var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
-  state.personnel.push(np);
-  dbAdd('personnel',{id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,email:email,locations:checked});
-  renderPersonnelList();renderAdminStats();
-  document.getElementById('per-fname').value='';
-  document.getElementById('per-lname').value='';
-  document.getElementById('per-id').value='';
-  document.getElementById('per-pass').value='1234';
-  if(emailEl)emailEl.value='';
-  showToast('پرسنل با موفقیت ذخیره شد','success');
+  var promise=dbAdd('personnel',{id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,email:email,locations:checked});
+  if(promise&&promise.then){
+    promise.then(function(r){
+      if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
+      if(r&&r.error)return;
+      state.personnel.push(np);
+      renderPersonnelList();renderAdminStats();
+      document.getElementById('per-fname').value='';
+      document.getElementById('per-lname').value='';
+      document.getElementById('per-id').value='';
+      document.getElementById('per-pass').value='1234';
+      if(emailEl)emailEl.value='';
+      showToast('پرسنل با موفقیت ذخیره شد','success');
+    });
+  } else {
+    if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
+  }
 }
 
 function openEditPersonnel(id){
