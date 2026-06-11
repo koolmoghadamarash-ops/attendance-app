@@ -150,11 +150,62 @@ input[type=range]{accent-color:var(--accent);width:100%}
 
 <!-- EMPLOYEE -->
 <div id="screen-emp" class="screen">
-  <div class="topbar">
-    <div class="avatar" id="emp-avatar">A</div>
-    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
+  <div class="topbar" style="position:relative;z-index:10">
+    <div class="avatar" id="emp-avatar" onclick="openProfile()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="openProfile()">
+      <div class="topbar-title" id="emp-name">نام پرسنل</div>
+      <div class="topbar-sub" id="emp-location-name">شعبه</div>
+    </div>
+    <div onclick="openInboxModal()" style="position:relative;cursor:pointer;padding:6px 10px;display:flex;align-items:center">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text2)"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      <div id="inbox-dot" style="display:none;position:absolute;top:3px;right:7px;width:9px;height:9px;background:#e53e3e;border-radius:50%;border:2px solid var(--card)"></div>
+    </div>
+    <button onclick="toggleEmpMenu()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px 8px;display:flex;align-items:center">&#9776;</button>
   </div>
+
+  <!-- Dropdown Menu -->
+  <div id="emp-dropdown" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:100;background:var(--card);border-bottom:2px solid var(--accent);box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg3)">
+      <div id="menu-uname" style="font-weight:700;font-size:15px;color:var(--text)">---</div>
+      <div id="menu-uloc" style="font-size:12px;color:var(--accent);margin-top:3px">---</div>
+    </div>
+    <button onclick="openProfile();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#128100;</span><span>پروفایل و صندوق پیام</span></button>
+    <button onclick="openChangePassModal();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#128273;</span><span>تغییر رمز عبور</span></button>
+    <button onclick="doLogout()" style="width:100%;padding:14px 18px;background:none;border:none;color:#e53e3e;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;cursor:pointer;text-align:right;display:flex;align-items:center;gap:10px"><span style="font-size:18px">&#9167;</span><span>خروج از حساب</span></button>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div class="avatar" id="prf-avatar" style="width:54px;height:54px;font-size:22px;margin:0 auto 8px">A</div>
+        <div style="font-size:17px;font-weight:700" id="prf-name">---</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:4px" id="prf-id">---</div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text)">&#128235; صندوق پیام</div>
+      <div id="prf-msgs" style="max-height:260px;overflow-y:auto;margin-bottom:16px">
+        <div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openChangePassModal();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer;font-weight:600">&#128273; تغییر رمز</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;cursor:pointer">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="cp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:16px">&#128273; تغییر رمز عبور</div>
+      <div class="field"><label>رمز فعلی</label><input type="password" id="cp-cur" placeholder="رمز فعلی را وارد کنید"></div>
+      <div class="field"><label>رمز جدید</label><input type="password" id="cp-new" placeholder="رمز جدید (حداقل ۴ کاراکتر)"></div>
+      <div class="field"><label>تکرار رمز جدید</label><input type="password" id="cp-rep" placeholder="تکرار رمز جدید"></div>
+      <button onclick="doChangePass()" style="width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;cursor:pointer">ذخیره رمز جدید</button>
+    </div>
+  </div>
+
   <div class="emp-content">
     <div class="clock-card">
       <div class="clock-time" id="clock-display">--:--:--</div>
@@ -252,6 +303,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
         <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
         <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" value="1234"></div>
+        <div class="field"><label>ایمیل سازمانی <span style="color:#e53e3e">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir" inputmode="email"></div>
         <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
         <button class="btn btn-primary" onclick="addPersonnel()">💾 ذخیره پرسنل</button>
       </div>
@@ -415,19 +467,26 @@ function loadDB(){
 }
 
 // ════ EMP MENU ════
-function openEmpMenu(){
+function toggleEmpMenu(){
   var u=state.currentUser;
-  var m=document.getElementById('emp-menu-overlay');
-  document.getElementById('menu-uname').textContent=u.fname+' '+u.lname;
-  var locs=(u.locations||[]).map(function(id){
-    var l=state.locations.find(function(x){return x.id===id;});
-    return l?l.name:null;
-  }).filter(Boolean).join(' - ');
-  document.getElementById('menu-uloc').textContent=locs||'بدون شعبه';
-  m.style.display='block';
+  var m=document.getElementById('emp-dropdown');
+  if(!m)return;
+  if(m.style.display==='none'||m.style.display===''){
+    document.getElementById('menu-uname').textContent=u.fname+' '+u.lname;
+    var locs=(u.locations||[]).map(function(id){
+      var l=state.locations.find(function(x){return x.id===id;});
+      return l?l.name:null;
+    }).filter(Boolean).join(' - ');
+    document.getElementById('menu-uloc').textContent=locs||'بدون شعبه';
+    m.style.display='block';
+  } else {
+    m.style.display='none';
+  }
 }
+function openEmpMenu(){toggleEmpMenu();}
 function closeEmpMenu(){
-  document.getElementById('emp-menu-overlay').style.display='none';
+  var m=document.getElementById('emp-dropdown');
+  if(m)m.style.display='none';
 }
 function openInboxModal(){openProfile();}
 function openProfile(){
@@ -530,48 +589,44 @@ function renderMsgsList(){
   list.innerHTML=html;
 }
 function initMessagesTab(){
-  // Reload data from DB first to get latest personnel
+  var sel=document.getElementById('msg-target');
+  if(sel)sel.innerHTML='<option value="">در حال بارگذاری...</option>';
   loadDB().then(function(){
-    populateMsgTargets();
+    if(!sel)return;
+    sel.innerHTML='<option value="all">همه پرسنل</option>';
+    state.personnel.forEach(function(p){
+      sel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+    });
+    state.locations.forEach(function(l){
+      sel.innerHTML+='<option value="loc_'+l.id+'">شعبه: '+l.name+'</option>';
+    });
     renderMsgsList();
   }).catch(function(){
-    populateMsgTargets();
+    if(sel)sel.innerHTML='<option value="all">همه پرسنل</option>';
     renderMsgsList();
-  });
-}
-function populateMsgTargets(){
-  var sel=document.getElementById('msg-target');
-  if(!sel)return;
-  sel.innerHTML='<option value="all">&#128101; همه پرسنل</option>';
-  state.personnel.forEach(function(p){
-    sel.innerHTML+='<option value="'+p.nationalId+'">&#128100; '+p.fname+' '+p.lname+'</option>';
-  });
-  state.locations.forEach(function(l){
-    sel.innerHTML+='<option value="loc_'+l.id+'">&#127970; شعبه: '+l.name+'</option>';
   });
 }
 
 // ════ TRACKING ════
 function initTrackingTab(){
-  loadDB().then(function(){
-    populateTrackingFilters();
-  }).catch(function(){
-    populateTrackingFilters();
-  });
-}
-function populateTrackingFilters(){
   var ps=document.getElementById('track-person');
-  if(!ps)return;
-  ps.innerHTML='<option value="">انتخاب پرسنل</option>';
-  state.personnel.forEach(function(p){
-    ps.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
-  });
   var ds=document.getElementById('track-date');
-  var dates=[];
-  state.logs.forEach(function(l){if(dates.indexOf(l.date)<0)dates.push(l.date);});
-  dates.sort().reverse();
-  ds.innerHTML='<option value="">انتخاب تاریخ</option>';
-  dates.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+d+'</option>';});
+  if(ps)ps.innerHTML='<option value="">در حال بارگذاری...</option>';
+  loadDB().then(function(){
+    if(!ps)return;
+    ps.innerHTML='<option value="">انتخاب پرسنل</option>';
+    state.personnel.forEach(function(p){
+      ps.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';
+    });
+    if(!ds)return;
+    var dates=[];
+    state.logs.forEach(function(l){if(l.date&&dates.indexOf(l.date)<0)dates.push(l.date);});
+    dates.sort().reverse();
+    ds.innerHTML='<option value="">انتخاب تاریخ</option>';
+    dates.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+d+'</option>';});
+  }).catch(function(){
+    if(ps)ps.innerHTML='<option value="">خطا در بارگذاری</option>';
+  });
 }
 function doTracking(){
   var pid=document.getElementById('track-person').value;
@@ -1015,20 +1070,30 @@ function renderPersonnelList(){
 }
 
 function addPersonnel(){
-  const fname=document.getElementById('per-fname').value.trim();
-  const lname=document.getElementById('per-lname').value.trim();
-  const nid=document.getElementById('per-id').value.trim();
-  const pass=document.getElementById('per-pass').value.trim();
-  const checked=[...document.querySelectorAll('#loc-checkboxes input:checked')].map(c=>c.value);
+  var fname=document.getElementById('per-fname').value.trim();
+  var lname=document.getElementById('per-lname').value.trim();
+  var nid=document.getElementById('per-id').value.trim();
+  var pass=document.getElementById('per-pass').value.trim();
+  var email=document.getElementById('per-email')?document.getElementById('per-email').value.trim():'';
+  var checked=Array.from(document.querySelectorAll('#loc-checkboxes input:checked')).map(function(c){return c.value;});
   if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
-  if(state.personnel.find(p=>p.nationalId===nid)){showToast('این کد ملی قبلاً ثبت شده','error');return;}
-  var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,locations:checked};
-  state.personnel.push(np);
-  savePersonnel();
-  dbAdd('personnel',{id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked});renderPersonnelList();renderAdminStats();
-  document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
-  document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
-  showToast('پرسنل با موفقیت ذخیره شد ✅','success');
+  if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
+  // Reload fresh data before duplicate check
+  loadDB().then(function(){
+    var exists=state.personnel.find(function(p){return p.nationalId===nid;});
+    if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
+    var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
+    state.personnel.push(np);
+    savePersonnel();
+    dbAdd('personnel',{id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,email:email,locations:checked});
+    renderPersonnelList();renderAdminStats();
+    document.getElementById('per-fname').value='';
+    document.getElementById('per-lname').value='';
+    document.getElementById('per-id').value='';
+    document.getElementById('per-pass').value='1234';
+    document.getElementById('per-email').value='';
+    showToast('پرسنل با موفقیت ذخیره شد','success');
+  });
 }
 
 function openEditPersonnel(id){
