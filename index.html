@@ -716,13 +716,13 @@ function doLogout(){
 
 // ════ SCREENS ════
 function showScreen(n){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active';}));
   document.getElementById('screen-'+n).classList.add('active');
-  if(n==='admin') setTimeout(()=>{initAddMap();renderQRLocSelect();},400);
+  if(n==='admin') setTimeout(function(){initAddMap();renderQRLocSelect();},400);
 }
 
 // ════ CLOCK ════
-setInterval(()=>{
+setInterval(function(){
   var el=document.getElementById('clock-display');if(!el)return;
   el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -807,7 +807,7 @@ function closeQRScan(){
 }
 
 function stopQRScan(){
-  if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
+  if(scanStream){scanStream.getTracks().forEach(function(t){t.stop(;}));scanStream=null;}
   if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
   var video=document.getElementById('qr-video');
   video.style.display='none';
@@ -840,9 +840,9 @@ function scanFrame(){
   // Use BarcodeDetector if available
   if('BarcodeDetector' in window){
     var detector=new BarcodeDetector({formats:['qr_code']});
-    detector.detect(canvas).then(codes=>{
+    detector.detect(canvas).then(function(codes){
       if(codes.length>0) processQRCode(codes[0].rawValue);
-    }).catch(()=>{});
+    }).catch(function(){});
   } else {
     // Fallback: jsQR
     if(typeof jsQR!=='undefined'){
@@ -940,13 +940,13 @@ function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.disp
 
 // ════ ADMIN ════
 function adminTab(tab,el){
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active';}));
   el.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+  document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
   document.getElementById('tab-'+tab).style.display='block';
   if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
   if(tab==='reports'){loadReportFilters();loadReports();}
-  if(tab==='locations')setTimeout(()=>{if(addMap)addMap.invalidateSize();},200);
+  if(tab==='locations')setTimeout(function(){if(addMap)addMap.invalidateSize();},200);
   if(tab==='qr')renderQRLocSelect();
 }
 
@@ -1005,7 +1005,7 @@ function addLocation(){
 function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.locations=state.locations.filter(function(l){return l.id!==id;});
-  state.personnel.forEach(p=>{p.locations=p.locations.filter(function(lid){return lid!==id;});});
+  state.personnel.forEach(function(p){p.locations=p.locations.filter(function(lid){return lid!==id;});});
   saveLocations();savePersonnel();renderLocationsList();renderAdminStats();renderQRLocSelect();
   showToast('شعبه حذف شد','error');
 }
@@ -1023,7 +1023,7 @@ function saveEditLocation(){
   var name=document.getElementById('edit-loc-name').value.trim();
   var addr=document.getElementById('edit-loc-addr').value.trim();
   if(!name){showToast('نام الزامی است','error');return;}
-  var idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
+  var idx=state.locations.findIndex(function(l){return l.id===id;});if(idx<0)return;
   state.locations[idx]={...state.locations[idx],name,address:addr};
   saveLocations();renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
@@ -1113,7 +1113,7 @@ function saveEditPersonnel(){
   var locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(function(c){return c.value;});
   if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
   if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
-  var idx=state.personnel.findIndex(p=>p.id===id);if(idx<0)return;
+  var idx=state.personnel.findIndex(function(p){return p.id===id;});if(idx<0)return;
   state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
   savePersonnel();renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
@@ -1133,7 +1133,7 @@ function initAddMap(){
   var center=[35.6892,51.3890];
   addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
-  addMap.on('move',()=>{
+  addMap.on('move',function(){
     var c=addMap.getCenter();
     document.getElementById('loc-lat').value=c.lat.toFixed(6);
     document.getElementById('loc-lng').value=c.lng.toFixed(6);
@@ -1152,10 +1152,10 @@ async function searchCity(){
 
 function useMyLocationForMap(){
   if(!navigator.geolocation){showToast('GPS در دسترس نیست','error');return;}
-  navigator.geolocation.getCurrentPosition(pos=>{
+  navigator.geolocation.getCurrentPosition(function(pos){
     addMap.setView([pos.coords.latitude,pos.coords.longitude],17);
-    showToast('موقعیت فعلی دریافت شد ✅','success');
-  },()=>showToast('دسترسی به GPS رد شد','error'),{enableHighAccuracy:true,timeout:10000});
+    showToast('موقعیت فعلی دریافت شد','success');
+  },function(){showToast('دسترسی به GPS رد شد','error');},{enableHighAccuracy:true,timeout:10000});
 }
 
 // ── Reports ──
@@ -1214,11 +1214,11 @@ function exportExcel(){
 
 // ════ UTILS ════
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
-function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
+function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
   var old=document.querySelector('.toast');if(old)old.remove();
   var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
-  document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
+  document.body.appendChild(t);setTimeout(function(){t.remove();},3500);
 }
 
 // Load jsQR fallback
@@ -1226,12 +1226,12 @@ var s=document.createElement('script');
 s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
 document.head.appendChild(s);
 
-['edit-loc-modal','edit-per-modal'].forEach(id=>{
+['edit-loc-modal','edit-per-modal'].forEach(function(id){
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
 });
 document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
-document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-document.getElementById('city-search-input').addEventListener('keydown',e=>{if(e.key==='Enter')searchCity();});
+document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
 </script>
 </body>
 </html>
