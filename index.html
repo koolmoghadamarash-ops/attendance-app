@@ -1190,11 +1190,15 @@ function saveEditLocation(){
   var name=document.getElementById('edit-loc-name').value.trim();
   var addr=document.getElementById('edit-loc-addr').value.trim();
   if(!name){showToast('نام الزامی است','error');return;}
-  var idx=state.locations.findIndex(function(l){return l.id}===id);if(idx<0)return;
-  state.locations[idx]={...state.locations[idx],name,address:addr};
-  saveLocations();renderLocationsList();renderQRLocSelect();
+  var lidx=state.locations.findIndex(function(l){return l.id===id;});
+  if(lidx<0)return;
+  state.locations[lidx].name=name;
+  state.locations[lidx].address=addr;
+  saveLocations();
+  dbEdit('locations',id,{name:name,address:addr});
+  renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
-  showToast('شعبه ویرایش شد ✅','success');
+  showToast('شعبه ویرایش شد','success');
 }
 
 // ── Personnel ──
@@ -1301,14 +1305,20 @@ function saveEditPersonnel(){
   var lname=document.getElementById('edit-per-lname').value.trim();
   var nid=document.getElementById('edit-per-nid').value.trim();
   var pass=document.getElementById('edit-per-pass').value.trim();
-  var locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(function(c){return c.value;});
+  var locs=Array.from(document.querySelectorAll('#edit-loc-checkboxes input:checked')).map(function(c){return c.value;});
   if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
-  if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
-  var idx=state.personnel.findIndex(function(p){return p.id===id;});if(idx<0)return;
-  state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
-  savePersonnel();renderPersonnelList();
+  var pidx=state.personnel.findIndex(function(p){return p.id===id;});
+  if(pidx<0)return;
+  state.personnel[pidx].fname=fname;
+  state.personnel[pidx].lname=lname;
+  state.personnel[pidx].nationalId=nid;
+  state.personnel[pidx].locations=locs;
+  if(pass)state.personnel[pidx].password=pass;
+  savePersonnel();
+  dbEdit('personnel',id,{fname:fname,lname:lname,national_id:nid,locations:locs});
+  renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
-  showToast('پرسنل ویرایش شد ✅','success');
+  showToast('پرسنل ویرایش شد','success');
 }
 
 function deletePersonnel(id){
@@ -1423,7 +1433,7 @@ function exportExcel(){
   var a=document.createElement('a');a.href=url;a.download='report.csv';a.click();
 }
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
-function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
+function toPersianNum(n){return String(n).replace(/\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
   var old=document.querySelector('.toast');if(old)old.remove();
   var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
