@@ -152,10 +152,59 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <!-- EMPLOYEE -->
 <div id="screen-emp" class="screen">
   <div class="topbar">
-    <div class="avatar" id="emp-avatar">A</div>
-    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
+    <div class="avatar" id="emp-avatar" onclick="openProfile()" style="cursor:pointer">A</div>
+    <div style="flex:1;cursor:pointer" onclick="openProfile()">
+      <div class="topbar-title" id="emp-name">نام پرسنل</div>
+      <div class="topbar-sub" id="emp-location-name">شعبه</div>
+    </div>
+    <div onclick="openInboxModal()" style="position:relative;cursor:pointer;padding:6px 10px">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text2);display:block"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+      <div id="inbox-dot" style="display:none;position:absolute;top:4px;right:8px;width:8px;height:8px;background:var(--red);border-radius:50%"></div>
+    </div>
+    <button onclick="toggleEmpMenu()" style="background:none;border:none;cursor:pointer;font-size:22px;color:var(--text2);padding:4px 8px">&#9776;</button>
   </div>
+
+  <!-- Dropdown Menu -->
+  <div id="emp-dropdown" style="display:none;position:fixed;top:56px;left:0;right:0;z-index:100;background:var(--card);border-bottom:2px solid var(--accent);box-shadow:0 8px 32px rgba(0,0,0,0.6)">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border);background:var(--bg3)">
+      <div id="menu-uname" style="font-weight:700;font-size:15px;color:var(--text)">---</div>
+      <div id="menu-uloc" style="font-size:12px;color:var(--accent);margin-top:3px">---</div>
+    </div>
+    <button onclick="openProfile();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer;text-align:right">&#128100; پروفایل و صندوق پیام</button>
+    <button onclick="openChangePassModal();closeEmpMenu()" style="width:100%;padding:14px 18px;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer;text-align:right">&#128273; تغییر رمز عبور</button>
+    <button onclick="doLogout()" style="width:100%;padding:14px 18px;background:none;border:none;color:var(--red);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer;text-align:right">&#9167; خروج از حساب</button>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="text-align:center;margin-bottom:16px">
+        <div class="avatar" id="prf-avatar" style="width:52px;height:52px;font-size:20px;margin:0 auto 8px">A</div>
+        <div style="font-size:16px;font-weight:700" id="prf-name">---</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px" id="prf-id">---</div>
+      </div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:10px">&#128235; صندوق پیام</div>
+      <div id="prf-msgs" style="max-height:240px;overflow-y:auto;margin-bottom:14px"></div>
+      <div style="display:flex;gap:8px">
+        <button onclick="openChangePassModal();document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:11px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">تغییر رمز</button>
+        <button onclick="document.getElementById('profile-modal').style.display='none'" style="flex:1;padding:11px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">بستن</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Change Password Modal -->
+  <div id="cp-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:16px">&#128273; تغییر رمز عبور</div>
+      <div class="field"><label>رمز فعلی</label><input type="password" id="cp-cur" placeholder="رمز فعلی"></div>
+      <div class="field"><label>رمز جدید</label><input type="password" id="cp-new" placeholder="رمز جدید (حداقل ۴)"></div>
+      <div class="field"><label>تکرار رمز جدید</label><input type="password" id="cp-rep" placeholder="تکرار"></div>
+      <button onclick="doChangePass()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">ذخیره رمز جدید</button>
+    </div>
+  </div>
+
   <div class="emp-content">
     <div class="clock-card">
       <div class="clock-time" id="clock-display">--:--:--</div>
@@ -878,7 +927,10 @@ function doLogin(){
   }).catch(function(){
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
     if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
-    showToast('خطا در اتصال','error');
+    // Try with existing state data even if DB failed
+    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+    if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
+    showToast('خطا در اتصال به سرور','error');
   });
 }
 function doLogout(){
