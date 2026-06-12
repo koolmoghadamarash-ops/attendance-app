@@ -11,7 +11,407 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Vazirmatn','Tahoma',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
+.screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
+#screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
+.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
+.login-logo{text-align:center;margin-bottom:32px}
+.login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
+.login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
+.field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
+.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
+.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
+.field select option{background:var(--bg3)}
+.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
+.btn-primary{background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
+.btn-primary:active{transform:scale(0.98)}
+.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
+.btn-ghost:active{background:var(--bg3)}
+.btn-green{background:linear-gradient(135deg,#00c853,#00e676);color:#001a08;box-shadow:0 4px 16px rgba(0,230,118,0.3)}
+.btn-red{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;box-shadow:0 4px 16px rgba(255,68,68,0.3)}
+.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
+.btn-xs{padding:5px 10px;font-size:12px;width:auto;border-radius:7px}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.topbar-title{font-size:16px;font-weight:700;flex:1}.topbar-sub{font-size:12px;color:var(--text2)}
+.avatar{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;padding:4px}
+#screen-emp{background:radial-gradient(ellipse at 50% -20%,#0d2a4a 0%,var(--bg) 60%)}
+.emp-content{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding-bottom:24px}
+.clock-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;box-shadow:var(--shadow)}
+.clock-time{font-size:44px;font-weight:300;color:var(--accent);letter-spacing:-2px;line-height:1;margin-bottom:4px}
+.clock-date{font-size:13px;color:var(--text2)}
+.status-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.status-title{font-size:14px;font-weight:600}
+.badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-green{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3)}
+.badge-red{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
+.badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
+.badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
+.badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
+.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
+.log-item:last-child{border-bottom:none}
+.log-type{display:flex;align-items:center;gap:8px;color:var(--text2)}
+.divider{height:1px;background:var(--border);margin:12px 0}
+.duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
+/* QR Scanner */
+.qr-scan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
+.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
+#reader{width:100%;border-radius:12px;overflow:hidden;margin:10px 0}
+.qr-result{background:var(--bg3);border-radius:10px;padding:12px;font-size:13px;margin-top:8px;text-align:center;display:none}
+.qr-result.success{border:1px solid var(--green);color:var(--green)}
+.qr-result.error{border:1px solid var(--red);color:var(--red)}
+/* Admin */
+#screen-admin{background:var(--bg)}
+.admin-content{flex:1;padding:14px;overflow-y:auto}
+.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
+.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
+.tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.card-title{font-size:15px;font-weight:700}.card-sub{font-size:12px;color:var(--text2);margin-top:3px}
+.card-actions{display:flex;gap:6px;flex-shrink:0}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
+.info-label{color:var(--text2)}.info-val{font-weight:600}
+.form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
+.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer}
+.stat-num{font-size:18px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+.report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
+.report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
+.report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
+/* QR Display */
+.qr-display-card{background:linear-gradient(135deg,#0f1e35,#1a2d4a);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;margin-bottom:14px}
+.qr-display-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
+.qr-display-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
+#qr-display-container{background:#fff;border-radius:16px;padding:16px;display:inline-block;margin:0 auto}
+.qr-timer{margin-top:12px;font-size:13px;color:var(--text2)}
+.qr-timer span{color:var(--orange);font-weight:700}
+.qr-loc-select{margin-bottom:12px}
+/* Map */
+#map-container{height:200px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
+.map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:1000;pointer-events:none}
+.map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--accent)}
+.map-crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
+.map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
+.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none}
+.city-search{display:flex;gap:8px;margin-bottom:8px}
+.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;outline:none}
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
+.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:90vw;text-align:center}
+.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}.empty-state .icon{font-size:36px;margin-bottom:10px}
+.report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+input[type=range]{accent-color:var(--accent);width:100%}
+.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
+/* QR Scanner video */
+#qr-video{width:100%;border-radius:12px;display:none}
+.scan-overlay{position:relative}
+.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="screen-login" class="screen active">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="icon-wrap">📍</div>
+      <h1>حضور و غیاب هوشمند</h1>
+      <p>سیستم ثبت ورود و خروج</p>
+    </div>
+    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی را وارد کنید" autocomplete="username" inputmode="numeric"></div>
+    <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
+    <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
+    <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
+  </div>
+</div>
+
+<!-- EMPLOYEE -->
+<div id="screen-emp" class="screen">
+  <div class="topbar">
+    <div class="avatar" id="emp-avatar">A</div>
+    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
+    <button class="logout-btn" onclick="doLogout()">⏏</button>
+  </div>
+  <div class="emp-content">
+    <div class="clock-card">
+      <div class="clock-time" id="clock-display">--:--:--</div>
+      <div class="clock-date" id="date-display">---</div>
+    </div>
+
+    <div class="status-card">
+      <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">ابتدا GPS بررسی می‌شود — در صورت عدم دریافت، QR به ایمیل ارسال می‌شود:</p>
+      <div class="action-btns">
+        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
+        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; ثبت خروج</button>
+      </div>
+    </div>
+
+    <div class="today-log">
+      <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
+      <div style="margin-top:8px" id="today-summary"></div>
+      <div class="divider"></div>
+      <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
+    </div>
+
+
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="screen-admin" class="screen">
+  <div class="topbar">
+    <div class="avatar" style="background:linear-gradient(135deg,#ff6b35,#f7931e)">A</div>
+    <div style="flex:1"><div class="topbar-title">پنل مدیریت</div><div class="topbar-sub">مدیر سیستم</div></div>
+    <button class="logout-btn" onclick="doLogout()">⏏</button>
+  </div>
+  <!-- Stats Modal -->
+  <div id="stats-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
+    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
+      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:14px" id="stats-modal-title"></div>
+      <div id="stats-modal-body" style="overflow-y:auto;flex:1"></div>
+      <button onclick="document.getElementById('stats-modal').style.display='none'" style="margin-top:14px;width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">بستن</button>
+    </div>
+  </div>
+
+  <div class="admin-content">
+    <div class="stats-grid" id="admin-stats"></div>
+    <div class="tabs">
+      <button class="tab active" onclick="adminTab('qr',this)">QR</button>
+      <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
+      <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
+      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="adminTab('messages',this)">&#128233; پیام‌ها</button>
+      <button class="tab" onclick="adminTab('tracking',this)">&#128205; ردیابی</button>
+      <button class="tab" onclick="adminTab('workhours',this)">&#128336; ساعت کاری</button>
+      <button class="tab" onclick="adminTab('leave',this)">&#128197; مرخصی</button>
+    </div>
+
+    <!-- Tab QR -->
+    <div id="tab-qr" class="tab-content">
+      <div class="qr-display-card">
+        <h3>🔐 QR Code شعبه</h3>
+        <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
+        <div class="qr-loc-select">
+          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none">
+            <option value="">-- شعبه را انتخاب کنید --</option>
+          </select>
+        </div>
+        <div id="qr-display-container"><div id="qr-code-div"></div></div>
+        <div class="qr-timer">تغییر بعدی: <span id="qr-countdown">--:--</span></div>
+        <button class="btn btn-primary" style="margin-top:12px" onclick="generateQR()">🔄 تولید مجدد</button>
+        <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="openFullscreenQR()">⛶ نمایش تمام‌صفحه</button>
+      </div>
+    </div>
+
+    <!-- Tab Locations -->
+    <div id="tab-locations" class="tab-content" style="display:none">
+      <div class="form-card">
+        <div class="section-title">➕ افزودن مکان جدید</div>
+        <div class="field"><label>نام مکان / شعبه</label><input type="text" id="loc-name" placeholder="مثلاً: شعبه مرکزی"></div>
+        <div class="field"><label>آدرس (اختیاری)</label><input type="text" id="loc-addr" placeholder="آدرس مکان"></div>
+        <div class="field">
+          <label>انتخاب موقعیت روی نقشه (اختیاری)</label>
+          <div class="city-search">
+            <input type="text" id="city-search-input" placeholder="جستجوی شهر...">
+            <button class="btn btn-primary btn-sm" onclick="searchCity()">🔍</button>
+          </div>
+          <div id="map-container">
+            <div id="add-map" style="width:100%;height:100%"></div>
+            <div class="map-crosshair"></div><div class="map-pin-dot"></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
+            <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
+            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">📍</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="addLocation()">💾 ذخیره مکان</button>
+      </div>
+      <div class="section-title">مکان‌های ثبت‌شده</div>
+      <div id="locations-list"></div>
+    </div>
+
+    <!-- Tab Personnel -->
+    <div id="tab-personnel" class="tab-content" style="display:none">
+      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto">
+        <button id="stab-add" onclick="perSubTab('add',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">&#10133; افزودن</button>
+        <button id="stab-list" onclick="perSubTab('list',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128101; لیست</button>
+
+      </div>
+      <div id="stab-add-content">
+        <div class="form-card">
+          <div class="section-title">&#10133; افزودن پرسنل</div>
+          <div class="form-grid">
+            <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
+            <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
+          </div>
+          <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
+          <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز ورود" value="1234"></div>
+          <div class="field"><label>ایمیل سازمانی <span style="color:var(--red)">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir"></div>
+          <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" class="checkbox-group"></div></div>
+          <button class="btn btn-primary" onclick="addPersonnel()">ذخیره پرسنل</button>
+        </div>
+      </div>
+      <div id="stab-list-content" style="display:none"><div id="personnel-list"></div></div>
+
+
+    <!-- Tab Reports -->
+    <div id="tab-reports" class="tab-content" style="display:none">
+      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
+      <div class="report-filter">
+        <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+          <option value="">همه پرسنل</option>
+        </select>
+        <select id="filter-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
+          <option value="">همه تاریخ‌ها</option>
+        </select>
+        <button class="btn btn-primary btn-sm" onclick="loadReports()">🔍</button>
+      </div>
+      <div id="reports-summary" style="margin-bottom:12px"></div>
+      <div id="reports-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- QR SCAN MODAL -->
+<div class="modal-overlay" id="qr-scan-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
+    <div class="scan-overlay">
+      <video id="qr-video" autoplay playsinline></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+    </div>
+    <div id="qr-scan-result" class="qr-result"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT LOCATION MODAL -->
+<div class="modal-overlay" id="edit-loc-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش مکان</div>
+    <input type="hidden" id="edit-loc-id">
+    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
+    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
+    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT PERSONNEL MODAL -->
+<div class="modal-overlay" id="edit-per-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش پرسنل</div>
+    <input type="hidden" id="edit-per-id">
+    <div class="form-grid">
+      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
+      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
+    <!-- Tab Messages -->
+    <div id="tab-messages" class="tab-content" style="display:none">
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:14px">&#128233; ارسال پیام</div>
+        <div class="field"><label>گیرنده</label><select id="msg-target" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="all">همه پرسنل</option></select></div>
+        <div class="field"><label>متن پیام</label><textarea id="msg-text" rows="4" placeholder="پیام خود را بنویسید..." style="width:100%;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;resize:none;box-sizing:border-box"></textarea></div>
+        <button onclick="sendMessage()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">&#128228; ارسال</button>
+      </div>
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px">پیام‌های ارسالی</div>
+      <div id="msgs-list"></div>
+    </div>
+
+    <!-- Tab Tracking -->
+    <div id="tab-tracking" class="tab-content" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+        <select id="track-person" style="flex:1;min-width:130px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب پرسنل</option></select>
+        <select id="track-date" style="flex:1;min-width:130px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب تاریخ</option></select>
+        <button onclick="doTracking()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
+      </div>
+      <div id="tracking-result"></div>
+    </div>
+
+    <!-- Tab Work Hours -->
+    <div id="tab-workhours" class="tab-content" style="display:none">
+      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
+        <div style="font-size:15px;font-weight:700;margin-bottom:14px">&#128336; تنظیم ساعت کاری</div>
+        <div id="wh-locations-list"></div>
+        <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">
+          <div class="field"><label>شعبه</label><select id="wh-loc-select" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب شعبه</option></select></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">شروع</label><input type="time" id="wh-start" value="08:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">پایان</label><input type="time" id="wh-end" value="17:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">تاخیر مجاز (دقیقه)</label><input type="number" id="wh-late" value="15" min="0" max="120" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">روزهای کاری</label><select id="wh-days" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="6">ش تا پ</option><option value="5">ش تا چ</option><option value="7">همه</option></select></div>
+          </div>
+          <button onclick="saveWorkHours()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">ذخیره ساعت کاری</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Leave -->
+    <div id="tab-leave" class="tab-content" style="display:none">
+      <div class="form-card" style="margin-bottom:14px">
+        <div class="section-title">&#128197; ثبت مرخصی</div>
+        <div class="field"><label>پرسنل</label><select id="leave-per" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">انتخاب پرسنل</option></select></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field"><label>از</label><input type="date" id="leave-from" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
+          <div class="field"><label>تا</label><input type="date" id="leave-to" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
+        </div>
+        <div class="field"><label>نوع</label><select id="leave-type" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="annual">سالانه</option><option value="sick">استعلاجی</option><option value="unpaid">بی‌حقوق</option><option value="mission">ماموریت</option></select></div>
+        <div class="field"><label>توضیحات</label><textarea id="leave-desc" rows="2" placeholder="توضیحات"></textarea></div>
+        <button onclick="saveLeave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">ثبت مرخصی</button>
+      </div>
+      <div id="leaves-list"></div>
+    </div>
+    </div>
+    <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
+    <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
+    <div class="field"><label>شعبه‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
+    <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-per-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- FULLSCREEN QR -->
+<div id="fullscreen-qr" style="display:none;position:fixed;inset:0;background:#fff;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:20px">
+  <div id="fullscreen-qr-code" style="background:#fff;padding:20px;border-radius:16px"></div>
+  <div style="font-size:18px;font-weight:700;color:#1a2d4a" id="fullscreen-loc-name"></div>
+  <div style="font-size:14px;color:#4a7a9b" id="fullscreen-timer"></div>
+  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
+</div>
+
+<script>
+
 // ════ JALALI ════
 function toJalali(gy,gm,gd){var g_d_no,jy,jm,jd;var g_dm=[31,28,31,30,31,30,31,31,30,31,30,31];var j_dm=[31,31,31,31,31,31,30,30,30,30,30,29];gy-=1600;gm-=1;gd-=1;g_d_no=365*gy+Math.floor((gy+3)/4)-Math.floor((gy+99)/100)+Math.floor((gy+399)/400);for(var i=0;i<gm;i++)g_d_no+=g_dm[i];if(gm>1&&((gy%4==0&&gy%100!=0)||(gy+400)%400==0))g_d_no++;g_d_no+=gd;var j_np=g_d_no-79;var imp=Math.floor(j_np/12053);j_np%=12053;jy=979+33*imp+4*Math.floor(j_np/1461);j_np%=1461;if(j_np>=366){jy+=Math.floor((j_np-1)/365);j_np=(j_np-1)%365;}for(i=0;i<11&&j_np>=j_dm[i];i++)j_np-=j_dm[i];jm=i+1;jd=j_np+1;return {y:jy,m:jm,d:jd};}
 function gregToJalali(ds){if(!ds)return ds;var p=ds.split('-');if(p.length!==3)return ds;var j=toJalali(+p[0],+p[1],+p[2]);return j.y+'/'+(j.m<10?'0':'')+j.m+'/'+(j.d<10?'0':'')+j.d;}
@@ -437,406 +837,7 @@ function loadReportFilters(){
   ds.innerHTML='<option value="">\u0647\u0645\u0647 \u062a\u0627\u0631\u06cc\u062e\u200c\u0647\u0627</option>';
   dArr.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+gregToJalali(d)+'</option>';});
 }
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<style>
-:root{--bg:#0a1628;--bg2:#0f1e35;--bg3:#162540;--card:#1a2d4a;--border:#1e3558;--accent:#00d4ff;--green:#00e676;--red:#ff4444;--orange:#ff9800;--purple:#a78bfa;--text:#e8f4fd;--text2:#7ea8c9;--text3:#4a7a9b;--shadow:0 8px 32px rgba(0,0,0,0.4)}
-*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-body{font-family:'Vazirmatn','Tahoma',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden}
-.screen{display:none;min-height:100dvh;flex-direction:column}.screen.active{display:flex}
-#screen-login{justify-content:center;align-items:center;padding:24px;background:radial-gradient(ellipse at 50% 0%,#0d2a4a 0%,var(--bg) 70%)}
-.login-box{width:100%;max-width:380px;background:var(--card);border:1px solid var(--border);border-radius:24px;padding:40px 32px;box-shadow:var(--shadow)}
-.login-logo{text-align:center;margin-bottom:32px}
-.login-logo .icon-wrap{width:72px;height:72px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:20px;display:inline-flex;align-items:center;justify-content:center;font-size:32px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,212,255,0.25)}
-.login-logo h1{font-size:20px;font-weight:700}.login-logo p{font-size:13px;color:var(--text2);margin-top:4px}
-.field{margin-bottom:16px}.field label{display:block;font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:500}
-.field input,.field select{width:100%;padding:12px 16px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none;transition:border-color .2s}
-.field input:focus,.field select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,0.1)}
-.field select option{background:var(--bg3)}
-.btn{width:100%;padding:14px;border:none;border-radius:12px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:all .2s;outline:none}
-.btn-primary{background:linear-gradient(135deg,var(--accent),#0088cc);color:#fff;box-shadow:0 4px 16px rgba(0,212,255,0.3)}
-.btn-primary:active{transform:scale(0.98)}
-.btn-ghost{background:transparent;border:1.5px solid var(--border);color:var(--text2)}
-.btn-ghost:active{background:var(--bg3)}
-.btn-green{background:linear-gradient(135deg,#00c853,#00e676);color:#001a08;box-shadow:0 4px 16px rgba(0,230,118,0.3)}
-.btn-red{background:linear-gradient(135deg,#cc0000,#ff4444);color:#fff;box-shadow:0 4px 16px rgba(255,68,68,0.3)}
-.btn-sm{padding:8px 14px;font-size:13px;width:auto;border-radius:8px}
-.btn-xs{padding:5px 10px;font-size:12px;width:auto;border-radius:7px}
-.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 20px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
-.topbar-title{font-size:16px;font-weight:700;flex:1}.topbar-sub{font-size:12px;color:var(--text2)}
-.avatar{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),#0066ff);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
-.logout-btn{background:none;border:none;cursor:pointer;color:var(--text3);font-size:20px;padding:4px}
-#screen-emp{background:radial-gradient(ellipse at 50% -20%,#0d2a4a 0%,var(--bg) 60%)}
-.emp-content{flex:1;padding:16px;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding-bottom:24px}
-.clock-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:20px;text-align:center;box-shadow:var(--shadow)}
-.clock-time{font-size:44px;font-weight:300;color:var(--accent);letter-spacing:-2px;line-height:1;margin-bottom:4px}
-.clock-date{font-size:13px;color:var(--text2)}
-.status-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.status-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.status-title{font-size:14px;font-weight:600}
-.badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}
-.badge-green{background:rgba(0,230,118,0.15);color:var(--green);border:1px solid rgba(0,230,118,0.3)}
-.badge-red{background:rgba(255,68,68,0.15);color:var(--red);border:1px solid rgba(255,68,68,0.3)}
-.badge-orange{background:rgba(255,152,0,0.15);color:var(--orange);border:1px solid rgba(255,152,0,0.3)}
-.badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
-.badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
-.action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
-.log-item:last-child{border-bottom:none}
-.log-type{display:flex;align-items:center;gap:8px;color:var(--text2)}
-.divider{height:1px;background:var(--border);margin:12px 0}
-.duration-badge{font-size:11px;color:var(--purple);background:rgba(167,139,250,0.1);padding:2px 8px;border-radius:10px;border:1px solid rgba(167,139,250,0.2)}
-/* QR Scanner */
-.qr-scan-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
-.qr-btn{background:linear-gradient(135deg,#7c3aed,#a78bfa);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:15px;font-weight:600;cursor:pointer;width:100%;margin-top:8px}
-#reader{width:100%;border-radius:12px;overflow:hidden;margin:10px 0}
-.qr-result{background:var(--bg3);border-radius:10px;padding:12px;font-size:13px;margin-top:8px;text-align:center;display:none}
-.qr-result.success{border:1px solid var(--green);color:var(--green)}
-.qr-result.error{border:1px solid var(--red);color:var(--red)}
-/* Admin */
-#screen-admin{background:var(--bg)}
-.admin-content{flex:1;padding:14px;overflow-y:auto}
-.tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:16px}
-.tab{flex:1;padding:9px;border:none;background:transparent;color:var(--text2);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:11px;font-weight:500;border-radius:10px;cursor:pointer;transition:all .2s}
-.tab.active{background:var(--card);color:var(--accent);font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,0.2)}
-.section-title{font-size:12px;font-weight:700;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px}
-.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:14px;margin-bottom:10px;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
-.card-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
-.card-title{font-size:15px;font-weight:700}.card-sub{font-size:12px;color:var(--text2);margin-top:3px}
-.card-actions{display:flex;gap:6px;flex-shrink:0}
-.info-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px}
-.info-label{color:var(--text2)}.info-val{font-weight:600}
-.form-card{background:var(--bg3);border:1px dashed var(--border);border-radius:16px;padding:16px;margin-bottom:14px}
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:14px}
-.stat-box{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:8px 4px;text-align:center;cursor:pointer}
-.stat-num{font-size:18px;font-weight:800;color:var(--accent)}.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
-.report-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:10px}
-.report-avatar{width:38px;height:38px;background:linear-gradient(135deg,#0066ff,var(--accent));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0}
-.report-info{flex:1}.report-name{font-size:14px;font-weight:600}.report-meta{font-size:11px;color:var(--text2);margin-top:2px}
-/* QR Display */
-.qr-display-card{background:linear-gradient(135deg,#0f1e35,#1a2d4a);border:1px solid var(--border);border-radius:20px;padding:24px;text-align:center;margin-bottom:14px}
-.qr-display-card h3{font-size:16px;font-weight:700;margin-bottom:4px}
-.qr-display-card p{font-size:12px;color:var(--text2);margin-bottom:16px}
-#qr-display-container{background:#fff;border-radius:16px;padding:16px;display:inline-block;margin:0 auto}
-.qr-timer{margin-top:12px;font-size:13px;color:var(--text2)}
-.qr-timer span{color:var(--orange);font-weight:700}
-.qr-loc-select{margin-bottom:12px}
-/* Map */
-#map-container{height:200px;border-radius:12px;overflow:hidden;border:1.5px solid var(--border);margin-bottom:10px;position:relative}
-.map-crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:1000;pointer-events:none}
-.map-crosshair::before,.map-crosshair::after{content:'';position:absolute;background:var(--accent)}
-.map-crosshair::before{width:2px;height:100%;left:50%;transform:translateX(-50%)}
-.map-crosshair::after{height:2px;width:100%;top:50%;transform:translateY(-50%)}
-.map-pin-dot{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:10px;height:10px;background:var(--accent);border-radius:50%;border:2px solid #fff;z-index:1001;pointer-events:none}
-.city-search{display:flex;gap:8px;margin-bottom:8px}
-.city-search input{flex:1;padding:10px 14px;background:var(--bg);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;outline:none}
-/* Modal */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);z-index:200;display:none;align-items:flex-end;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--card);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:24px 20px 36px;width:100%;max-width:480px;animation:slideUp .3s ease;max-height:92dvh;overflow-y:auto}
-@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
-.modal-handle{width:40px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 20px}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:6px}
-/* Toast */
-.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 20px;font-size:13px;font-weight:600;z-index:300;box-shadow:var(--shadow);animation:toastIn .3s ease;max-width:90vw;text-align:center}
-.toast.success{border-color:var(--green);color:var(--green)}.toast.error{border-color:var(--red);color:var(--red)}.toast.info{border-color:var(--accent);color:var(--accent)}
-@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-.empty-state{text-align:center;padding:32px 20px;color:var(--text3);font-size:13px}.empty-state .icon{font-size:36px;margin-bottom:10px}
-.report-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
-input[type=range]{accent-color:var(--accent);width:100%}
-.excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
-/* QR Scanner video */
-#qr-video{width:100%;border-radius:12px;display:none}
-.scan-overlay{position:relative}
-.scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
-</style>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-</head>
-<body>
 
-<!-- LOGIN -->
-<div id="screen-login" class="screen active">
-  <div class="login-box">
-    <div class="login-logo">
-      <div class="icon-wrap">📍</div>
-      <h1>حضور و غیاب هوشمند</h1>
-      <p>سیستم ثبت ورود و خروج</p>
-    </div>
-    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی را وارد کنید" autocomplete="username" inputmode="numeric"></div>
-    <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
-    <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
-    <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-  </div>
-</div>
-
-<!-- EMPLOYEE -->
-<div id="screen-emp" class="screen">
-  <div class="topbar">
-    <div class="avatar" id="emp-avatar">A</div>
-    <div style="flex:1"><div class="topbar-title" id="emp-name">نام پرسنل</div><div class="topbar-sub" id="emp-location-name">مکان کاری</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
-  </div>
-  <div class="emp-content">
-    <div class="clock-card">
-      <div class="clock-time" id="clock-display">--:--:--</div>
-      <div class="clock-date" id="date-display">---</div>
-    </div>
-
-    <div class="status-card">
-      <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
-      <p style="font-size:13px;color:var(--text2);margin-bottom:10px">ابتدا GPS بررسی می‌شود — در صورت عدم دریافت، QR به ایمیل ارسال می‌شود:</p>
-      <div class="action-btns">
-        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
-        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; ثبت خروج</button>
-      </div>
-    </div>
-
-    <div class="today-log">
-      <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
-      <div style="margin-top:8px" id="today-summary"></div>
-      <div class="divider"></div>
-      <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
-    </div>
-
-
-  </div>
-</div>
-
-<!-- ADMIN -->
-<div id="screen-admin" class="screen">
-  <div class="topbar">
-    <div class="avatar" style="background:linear-gradient(135deg,#ff6b35,#f7931e)">A</div>
-    <div style="flex:1"><div class="topbar-title">پنل مدیریت</div><div class="topbar-sub">مدیر سیستم</div></div>
-    <button class="logout-btn" onclick="doLogout()">⏏</button>
-  </div>
-  <!-- Stats Modal -->
-  <div id="stats-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:200;align-items:flex-end;justify-content:center" onclick="this.style.display='none'">
-    <div style="background:var(--card);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:500px;max-height:80vh;display:flex;flex-direction:column" onclick="event.stopPropagation()">
-      <div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
-      <div style="font-size:16px;font-weight:700;margin-bottom:14px" id="stats-modal-title"></div>
-      <div id="stats-modal-body" style="overflow-y:auto;flex:1"></div>
-      <button onclick="document.getElementById('stats-modal').style.display='none'" style="margin-top:14px;width:100%;padding:12px;background:var(--bg3);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">بستن</button>
-    </div>
-  </div>
-
-  <div class="admin-content">
-    <div class="stats-grid" id="admin-stats"></div>
-    <div class="tabs">
-      <button class="tab active" onclick="adminTab('qr',this)">QR</button>
-      <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
-      <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
-      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
-      <button class="tab" onclick="adminTab('messages',this)">&#128233; پیام‌ها</button>
-      <button class="tab" onclick="adminTab('tracking',this)">&#128205; ردیابی</button>
-      <button class="tab" onclick="adminTab('workhours',this)">&#128336; ساعت کاری</button>
-      <button class="tab" onclick="adminTab('leave',this)">&#128197; مرخصی</button>
-    </div>
-
-    <!-- Tab QR -->
-    <div id="tab-qr" class="tab-content">
-      <div class="qr-display-card">
-        <h3>🔐 QR Code شعبه</h3>
-        <p>هر ساعت یک‌بار تغییر می‌کند — روی کامپیوتر شعبه نمایش دهید</p>
-        <div class="qr-loc-select">
-          <select id="qr-loc-select" onchange="generateQR()" style="width:100%;padding:10px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Vazirmatn','Tahoma',sans-serif;font-size:14px;outline:none">
-            <option value="">-- شعبه را انتخاب کنید --</option>
-          </select>
-        </div>
-        <div id="qr-display-container"><div id="qr-code-div"></div></div>
-        <div class="qr-timer">تغییر بعدی: <span id="qr-countdown">--:--</span></div>
-        <button class="btn btn-primary" style="margin-top:12px" onclick="generateQR()">🔄 تولید مجدد</button>
-        <button class="btn btn-ghost" style="margin-top:8px;font-size:13px" onclick="openFullscreenQR()">⛶ نمایش تمام‌صفحه</button>
-      </div>
-    </div>
-
-    <!-- Tab Locations -->
-    <div id="tab-locations" class="tab-content" style="display:none">
-      <div class="form-card">
-        <div class="section-title">➕ افزودن مکان جدید</div>
-        <div class="field"><label>نام مکان / شعبه</label><input type="text" id="loc-name" placeholder="مثلاً: شعبه مرکزی"></div>
-        <div class="field"><label>آدرس (اختیاری)</label><input type="text" id="loc-addr" placeholder="آدرس مکان"></div>
-        <div class="field">
-          <label>انتخاب موقعیت روی نقشه (اختیاری)</label>
-          <div class="city-search">
-            <input type="text" id="city-search-input" placeholder="جستجوی شهر...">
-            <button class="btn btn-primary btn-sm" onclick="searchCity()">🔍</button>
-          </div>
-          <div id="map-container">
-            <div id="add-map" style="width:100%;height:100%"></div>
-            <div class="map-crosshair"></div><div class="map-pin-dot"></div>
-          </div>
-          <div style="display:flex;gap:8px">
-            <input type="number" id="loc-lat" step="0.000001" placeholder="عرض جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-            <input type="number" id="loc-lng" step="0.000001" placeholder="طول جغرافیایی" style="flex:1;padding:10px;background:var(--bg);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:12px;outline:none">
-            <button class="btn btn-ghost btn-sm" onclick="useMyLocationForMap()">📍</button>
-          </div>
-        </div>
-        <button class="btn btn-primary" onclick="addLocation()">💾 ذخیره مکان</button>
-      </div>
-      <div class="section-title">مکان‌های ثبت‌شده</div>
-      <div id="locations-list"></div>
-    </div>
-
-    <!-- Tab Personnel -->
-    <div id="tab-personnel" class="tab-content" style="display:none">
-      <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto">
-        <button id="stab-add" onclick="perSubTab('add',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">&#10133; افزودن</button>
-        <button id="stab-list" onclick="perSubTab('list',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128101; لیست</button>
-
-      </div>
-      <div id="stab-add-content">
-        <div class="form-card">
-          <div class="section-title">&#10133; افزودن پرسنل</div>
-          <div class="form-grid">
-            <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
-            <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
-          </div>
-          <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
-          <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز ورود" value="1234"></div>
-          <div class="field"><label>ایمیل سازمانی <span style="color:var(--red)">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir"></div>
-          <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" class="checkbox-group"></div></div>
-          <button class="btn btn-primary" onclick="addPersonnel()">ذخیره پرسنل</button>
-        </div>
-      </div>
-      <div id="stab-list-content" style="display:none"><div id="personnel-list"></div></div>
-
-
-    <!-- Tab Reports -->
-    <div id="tab-reports" class="tab-content" style="display:none">
-      <button class="excel-btn" onclick="exportExcel()">📊 خروجی اکسل</button>
-      <div class="report-filter">
-        <select id="filter-person" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
-          <option value="">همه پرسنل</option>
-        </select>
-        <select id="filter-date" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,sans-serif;font-size:13px">
-          <option value="">همه تاریخ‌ها</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="loadReports()">🔍</button>
-      </div>
-      <div id="reports-summary" style="margin-bottom:12px"></div>
-      <div id="reports-list"></div>
-    </div>
-  </div>
-</div>
-
-<!-- QR SCAN MODAL -->
-<div class="modal-overlay" id="qr-scan-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <div class="scan-overlay">
-      <video id="qr-video" autoplay playsinline></video>
-      <canvas id="qr-canvas" style="display:none"></canvas>
-    </div>
-    <div id="qr-scan-result" class="qr-result"></div>
-    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT LOCATION MODAL -->
-<div class="modal-overlay" id="edit-loc-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش مکان</div>
-    <input type="hidden" id="edit-loc-id">
-    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
-    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
-    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT PERSONNEL MODAL -->
-<div class="modal-overlay" id="edit-per-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش پرسنل</div>
-    <input type="hidden" id="edit-per-id">
-    <div class="form-grid">
-      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
-      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
-    <!-- Tab Messages -->
-    <div id="tab-messages" class="tab-content" style="display:none">
-      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
-        <div style="font-size:15px;font-weight:700;margin-bottom:14px">&#128233; ارسال پیام</div>
-        <div class="field"><label>گیرنده</label><select id="msg-target" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="all">همه پرسنل</option></select></div>
-        <div class="field"><label>متن پیام</label><textarea id="msg-text" rows="4" placeholder="پیام خود را بنویسید..." style="width:100%;padding:12px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;resize:none;box-sizing:border-box"></textarea></div>
-        <button onclick="sendMessage()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">&#128228; ارسال</button>
-      </div>
-      <div style="font-size:14px;font-weight:600;margin-bottom:8px">پیام‌های ارسالی</div>
-      <div id="msgs-list"></div>
-    </div>
-
-    <!-- Tab Tracking -->
-    <div id="tab-tracking" class="tab-content" style="display:none">
-      <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-        <select id="track-person" style="flex:1;min-width:130px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب پرسنل</option></select>
-        <select id="track-date" style="flex:1;min-width:130px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب تاریخ</option></select>
-        <button onclick="doTracking()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
-      </div>
-      <div id="tracking-result"></div>
-    </div>
-
-    <!-- Tab Work Hours -->
-    <div id="tab-workhours" class="tab-content" style="display:none">
-      <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
-        <div style="font-size:15px;font-weight:700;margin-bottom:14px">&#128336; تنظیم ساعت کاری</div>
-        <div id="wh-locations-list"></div>
-        <div style="margin-top:12px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">
-          <div class="field"><label>شعبه</label><select id="wh-loc-select" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب شعبه</option></select></div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">شروع</label><input type="time" id="wh-start" value="08:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">پایان</label><input type="time" id="wh-end" value="17:00" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">تاخیر مجاز (دقیقه)</label><input type="number" id="wh-late" value="15" min="0" max="120" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;box-sizing:border-box"></div>
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px">روزهای کاری</label><select id="wh-days" style="width:100%;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="6">ش تا پ</option><option value="5">ش تا چ</option><option value="7">همه</option></select></div>
-          </div>
-          <button onclick="saveWorkHours()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">ذخیره ساعت کاری</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Tab Leave -->
-    <div id="tab-leave" class="tab-content" style="display:none">
-      <div class="form-card" style="margin-bottom:14px">
-        <div class="section-title">&#128197; ثبت مرخصی</div>
-        <div class="field"><label>پرسنل</label><select id="leave-per" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">انتخاب پرسنل</option></select></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-          <div class="field"><label>از</label><input type="date" id="leave-from" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
-          <div class="field"><label>تا</label><input type="date" id="leave-to" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
-        </div>
-        <div class="field"><label>نوع</label><select id="leave-type" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="annual">سالانه</option><option value="sick">استعلاجی</option><option value="unpaid">بی‌حقوق</option><option value="mission">ماموریت</option></select></div>
-        <div class="field"><label>توضیحات</label><textarea id="leave-desc" rows="2" placeholder="توضیحات"></textarea></div>
-        <button onclick="saveLeave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">ثبت مرخصی</button>
-      </div>
-      <div id="leaves-list"></div>
-    </div>
-    </div>
-    <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
-    <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
-    <div class="field"><label>شعبه‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
-    <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-per-modal').classList.remove('open')">انصراف</button>
-  </div>
-</div>
-
-<!-- FULLSCREEN QR -->
-<div id="fullscreen-qr" style="display:none;position:fixed;inset:0;background:#fff;z-index:500;flex-direction:column;align-items:center;justify-content:center;gap:20px">
-  <div id="fullscreen-qr-code" style="background:#fff;padding:20px;border-radius:16px"></div>
-  <div style="font-size:18px;font-weight:700;color:#1a2d4a" id="fullscreen-loc-name"></div>
-  <div style="font-size:14px;color:#4a7a9b" id="fullscreen-timer"></div>
-  <button onclick="closeFullscreenQR()" style="background:#1a2d4a;color:#fff;border:none;border-radius:12px;padding:12px 32px;font-family:Vazirmatn,sans-serif;font-size:15px;font-weight:600;cursor:pointer">بستن</button>
-</div>
-
-<script>
 // ════ STATE ════
 var state={
   currentUser:null,
