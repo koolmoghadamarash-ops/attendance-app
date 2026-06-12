@@ -206,7 +206,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
   </div>
 
   <div class="emp-content">
-    <div class="clock-card">
+    <div class="clock-card" style="padding:10px 16px">
       <div class="clock-time" id="clock-display">--:--:--</div>
       <div class="clock-date" id="date-display">---</div>
     </div>
@@ -242,11 +242,73 @@ input[type=range]{accent-color:var(--accent);width:100%}
       </div>
     </div>
 
-    <div class="today-log">
-      <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
-      <div style="margin-top:8px" id="today-summary"></div>
-      <div class="divider"></div>
+    <!-- Summary Card -->
+    <div id="emp-summary-card" style="background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--border)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">&#128203; خلاصه وضعیت امروز</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px" id="today-summary-grid">
+        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px">
+          <div style="font-size:15px;font-weight:700;color:var(--green)" id="sum-checkin">--:--</div>
+          <div style="font-size:10px;color:var(--text3)">ورود</div>
+        </div>
+        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px">
+          <div style="font-size:15px;font-weight:700;color:var(--red)" id="sum-checkout">--:--</div>
+          <div style="font-size:10px;color:var(--text3)">خروج</div>
+        </div>
+        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px">
+          <div style="font-size:15px;font-weight:700;color:var(--orange)" id="sum-late">--:--</div>
+          <div style="font-size:10px;color:var(--text3)">تاخیر</div>
+        </div>
+        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px">
+          <div style="font-size:15px;font-weight:700;color:var(--accent)" id="sum-overtime">--:--</div>
+          <div style="font-size:10px;color:var(--text3)">اضافه</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;text-align:center;font-size:12px;color:var(--text2)">کارکرد: <span id="sum-workhours" style="font-weight:700;color:var(--text)">---</span></div>
+    </div>
+
+    <!-- Tabs -->
+    <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">
+      <button onclick="empTab2('today',this)" id="etab2-today" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:700;cursor:pointer">امروز</button>
+      <button onclick="empTab2('monthly',this)" id="etab2-monthly" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">ماه اخیر</button>
+      <button onclick="empTab2('leave',this)" id="etab2-leave" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">مرخصی</button>
+    </div>
+
+    <!-- Today Logs -->
+    <div id="etab2-today-content">
+      <div id="today-summary" style="margin-bottom:8px"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
+    </div>
+
+    <!-- Monthly Report -->
+    <div id="etab2-monthly-content" style="display:none">
+      <div id="emp-monthly-table"><div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div></div>
+    </div>
+
+    <!-- Leave -->
+    <div id="etab2-leave-content" style="display:none">
+      <div style="background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--border)">
+        <div style="font-size:14px;font-weight:700;margin-bottom:12px">&#128197; ثبت مرخصی</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">از تاریخ</label><input type="date" id="emp-leave-from" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
+          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">تا تاریخ</label><input type="date" id="emp-leave-to" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
+        </div>
+        <div style="margin-bottom:8px">
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">نوع مرخصی</label>
+          <select id="emp-leave-type" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px">
+            <option value="annual">سالانه</option>
+            <option value="sick">استعلاجی</option>
+            <option value="unpaid">بی‌حقوق</option>
+            <option value="mission">ماموریت</option>
+          </select>
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">توضیحات</label>
+          <textarea id="emp-leave-desc" rows="2" placeholder="توضیحات (اختیاری)" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;resize:none;box-sizing:border-box"></textarea>
+        </div>
+        <button onclick="saveEmpLeave()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">ثبت مرخصی</button>
+      </div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">مرخصی‌های من</div>
+      <div id="emp-leaves-list-2"></div>
     </div>
 
 
@@ -558,6 +620,189 @@ function doChangePass(){
 }
 
 
+
+// ════ EMP TABS 2 ════
+function empTab2(tab,el){
+  var tabs=['today','monthly','leave'];
+  tabs.forEach(function(t){
+    var btn=document.getElementById('etab2-'+t);
+    var cnt=document.getElementById('etab2-'+t+'-content');
+    if(btn){btn.style.background=t===tab?'var(--accent)':'var(--bg3)';btn.style.color=t===tab?'#000':'var(--text)';btn.style.border=t===tab?'none':'1px solid var(--border)';btn.style.fontWeight=t===tab?'700':'400';}
+    if(cnt)cnt.style.display=t===tab?'block':'none';
+  });
+  if(tab==='monthly')loadEmpMonthlyTable();
+  if(tab==='leave')renderEmpLeavesList2();
+}
+
+function updateEmpSummaryCard(){
+  var u=state.currentUser;
+  if(!u)return;
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  
+  // First in / last out
+  var firstIn=null,lastOut=null;
+  todayLogs.forEach(function(l){
+    if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;
+    if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;
+  });
+  
+  document.getElementById('sum-checkin').textContent=firstIn||'--:--';
+  document.getElementById('sum-checkout').textContent=lastOut||'--:--';
+  
+  // Work hours
+  var wh=getWorkHoursForLoc((u.locations||[])[0]||'');
+  var startParts=wh.start.split(':');
+  var startMins=parseInt(startParts[0])*60+parseInt(startParts[1]);
+  
+  // Late
+  var lateMins=0;
+  if(firstIn){
+    var ip=firstIn.split(':');
+    var inMins=parseInt(ip[0])*60+parseInt(ip[1]);
+    if(inMins>startMins+(wh.late||15))lateMins=inMins-startMins;
+  }
+  document.getElementById('sum-late').textContent=lateMins?minsToHM(lateMins):'—';
+  
+  // Total work
+  var totalMins=0,lastInTime=null;
+  todayLogs.forEach(function(l){
+    if(l.type==='in')lastInTime=new Date(l.timestamp);
+    else if(l.type==='out'&&lastInTime){totalMins+=Math.floor((new Date(l.timestamp)-lastInTime)/60000);lastInTime=null;}
+  });
+  if(lastInTime)totalMins+=Math.floor((Date.now()-lastInTime)/60000);
+  
+  // Overtime
+  var endParts=wh.end.split(':');
+  var stdMins=parseInt(endParts[0])*60+parseInt(endParts[1])-startMins;
+  var overtime=Math.max(0,totalMins-stdMins);
+  
+  document.getElementById('sum-overtime').textContent=overtime?minsToHM(overtime):'—';
+  document.getElementById('sum-workhours').textContent=totalMins?minsToHM(totalMins):'—';
+}
+
+function minsToHM(m){
+  var h=Math.floor(m/60),mn=m%60;
+  return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);
+}
+
+function loadEmpMonthlyTable(){
+  var u=state.currentUser;
+  var el=document.getElementById('emp-monthly-table');
+  if(!u||!el)return;
+  
+  // Get last 30 days
+  var wh=getWorkHoursForLoc((u.locations||[])[0]||'');
+  var startParts=wh.start.split(':');var endParts=wh.end.split(':');
+  var startMins=parseInt(startParts[0])*60+parseInt(startParts[1]);
+  var endMins=parseInt(endParts[0])*60+parseInt(endParts[1]);
+  var lateAllowed=wh.late||15;
+  
+  var rows='';
+  var totalWorkMins=0,totalLateMins=0,totalOTMins=0,absentDays=0;
+  
+  for(var d=29;d>=0;d--){
+    var date=new Date();
+    date.setDate(date.getDate()-d);
+    var dateStr=date.getFullYear()+'-'+(date.getMonth()+1<10?'0':'')+(date.getMonth()+1)+'-'+(date.getDate()<10?'0':'')+date.getDate();
+    var jDate=gregToJalali(dateStr);
+    var dow=date.getDay();
+    var isWorkDay=dow!==5;
+    
+    var dayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===dateStr;});
+    var lv=(state.leaves||[]).filter(function(x){return x.userId===u.nationalId&&x.from<=dateStr&&x.to>=dateStr;})[0];
+    
+    var firstIn=null,lastOut=null;
+    dayLogs.forEach(function(l){
+      if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;
+      if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;
+    });
+    
+    var wm=0,lm=0,om=0,status='',sc='var(--text3)';
+    
+    if(lv){
+      var lt={annual:'مرخصی',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+      status=lt[lv.type]||'مرخصی';sc='var(--accent)';
+    } else if(!isWorkDay){
+      status='تعطیل';sc='var(--text3)';
+    } else if(!firstIn){
+      status='غیبت';sc='var(--red)';absentDays++;
+    } else {
+      if(firstIn&&lastOut){
+        var ip=firstIn.split(':'),op=lastOut.split(':');
+        var im=parseInt(ip[0])*60+parseInt(ip[1]),om2=parseInt(op[0])*60+parseInt(op[1]);
+        wm=om2-im;
+        if(im>startMins+lateAllowed){lm=im-startMins;totalLateMins+=lm;}
+        if(wm>endMins-startMins){om=wm-(endMins-startMins);totalOTMins+=om;}
+        totalWorkMins+=wm;
+      }
+      status=firstIn?'حاضر':'ناقص';sc=firstIn?'var(--green)':'var(--orange)';
+    }
+    
+    rows+='<tr style="background:'+(d%2===0?'var(--card)':'var(--bg3)')+'">'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap">'+jDate+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--green)">'+(firstIn||'—')+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--red)">'+(lastOut||'—')+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px">'+(wm?minsToHM(wm):'—')+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--orange)">'+(lm?minsToHM(lm):'—')+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--accent)">'+(om?minsToHM(om):'—')+'</td>'+
+      '<td style="padding:6px;border-bottom:1px solid var(--border);font-size:10px;font-weight:600;color:'+sc+'">'+status+'</td>'+
+    '</tr>';
+  }
+  
+  el.innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--accent)">'+minsToHM(totalWorkMins)+'</div><div style="font-size:10px;color:var(--text2)">کارکرد</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+minsToHM(totalLateMins)+'</div><div style="font-size:10px;color:var(--text2)">تاخیر</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--green)">'+minsToHM(totalOTMins)+'</div><div style="font-size:10px;color:var(--text2)">اضافه</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+toPersianNum(absentDays)+'</div><div style="font-size:10px;color:var(--text2)">غیبت</div></div>'+
+    '</div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">'+
+    '<thead><tr style="background:var(--accent);color:#000">'+
+    '<th style="padding:7px;text-align:right">تاریخ</th>'+
+    '<th style="padding:7px;text-align:right">ورود</th>'+
+    '<th style="padding:7px;text-align:right">خروج</th>'+
+    '<th style="padding:7px;text-align:right">کارکرد</th>'+
+    '<th style="padding:7px;text-align:right">تاخیر</th>'+
+    '<th style="padding:7px;text-align:right">اضافه</th>'+
+    '<th style="padding:7px;text-align:right">وضعیت</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function saveEmpLeave(){
+  var u=state.currentUser;
+  var from=document.getElementById('emp-leave-from').value;
+  var to=document.getElementById('emp-leave-to').value;
+  var type=document.getElementById('emp-leave-type').value;
+  var desc=document.getElementById('emp-leave-desc').value;
+  if(!from||!to){showToast('تاریخ را وارد کنید','error');return;}
+  if(from>to){showToast('تاریخ شروع باید قبل از پایان باشد','error');return;}
+  var lv={id:'lv_'+Date.now(),userId:u.nationalId,userName:u.fname+' '+u.lname,from:from,to:to,type:type,desc:desc,date:todayStr()};
+  state.leaves.push(lv);
+  localStorage.setItem('hg_leaves',JSON.stringify(state.leaves));
+  dbAdd('leaves',{id:lv.id,user_id:u.nationalId,user_name:lv.userName,from_date:from,to_date:to,type:type,description:desc});
+  document.getElementById('emp-leave-from').value='';
+  document.getElementById('emp-leave-to').value='';
+  document.getElementById('emp-leave-desc').value='';
+  renderEmpLeavesList2();
+  showToast('مرخصی ثبت شد','success');
+}
+
+function renderEmpLeavesList2(){
+  var u=state.currentUser;
+  var el=document.getElementById('emp-leaves-list-2');
+  if(!el||!u)return;
+  var my=(state.leaves||[]).filter(function(lv){return lv.userId===u.nationalId;}).slice().reverse();
+  if(!my.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3)">مرخصی ثبت نشده</div>';return;}
+  var types={annual:'سالانه',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+  el.innerHTML=my.map(function(lv){
+    return '<div style="padding:10px 12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">'+
+      '<div><div style="font-weight:600;font-size:13px">'+gregToJalali(lv.from)+' تا '+gregToJalali(lv.to)+'</div>'+(lv.desc?'<div style="font-size:11px;color:var(--text3)">'+lv.desc+'</div>':'')+'</div>'+
+      '<span style="background:var(--accent);color:#000;padding:3px 10px;border-radius:20px;font-size:11px;white-space:nowrap">'+(types[lv.type]||lv.type)+'</span>'+
+    '</div>';
+  }).join('');
+}
+
 // ════ GPS INFO BOX ════
 var gpsWatchId = null;
 
@@ -690,7 +935,7 @@ function registerLog(locId,locName,lat,lng,method){
   var log={id:'log_'+Date.now(),userId:u.nationalId,userName:u.fname+' '+u.lname,locationId:locId,locationName:locName,type:state.checkinType,date:todayStr(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),timestamp:now.toISOString(),lat:lat,lng:lng};
   state.logs.push(log);
   dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:log.locationId,location_name:log.locationName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,lat:lat,lng:lng,method:method||'gps'});
-  updateEmpStatus();renderTodayLogs();
+  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();
   showToast(state.checkinType==='in'?'&#10003; \u0648\u0631\u0648\u062f \u062f\u0631 '+locName+' \u062b\u0628\u062a \u0634\u062f':'&#10003; \u062e\u0631\u0648\u062c \u0627\u0632 '+locName+' \u062b\u0628\u062a \u0634\u062f','success');
 }
 
@@ -1080,7 +1325,7 @@ function initEmployee(){
   }).filter(Boolean).join(' - ');
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
   var sl=localStorage.getItem('hg_leaves');if(sl)try{state.leaves=JSON.parse(sl);}catch(e){}
-  updateEmpStatus();renderTodayLogs();checkInboxDot();
+  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();checkInboxDot();
   setTimeout(function(){startGPSInfoWatch();},800);
 }
 
@@ -1229,7 +1474,7 @@ function processQRCode(data){
   dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:locId,location_name:locName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,method:'qr'});
   document.getElementById('qr-scan-modal').classList.remove('open');
   showToast(state.checkinType==='in'?'ورود در '+locName+' ثبت شد':'خروج از '+locName+' ثبت شد','success');
-  updateEmpStatus();renderTodayLogs();
+  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();
 }
 
 function showResult(msg,type){
