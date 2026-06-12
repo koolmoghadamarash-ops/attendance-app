@@ -296,46 +296,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div id="reports-summary" style="margin-bottom:12px"></div>
       <div id="reports-list"></div>
     </div>
-  </div>
-</div>
 
-<!-- QR SCAN MODAL -->
-<div class="modal-overlay" id="qr-scan-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <div class="scan-overlay">
-      <video id="qr-video" autoplay playsinline></video>
-      <canvas id="qr-canvas" style="display:none"></canvas>
-    </div>
-    <div id="qr-scan-result" class="qr-result"></div>
-    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT LOCATION MODAL -->
-<div class="modal-overlay" id="edit-loc-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش مکان</div>
-    <input type="hidden" id="edit-loc-id">
-    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
-    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
-    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT PERSONNEL MODAL -->
-<div class="modal-overlay" id="edit-per-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش پرسنل</div>
-    <input type="hidden" id="edit-per-id">
-    <div class="form-grid">
-      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
-      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
     <!-- Tab Messages -->
     <div id="tab-messages" class="tab-content" style="display:none">
       <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
@@ -391,6 +352,46 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <div class="field"><label>توضیحات</label><textarea id="leave-desc" rows="2" placeholder="توضیحات"></textarea></div>
         <button onclick="saveLeave()" style="width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:15px;cursor:pointer">ثبت مرخصی</button>
       </div>
+  </div>
+</div>
+
+<!-- QR SCAN MODAL -->
+<div class="modal-overlay" id="qr-scan-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
+    <div class="scan-overlay">
+      <video id="qr-video" autoplay playsinline></video>
+      <canvas id="qr-canvas" style="display:none"></canvas>
+    </div>
+    <div id="qr-scan-result" class="qr-result"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT LOCATION MODAL -->
+<div class="modal-overlay" id="edit-loc-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش مکان</div>
+    <input type="hidden" id="edit-loc-id">
+    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
+    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
+    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT PERSONNEL MODAL -->
+<div class="modal-overlay" id="edit-per-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش پرسنل</div>
+    <input type="hidden" id="edit-per-id">
+    <div class="form-grid">
+      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
+      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
       <div id="leaves-list"></div>
     </div>
     </div>
