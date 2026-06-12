@@ -228,6 +228,27 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
     </div>
+
+    <!-- Employee Sub Tabs -->
+    <div style="display:flex;gap:6px;margin:14px 0 10px;overflow-x:auto;padding-bottom:2px">
+      <button onclick="empTab('today',this)" id="etab-today" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:700;cursor:pointer">امروز</button>
+      <button onclick="empTab('monthly',this)" id="etab-monthly" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">گزارش ماهانه</button>
+      <button onclick="empTab('leaves',this)" id="etab-leaves" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">مرخصی‌های من</button>
+    </div>
+
+    <!-- Today already shown above, these are extra panels -->
+    <div id="etab-monthly-content" style="display:none">
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <select id="emp-report-month" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"></select>
+        <button onclick="loadEmpMonthlyReport()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
+      </div>
+      <div id="emp-monthly-result"></div>
+    </div>
+
+    <div id="etab-leaves-content" style="display:none">
+      <div id="emp-leaves-list"><div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div></div>
+    </div>
+
   </div>
 </div>
 
@@ -905,6 +926,7 @@ function initEmployee(){
     return l?l.name:null;
   }).filter(Boolean).join(' - ');
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
+  var sl=localStorage.getItem('hg_leaves');if(sl)state.leaves=JSON.parse(sl);
   updateEmpStatus();
   renderTodayLogs();
   checkInboxDot();
@@ -1311,6 +1333,138 @@ function renderLeavesList(){
   };
 }
 
+
+function empTab(tab, el){
+  var tabs=['today','monthly','leaves'];
+  tabs.forEach(function(t){
+    var btn=document.getElementById('etab-'+t);
+    if(btn){
+      btn.style.background=t===tab?'var(--accent)':'var(--bg3)';
+      btn.style.color=t===tab?'#000':'var(--text)';
+      btn.style.border=t===tab?'none':'1px solid var(--border)';
+      btn.style.fontWeight=t===tab?'700':'400';
+    }
+    var cnt=document.getElementById('etab-'+t+'-content');
+    if(cnt)cnt.style.display=t===tab?'block':'none';
+  });
+  if(tab==='monthly')initEmpMonthlyReport();
+  if(tab==='leaves')renderEmpLeaves();
+}
+
+function initEmpMonthlyReport(){
+  var mSel=document.getElementById('emp-report-month');
+  if(!mSel)return;
+  var u=state.currentUser;
+  var months=[];
+  state.logs.forEach(function(l){
+    if(l.userId!==u.nationalId)return;
+    var m=l.date?l.date.substring(0,7):'';
+    if(m&&months.indexOf(m)<0)months.push(m);
+  });
+  months.sort().reverse();
+  var now=new Date();
+  var curM=now.getFullYear()+'-'+(now.getMonth()+1<10?'0':'')+(now.getMonth()+1);
+  if(months.indexOf(curM)<0)months.unshift(curM);
+  mSel.innerHTML='';
+  months.forEach(function(m){
+    var parts=m.split('-');
+    mSel.innerHTML+='<option value="'+m+'">'+parts[0]+'/'+parts[1]+'</option>';
+  });
+}
+
+function loadEmpMonthlyReport(){
+  var u=state.currentUser;
+  var month=document.getElementById('emp-report-month').value;
+  if(!month)return;
+  var locId=(u.locations||[])[0]||'';
+  var wh=getWorkHoursForLoc(locId);
+  var startTime=wh.start||'08:00';
+  var endTime=wh.end||'17:00';
+  var lateAllowed=wh.late||15;
+  var parts=month.split('-');
+  var year=parseInt(parts[0]),mon=parseInt(parts[1]);
+  var daysInMonth=new Date(year,mon,0).getDate();
+  var totalWorkMins=0,totalLateMins=0,totalOvertimeMins=0,totalAbsent=0;
+  var rows='';
+  for(var d=1;d<=daysInMonth;d++){
+    var dateStr=year+'-'+(mon<10?'0':'')+mon+'-'+(d<10?'0':'')+d;
+    var dayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===dateStr;});
+    var leave=state.leaves.filter(function(lv){return lv.userId===u.nationalId&&lv.from<=dateStr&&lv.to>=dateStr;})[0];
+    var dayOfWeek=new Date(dateStr).getDay();
+    var isWorkDay=dayOfWeek!==5;
+    var firstIn=null,lastOut=null;
+    dayLogs.forEach(function(l){
+      if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;
+      if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;
+    });
+    var workMins=0,lateMins=0,overtimeMins=0,status='',statusColor='var(--text3)';
+    if(leave){
+      var lTypes={annual:'مرخصی',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+      status=lTypes[leave.type]||'مرخصی';statusColor='var(--accent)';
+    } else if(!isWorkDay){
+      status='تعطیل';
+    } else if(!firstIn){
+      status='غیبت';statusColor='var(--red)';totalAbsent++;
+    } else {
+      if(firstIn&&lastOut){
+        var iP=firstIn.split(':'),oP=lastOut.split(':');
+        var iM=parseInt(iP[0])*60+parseInt(iP[1]),oM=parseInt(oP[0])*60+parseInt(oP[1]);
+        workMins=oM-iM;
+        var sP=startTime.split(':'),eP=endTime.split(':');
+        var sM=parseInt(sP[0])*60+parseInt(sP[1]),eM=parseInt(eP[0])*60+parseInt(eP[1]);
+        if(iM>sM+lateAllowed){lateMins=iM-sM;totalLateMins+=lateMins;}
+        if(workMins>eM-sM){overtimeMins=workMins-(eM-sM);totalOvertimeMins+=overtimeMins;}
+        totalWorkMins+=workMins;
+      }
+      status='حاضر';statusColor='var(--green)';
+    }
+    function fmt(m){if(!m)return '—';var h=Math.floor(m/60),mn=m%60;return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);}
+    rows+='<tr style="background:'+(d%2===0?'var(--bg3)':'var(--card)')+'">'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px">'+toPersianNum(d)+'/'+toPersianNum(mon)+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px">'+(firstIn||'—')+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px">'+(lastOut||'—')+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px">'+fmt(workMins)+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px;color:var(--red)">'+(lateMins?fmt(lateMins):'—')+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:11px;color:var(--green)">'+(overtimeMins?fmt(overtimeMins):'—')+'</td>'+
+      '<td style="padding:6px 7px;border-bottom:1px solid var(--border);font-size:10px;color:'+statusColor+';font-weight:600">'+status+'</td>'+
+    '</tr>';
+  }
+  function fmt(m){if(!m)return '—';var h=Math.floor(m/60),mn=m%60;return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);}
+  var tH=Math.floor(totalWorkMins/60),tM=totalWorkMins%60;
+  var lH=Math.floor(totalLateMins/60),lM=totalLateMins%60;
+  var oH=Math.floor(totalOvertimeMins/60),oM=totalOvertimeMins%60;
+  document.getElementById('emp-monthly-result').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;color:var(--accent)">'+toPersianNum(tH)+':'+toPersianNum(tM<10?'0'+tM:tM)+'</div><div style="font-size:10px;color:var(--text2)">کارکرد</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;color:var(--red)">'+toPersianNum(lH)+':'+toPersianNum(lM<10?'0'+lM:lM)+'</div><div style="font-size:10px;color:var(--text2)">تاخیر</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;color:var(--green)">'+toPersianNum(oH)+':'+toPersianNum(oM<10?'0'+oM:oM)+'</div><div style="font-size:10px;color:var(--text2)">اضافه</div></div>'+
+      '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:13px;font-weight:700;color:var(--red)">'+toPersianNum(totalAbsent)+'</div><div style="font-size:10px;color:var(--text2)">غیبت</div></div>'+
+    '</div>'+
+    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">'+
+    '<thead><tr style="background:var(--accent);color:#000">'+
+    '<th style="padding:7px;text-align:right">تاریخ</th><th style="padding:7px;text-align:right">ورود</th><th style="padding:7px;text-align:right">خروج</th>'+
+    '<th style="padding:7px;text-align:right">کارکرد</th><th style="padding:7px;text-align:right">تاخیر</th><th style="padding:7px;text-align:right">اضافه</th><th style="padding:7px;text-align:right">وضعیت</th>'+
+    '</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+function renderEmpLeaves(){
+  var u=state.currentUser;
+  var list=document.getElementById('emp-leaves-list');
+  if(!list)return;
+  var myLeaves=state.leaves.filter(function(lv){return lv.userId===u.nationalId;});
+  if(!myLeaves.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div>';return;}
+  var types={annual:'سالانه',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
+  list.innerHTML=myLeaves.slice().reverse().map(function(lv){
+    return '<div style="padding:12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border)">'+
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'+
+        '<span style="font-weight:600">'+lv.from+' تا '+lv.to+'</span>'+
+        '<span style="background:var(--accent);color:#000;padding:3px 10px;border-radius:20px;font-size:11px">'+( types[lv.type]||lv.type)+'</span>'+
+      '</div>'+
+      (lv.desc?'<div style="font-size:12px;color:var(--text3)">'+lv.desc+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
 // ════ CHECKIN FLOW ════
 function startCheckin(type){
   state.checkinType=type;
@@ -1538,16 +1692,15 @@ function stopQRScan(){
 
 async function startCamera(){
   var video=document.getElementById('qr-video');
-  try{
-    scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false});
-    video.srcObject=scanStream;
-    video.style.display='block';
-    video.play();
-    scanInterval=setInterval(scanFrame,300);
-  } catch(e){
-    showToast('دسترسی به دوربین رد شد','error');
-    closeQRScan();
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    showToast('دوربین پشتیبانی نمیشود','error');closeQRScan();return;
   }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
+    scanStream=stream;video.srcObject=stream;video.style.display='block';video.play();
+    scanInterval=setInterval(scanFrame,300);
+  }).catch(function(e){
+    showToast('دسترسی به دوربین رد شد','error');closeQRScan();
+  });
 }
 
 function scanFrame(){
@@ -1886,7 +2039,7 @@ function saveEditLocation(){
   showToast('شعبه ویرایش شد ✅','success');
 }
 
-// ── Personnel ─
+// ── Personnel ──
 function renderLocCheckboxes(divId,selectedIds){
   var div=document.getElementById(divId);
   div.innerHTML=state.locations.map(function(l){return `
@@ -2019,13 +2172,14 @@ function initAddMap(){
 }
 
 async function searchCity(){
-  var q=document.getElementById('city-search-input').value.trim();if(!q)return;
-  try{
-    var r=await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`);
-    var d=await r.json();
-    if(d&&d[0]){addMap.setView([+d[0].lat,+d[0].lon],15);showToast('شهر یافت شد ✅','success');}
-    else showToast('شهر پیدا نشد','error');
-  }catch(e){showToast('خطا در جستجو','error');}
+  var q=document.getElementById('city-search-input').value.trim();
+  if(!q)return;
+  fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&limit=1')
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d[0]){addMap.setView([+d[0].lat,+d[0].lon],15);showToast('شهر یافت شد','success');}
+      else showToast('شهر پیدا نشد','error');
+    }).catch(function(){showToast('خطا در جستجو','error');});
 }
 
 function useMyLocationForMap(){
