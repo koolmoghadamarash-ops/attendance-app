@@ -205,7 +205,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <button class="tab active" onclick="adminTab('qr',this)">QR</button>
       <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
-      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="alert('reports clicked - tab-reports exists: '+(document.getElementById('tab-reports')?'YES':'NO'));adminTab('reports',this)">گزارش</button>
       <button class="tab" onclick="adminTab('messages',this)">&#128233; پیام‌ها</button>
       <button class="tab" onclick="adminTab('tracking',this)">&#128205; ردیابی</button>
       <button class="tab" onclick="adminTab('workhours',this)">&#128336; ساعت کاری</button>
@@ -294,7 +294,6 @@ input[type=range]{accent-color:var(--accent);width:100%}
         <button class="btn btn-primary btn-sm" onclick="loadReports()">🔍</button>
       </div>
       <div id="reports-summary" style="margin-bottom:12px"></div>
-      <div style="background:red;color:white;padding:20px;font-size:20px">TEST REPORTS VISIBLE</div>
       <div id="reports-list"></div>
     </div>
 
