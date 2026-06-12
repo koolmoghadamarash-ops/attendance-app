@@ -604,23 +604,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
     </div>
 
-    <!-- Employee Sub Tabs -->
-    <div style="display:flex;gap:6px;margin:14px 0 10px;overflow-x:auto;padding-bottom:2px">
-      <button onclick="empTab('today',this)" id="etab-today" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:700;cursor:pointer">امروز</button>
-      <button onclick="empTab('monthly',this)" id="etab-monthly" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">گزارش ماهانه</button>
-      <button onclick="empTab('leaves',this)" id="etab-leaves" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">مرخصی‌های من</button>
-    </div>
-    <div id="etab-today-content" style="display:none"></div>
-    <div id="etab-monthly-content" style="display:none">
-      <div style="display:flex;gap:8px;margin-bottom:12px">
-        <select id="emp-report-month" style="flex:1;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"></select>
-        <button onclick="loadEmpMonthlyReport()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
-      </div>
-      <div id="emp-monthly-result"></div>
-    </div>
-    <div id="etab-leaves-content" style="display:none">
-      <div id="emp-leaves-list"><div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div></div>
-    </div>
+
   </div>
 </div>
 
@@ -704,7 +688,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div style="display:flex;gap:6px;margin-bottom:14px;overflow-x:auto">
         <button id="stab-add" onclick="perSubTab('add',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">&#10133; افزودن</button>
         <button id="stab-list" onclick="perSubTab('list',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128101; لیست</button>
-        <button id="stab-report" onclick="perSubTab('report',this)" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;cursor:pointer">&#128203; گزارش ماهانه</button>
+
       </div>
       <div id="stab-add-content">
         <div class="form-card">
@@ -721,14 +705,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
         </div>
       </div>
       <div id="stab-list-content" style="display:none"><div id="personnel-list"></div></div>
-      <div id="stab-report-content" style="display:none">
-        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-          <select id="report-per-select" style="flex:1;min-width:140px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="">انتخاب پرسنل</option></select>
-          <select id="report-month-select" style="flex:1;min-width:120px;padding:10px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"></select>
-          <button onclick="loadMonthlyReport()" style="padding:10px 16px;background:var(--accent);color:#000;border:none;border-radius:10px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:700;cursor:pointer">نمایش</button>
-        </div>
-        <div id="monthly-report-result"></div>
-      </div>
+
 
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
@@ -1161,19 +1138,37 @@ function renderAdminStats(){
 }
 
 function renderLocationsList(){
-  const list=document.getElementById('locations-list');
-  if(!state.locations.length){list.innerHTML='<div class="empty-state"><div class="icon">🏢</div>هیچ شعبه‌ای ثبت نشده</div>';return;}
-  list.innerHTML=state.locations.map(l=>`
-    <div class="card">
-      <div class="card-header">
-        <div><div class="card-title">🏢 ${l.name}</div><div class="card-sub">${l.address||'—'}</div></div>
-        <div class="card-actions">
-          <button class="btn btn-ghost btn-xs" onclick="openEditLocation('${l.id}')">✏️</button>
-          <button class="btn btn-ghost btn-xs" onclick="deleteLocation('${l.id}')">🗑</button>
-        </div>
-      </div>
-      <div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">${toPersianNum(state.personnel.filter(p=>p.locations.includes(l.id)).length)} نفر</span></div>
-    </div>`).join('');
+  var list=document.getElementById('locations-list');
+  if(!list)return;
+  if(!state.locations.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#127970;</div>هیچ شعبه‌ای ثبت نشده</div>';
+    return;
+  }
+  var html='';
+  state.locations.forEach(function(l){
+    var pCount=state.personnel.filter(function(p){return (p.locations||[]).indexOf(l.id)>=0;}).length;
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div>'+
+          '<div class="card-title">&#127970; '+l.name+'</div>'+
+          '<div class="card-sub">'+(l.address||'—')+'</div>'+
+        '</div>'+
+        '<div class="card-actions">'+
+          '<button data-edit-loc="'+l.id+'" class="btn btn-ghost btn-xs">&#9998;</button>'+
+          '<button data-del-loc="'+l.id+'" class="btn btn-ghost btn-xs">&#128465;</button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">پرسنل مرتبط</span><span class="info-val">'+toPersianNum(pCount)+' نفر</span></div>'+
+      '<div class="info-row"><span class="info-label">مختصات</span><span class="info-val" style="direction:ltr;font-size:11px">'+(l.lat?parseFloat(l.lat).toFixed(4)+', '+parseFloat(l.lng).toFixed(4):'ثبت نشده')+'</span></div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+  list.onclick=function(e){
+    var eb=e.target.closest('[data-edit-loc]');
+    var db=e.target.closest('[data-del-loc]');
+    if(eb)openEditLocation(eb.getAttribute('data-edit-loc'));
+    if(db)deleteLocation(db.getAttribute('data-del-loc'));
+  };
 }
 
 function addLocation(){
@@ -1237,32 +1232,48 @@ function renderLocCheckboxes(divId,selectedIds){
 }
 
 function renderPersonnelList(){
-  const list=document.getElementById('personnel-list');
-  if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">👥</div>هیچ پرسنلی ثبت نشده</div>';return;}
-  const today=todayStr();
-  list.innerHTML=state.personnel.map(p=>{
-    const logs=state.logs.filter(l=>l.userId===p.nationalId&&l.date===today);
-    const last=logs[logs.length-1];
-    const statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
-    const locs=p.locations.map(id=>state.locations.find(l=>l.id===id)?.name).filter(Boolean).join('، ');
-    return `<div class="card">
-      <div class="card-header">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div class="report-avatar">${p.fname[0]}</div>
-          <div><div class="card-title">${p.fname} ${p.lname}</div><div class="card-sub">${p.nationalId}</div></div>
-        </div>
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
-          ${statusBadge}
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-ghost btn-xs" onclick="openEditPersonnel('${p.id}')">✏️</button>
-            <button class="btn btn-ghost btn-xs" onclick="deletePersonnel('${p.id}')">🗑</button>
-          </div>
-        </div>
-      </div>
-      ${logs.length>0?`<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">${calcTodayDuration(logs)}</span></div>`:''}
-      <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">${locs||'—'}</span></div>
-    </div>`;
-  }).join('');
+  var list=document.getElementById('personnel-list');
+  if(!list)return;
+  if(!state.personnel.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#128101;</div>هیچ پرسنلی ثبت نشده</div>';
+    return;
+  }
+  var today=todayStr();
+  var html='';
+  state.personnel.forEach(function(p){
+    var logs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
+    var last=logs.length?logs[logs.length-1]:null;
+    var statusColor=!last?'var(--orange)':last.type==='in'?'var(--green)':'var(--red)';
+    var statusText=!last?'غایب':last.type==='in'?'حاضر':'خروج';
+    var locNames=(p.locations||[]).map(function(id){
+      var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;
+    }).filter(Boolean).join('، ');
+    html+='<div class="card">'+
+      '<div class="card-header">'+
+        '<div style="display:flex;align-items:center;gap:10px">'+
+          '<div class="avatar" style="width:38px;height:38px;font-size:15px">'+p.fname[0]+'</div>'+
+          '<div>'+
+            '<div style="font-weight:700;font-size:15px">'+p.fname+' '+p.lname+'</div>'+
+            '<div style="font-size:12px;color:var(--text2)">'+p.nationalId+'</div>'+
+            (p.email?'<div style="font-size:11px;color:var(--text3)">'+p.email+'</div>':'')+
+          '</div>'+
+        '</div>'+
+        '<span style="background:'+statusColor+';color:#fff;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700">'+statusText+'</span>'+
+      '</div>'+
+      '<div class="info-row"><span class="info-label">شعبه</span><span class="info-val">'+(locNames||'—')+'</span></div>'+
+      '<div style="display:flex;gap:8px;margin-top:10px">'+
+        '<button data-edit-per="'+p.id+'" class="btn btn-sm btn-outline" style="flex:1">ویرایش</button>'+
+        '<button data-del-per="'+p.id+'" class="btn btn-sm" style="flex:1;background:var(--red);color:#fff">حذف</button>'+
+      '</div>'+
+    '</div>';
+  });
+  list.innerHTML=html;
+  list.onclick=function(e){
+    var eb=e.target.closest('[data-edit-per]');
+    var db=e.target.closest('[data-del-per]');
+    if(eb)openEditPersonnel(eb.getAttribute('data-edit-per'));
+    if(db)deletePersonnel(db.getAttribute('data-del-per'));
+  };
 }
 
 function addPersonnel(){
