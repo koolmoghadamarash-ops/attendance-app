@@ -554,16 +554,11 @@ function adminTab(tab,el){
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
   var tabEl=document.getElementById('tab-'+tab);
-  var dbg=document.getElementById('debug-panel');
-  if(dbg){
-    dbg.innerHTML+='<div>tab='+tab+' el='+tabEl+' display='+(tabEl?tabEl.style.display:'NULL')+'</div>';
-  }
   if(tabEl){
     tabEl.style.display='block';
-    tabEl.style.setProperty('display','block','important');
-    if(dbg)dbg.innerHTML+='<div style="color:lime">Set block: '+tabEl.style.display+'</div>';
-  } else {
-    if(dbg)dbg.innerHTML+='<div style="color:red">tabEl NULL!</div>';
+    // Scroll admin-content to top
+    var ac=document.querySelector('.admin-content');
+    if(ac)ac.scrollTop=0;
   }
   // If data not loaded yet, load first
   var afterLoad=function(){
