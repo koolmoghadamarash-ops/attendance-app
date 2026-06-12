@@ -570,18 +570,7 @@ function adminTab(tab,el){
     loadDB().then(afterLoad).catch(afterLoad);
   }
 }
-function renderAdminStats(){
-  var today=todayStr();var uids=[];
-  state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
-  var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
-  var el=document.getElementById('admin-stats');
-  el.innerHTML=
-    '<div class="stat-box" data-modal="locations" style="cursor:pointer"><div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div><div class="stat-label">\u0634\u0639\u0628\u0647</div></div>'+
-    '<div class="stat-box" data-modal="personnel" style="cursor:pointer"><div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div><div class="stat-label">\u067e\u0631\u0633\u0646\u0644</div></div>'+
-    '<div class="stat-box" data-modal="present" style="cursor:pointer"><div class="stat-num" style="color:var(--green)">'+toPersianNum(uids.length)+'</div><div class="stat-label">\u062d\u0627\u0636\u0631 \u0627\u0645\u0631\u0648\u0632</div></div>'+
-    '<div class="stat-box" data-modal="logs" style="cursor:pointer"><div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div><div class="stat-label">\u062b\u0628\u062a \u0627\u0645\u0631\u0648\u0632</div></div>';
-  el.onclick=function(e){var b=e.target.closest('[data-modal]');if(b)showStatsModal(b.getAttribute('data-modal'));};
-}
+
 
 // ════ MESSAGES ════
 function sendMessage(){
@@ -835,16 +824,7 @@ function renderLeavesList(){
 }
 
 // ════ REPORT ════
-function loadReportFilters(){
-  var ps=document.getElementById('filter-person');
-  ps.innerHTML='<option value="">\u0647\u0645\u0647 \u067e\u0631\u0633\u0646\u0644</option>';
-  state.personnel.forEach(function(p){ps.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';});
-  var dates={};state.logs.forEach(function(l){if(l.date)dates[l.date]=1;});
-  var dArr=Object.keys(dates).sort().reverse();
-  var ds=document.getElementById('filter-date');
-  ds.innerHTML='<option value="">\u0647\u0645\u0647 \u062a\u0627\u0631\u06cc\u062e\u200c\u0647\u0627</option>';
-  dArr.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+gregToJalali(d)+'</option>';});
-}
+
 
 // ════ STATE ════
 var state={
@@ -865,10 +845,9 @@ function saveLogs(){}
 
 // ════ QR TOKEN ════
 function getQRToken(locId){
-  // Token changes every hour — based on locId + current hour
-  const now=new Date();
-  const hourKey=`${now.getFullYear()}-${now.getMonth()}-${now.getDate()}-${now.getHours()}`;
-  return btoa(`HG:${locId}:${hourKey}`).replace(/=/g,'');
+  var now=new Date();
+  var hourKey=now.getFullYear()+'-'+now.getMonth()+'-'+now.getDate()+'-'+now.getHours();
+  return btoa('HG:'+locId+':'+hourKey).replace(/=/g,'');
 }
 
 function getNextHourSeconds(){
@@ -905,7 +884,7 @@ function doLogout(){
 
 // ════ SCREENS ════
 function showScreen(n){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});
   document.getElementById('screen-'+n).classList.add('active');
   if(n==='admin') setTimeout(()=>{initAddMap();renderQRLocSelect();},400);
 }
@@ -920,13 +899,13 @@ setInterval(()=>{
   if(cd&&cd.textContent!=='--:--'){
     const s=getNextHourSeconds();
     const m=Math.floor(s/60), sec=s%60;
-    cd.textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    cd.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
   }
   const fst=document.getElementById('fullscreen-timer');
   if(fst&&fst.style.display!=='none'){
     const s=getNextHourSeconds();
     const m=Math.floor(s/60),sec=s%60;
-    fst.textContent=`تغییر بعدی: ${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    fst.textContent='تغییر بعدی: '+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
   }
 },1000);
 
@@ -954,32 +933,43 @@ function updateEmpStatus(){
 }
 
 function calcTodayDuration(logs){
-  let total=0,lastIn=null;
-  for(const l of logs){
+  var total=0,lastIn=null;
+  for(var i=0;i<logs.length;i++){
+    var l=logs[i];
     if(l.type==='in')lastIn=new Date(l.timestamp);
     else if(l.type==='out'&&lastIn){total+=new Date(l.timestamp)-lastIn;lastIn=null;}
   }
   if(lastIn)total+=Date.now()-lastIn;
-  const h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
-  return h>0?`${toPersianNum(h)} ساعت ${toPersianNum(m)} دقیقه`:`${toPersianNum(m)} دقیقه`;
+  var h=Math.floor(total/3600000),m=Math.floor((total%3600000)/60000);
+  return h>0?toPersianNum(h)+' ساعت '+toPersianNum(m)+' دقیقه':toPersianNum(m)+' دقیقه';
 }
 
 function renderTodayLogs(){
-  const today=todayStr();
-  const logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
-  document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
-  const summary=document.getElementById('today-summary');
-  summary.innerHTML=logs.length>0?`<span class="duration-badge">⏱ ${calcTodayDuration(logs)}</span>`:'';
-  const list=document.getElementById('today-logs-list');
-  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
-  list.innerHTML=logs.map(l=>`
-    <div class="log-item">
-      <div class="log-type"><div style="width:6px;height:6px;border-radius:50%;background:${l.type==='in'?'var(--green)':'var(--red)'}"></div>${l.type==='in'?'🟢 ورود':'🔴 خروج'}<span style="font-size:11px;color:var(--text3)">${l.locationName}</span></div>
-      <div style="font-weight:600">${l.time}</div>
-    </div>`).join('');
+  var today=todayStr();
+  var u=state.currentUser;
+  var logs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  var count=document.getElementById('today-count');
+  if(count)count.textContent=toPersianNum(logs.length)+' رکورد';
+  var summary=document.getElementById('today-summary');
+  if(summary)summary.innerHTML=logs.length>0?'<span class="duration-badge">&#9203; '+calcTodayDuration(logs)+'</span>':'';
+  var list=document.getElementById('today-logs-list');
+  if(!list)return;
+  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">&#128203;</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
+  var h='';
+  logs.forEach(function(l){
+    var tc=l.type==='in'?'var(--green)':'var(--red)';
+    var tt=l.type==='in'?'&#128994; ورود':'&#128308; خروج';
+    var coords=l.lat&&l.lng?'<div style="font-size:10px;color:var(--text3);direction:ltr">&#128205; '+parseFloat(l.lat).toFixed(5)+', '+parseFloat(l.lng).toFixed(5)+'</div>':'';
+    h+='<div class="log-item">'+
+      '<div class="log-type">'+
+        '<div style="width:8px;height:8px;border-radius:50%;background:'+tc+'"></div>'+
+        '<div><span style="font-weight:600">'+tt+'</span> <span style="font-size:11px;color:var(--text3)">'+l.locationName+'</span>'+coords+'</div>'+
+      '</div>'+
+      '<div style="font-weight:700">'+l.time+'</div>'+
+    '</div>';
+  });
+  list.innerHTML=h;
 }
-
-// ════ QR SCANNER ════
 function openQRScan(type){
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
@@ -1037,43 +1027,36 @@ function scanFrame(){
 }
 
 function processQRCode(data){
-  // Validate QR token
-  let valid=false, locName='', locId='';
-  for(const loc of state.locations){
-    const expected=getQRToken(loc.id);
+  var valid=false,locName='',locId='';
+  for(var i=0;i<state.locations.length;i++){
+    var loc=state.locations[i];
+    var expected=getQRToken(loc.id);
     if(data===expected){
-      // Check if user is allowed in this location
-      if(state.currentUser.locations.includes(loc.id)){
-        valid=true; locName=loc.name; locId=loc.id;
+      if((state.currentUser.locations||[]).indexOf(loc.id)>=0){
+        valid=true;locName=loc.name;locId=loc.id;
       } else {
-        showResult('❌ شما مجاز به ورود در این شعبه نیستید','error');
+        showToast('شما مجاز به ورود در این شعبه نیستید','error');
         return;
       }
       break;
     }
   }
-  if(!valid){
-    showResult('❌ QR Code نامعتبر یا منقضی شده است','error');
-    return;
-  }
+  if(!valid){showToast('QR نامعتبر یا منقضی شده','error');return;}
   stopQRScan();
-  // Register checkin
-  const now=new Date();
-  state.logs.push({
+  var now=new Date();
+  var log={
     id:'log_'+Date.now(),
     userId:state.currentUser.nationalId,
     userName:state.currentUser.fname+' '+state.currentUser.lname,
-    locationId:locId,
-    locationName:locName,
-    type:state.checkinType,
-    date:todayStr(),
+    locationId:locId,locationName:locName,
+    type:state.checkinType,date:todayStr(),
     time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
-    timestamp:now.toISOString(),
-    method:'qr',
-  });
-  saveLogs();
+    timestamp:now.toISOString(),lat:null,lng:null
+  };
+  state.logs.push(log);saveLogs();
+  dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:locId,location_name:locName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,method:'qr'});
   document.getElementById('qr-scan-modal').classList.remove('open');
-  showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
+  showToast(state.checkinType==='in'?'ورود در '+locName+' ثبت شد':'خروج از '+locName+' ثبت شد','success');
   updateEmpStatus();renderTodayLogs();
 }
 
@@ -1084,30 +1067,20 @@ function showResult(msg,type){
 
 // ════ QR GENERATOR ════
 function renderQRLocSelect(){
-  const sel=document.getElementById('qr-loc-select');
-  sel.innerHTML='<option value="">-- شعبه را انتخاب کنید --</option>'+
-    state.locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('');
+  var sel=document.getElementById('qr-loc-select');if(!sel)return;
+  sel.innerHTML='<option value="">انتخاب شعبه</option>';
+  state.locations.forEach(function(l){sel.innerHTML+='<option value="'+l.id+'">'+l.name+'</option>';});
 }
-
 function generateQR(){
-  const locId=document.getElementById('qr-loc-select').value;
-  if(!locId) return;
-  const token=getQRToken(locId);
-  const container=document.getElementById('qr-code-div');
+  var locId=document.getElementById('qr-loc-select').value;
+  if(!locId)return;
+  var token=getQRToken(locId);
+  var container=document.getElementById('qr-code-div');
   container.innerHTML='';
-  if(qrInstance){qrInstance=null;}
-  qrInstance=new QRCode(container,{
-    text:token,width:200,height:200,
-    colorDark:'#0a1628',colorLight:'#ffffff',
-    correctLevel:QRCode.CorrectLevel.H
-  });
-  document.getElementById('qr-countdown').textContent='--:--';
-  // Start countdown
-  const s=getNextHourSeconds();
-  const m=Math.floor(s/60),sec=s%60;
-  document.getElementById('qr-countdown').textContent=`${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+  new QRCode(container,{text:token,width:200,height:200,colorDark:'#000000',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
+  var td=document.getElementById('qr-token-display');
+  if(td)td.textContent=token;
 }
-
 function openFullscreenQR(){
   const locId=document.getElementById('qr-loc-select').value;
   if(!locId){showToast('ابتدا شعبه را انتخاب کنید','error');return;}
@@ -1126,7 +1099,7 @@ function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.disp
 function adminTab(tab,el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(c=>c.style.display='none');
+  document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
   document.getElementById('tab-'+tab).style.display='block';
   if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
   if(tab==='reports'){loadReportFilters();loadReports();}
@@ -1137,15 +1110,17 @@ function adminTab(tab,el){
 function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
 
 function renderAdminStats(){
-  const today=todayStr();
-  const presentToday=new Set(state.logs.filter(l=>l.date===today&&l.type==='in').map(l=>l.userId)).size;
-  document.getElementById('admin-stats').innerHTML=`
-    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">${toPersianNum(state.locations.length)}</div><div class="stat-label">شعبه</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--purple)">${toPersianNum(state.personnel.length)}</div><div class="stat-label">پرسنل</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--green)">${toPersianNum(presentToday)}</div><div class="stat-label">حاضر امروز</div></div>
-    <div class="stat-box"><div class="stat-num" style="color:var(--orange)">${toPersianNum(state.logs.filter(l=>l.date===today).length)}</div><div class="stat-label">ثبت امروز</div></div>`;
+  var today=todayStr();var uids=[];
+  state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
+  var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
+  var el=document.getElementById('admin-stats');if(!el)return;
+  el.innerHTML=
+    '<div class="stat-box" data-modal="locations" style="cursor:pointer"><div class="stat-num" style="color:var(--accent)">'+toPersianNum(state.locations.length)+'</div><div class="stat-label">شعبه</div></div>'+
+    '<div class="stat-box" data-modal="personnel" style="cursor:pointer"><div class="stat-num" style="color:var(--purple)">'+toPersianNum(state.personnel.length)+'</div><div class="stat-label">پرسنل</div></div>'+
+    '<div class="stat-box" data-modal="present" style="cursor:pointer"><div class="stat-num" style="color:var(--green)">'+toPersianNum(uids.length)+'</div><div class="stat-label">حاضر امروز</div></div>'+
+    '<div class="stat-box" data-modal="logs" style="cursor:pointer"><div class="stat-num" style="color:var(--orange)">'+toPersianNum(todayCount)+'</div><div class="stat-label">ثبت امروز</div></div>';
+  el.onclick=function(e){var b=e.target.closest('[data-modal]');if(b)showStatsModal(b.getAttribute('data-modal'));};
 }
-
 function renderLocationsList(){
   var list=document.getElementById('locations-list');
   if(!list)return;
@@ -1233,11 +1208,14 @@ function saveEditLocation(){
 // ── Personnel ──
 function renderLocCheckboxes(divId,selectedIds){
   const div=document.getElementById(divId);
-  div.innerHTML=state.locations.map(l=>`
-    <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">
-      <input type="checkbox" value="${l.id}" ${selectedIds.includes(l.id)?'checked':''} style="width:16px;height:16px;accent-color:var(--accent)">
-      <span style="font-size:13px">🏢 ${l.name}</span>
-    </label>`).join('')||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
+  var h='';
+  state.locations.forEach(function(l){
+    var checked=selectedIds.indexOf(l.id)>=0?'checked':'';
+    h+='<label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--bg3);border-radius:8px">'+
+      '<input type="checkbox" value="'+l.id+'" '+checked+' style="width:16px;height:16px;accent-color:var(--accent)">'+
+      '<span style="font-size:13px">&#127970; '+l.name+'</span></label>';
+  });
+  div.innerHTML=h||'<p style="color:var(--text3);font-size:13px">ابتدا شعبه اضافه کنید</p>';
 }
 
 function renderPersonnelList(){
@@ -1382,59 +1360,76 @@ function useMyLocationForMap(){
 
 // ── Reports ──
 function loadReportFilters(){
-  document.getElementById('filter-person').innerHTML='<option value="">همه پرسنل</option>'+
-    state.personnel.map(p=>`<option value="${p.nationalId}">${p.fname} ${p.lname}</option>`).join('');
-  const dates=[...new Set(state.logs.map(l=>l.date))].sort().reverse();
-  document.getElementById('filter-date').innerHTML='<option value="">همه تاریخ‌ها</option>'+dates.map(d=>`<option value="${d}">${d}</option>`).join('');
+  var pSel=document.getElementById('filter-person');if(!pSel)return;
+  pSel.innerHTML='<option value="">همه پرسنل</option>';
+  state.personnel.forEach(function(p){pSel.innerHTML+='<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+'</option>';});
+  var dateSet={};state.logs.forEach(function(l){if(l.date)dateSet[l.date]=1;});
+  var dArr=Object.keys(dateSet).sort().reverse();
+  var dSel=document.getElementById('filter-date');if(!dSel)return;
+  dSel.innerHTML='<option value="">همه تاریخ‌ها</option>';
+  dArr.forEach(function(d){dSel.innerHTML+='<option value="'+d+'">'+gregToJalali(d)+'</option>';});
 }
-
 function loadReports(){
-  const pid=document.getElementById('filter-person').value;
-  const date=document.getElementById('filter-date').value;
-  let logs=[...state.logs];
-  if(pid)logs=logs.filter(l=>l.userId===pid);
-  if(date)logs=logs.filter(l=>l.date===date);
+  var pid=document.getElementById('filter-person').value;
+  var date=document.getElementById('filter-date').value;
+  var logs=state.logs.slice();
+  if(pid)logs=logs.filter(function(l){return l.userId===pid;});
+  if(date)logs=logs.filter(function(l){return l.date===date;});
   logs.reverse();
-  const summary=document.getElementById('reports-summary');
+  var summary=document.getElementById('reports-summary');
+  var list=document.getElementById('reports-list');
+  if(!summary||!list)return;
   if(logs.length>0){
-    summary.innerHTML=`<div style="display:flex;gap:8px;flex-wrap:wrap">
-      <span class="badge badge-blue">${toPersianNum(logs.length)} رکورد</span>
-      <span class="badge badge-green">${toPersianNum(logs.filter(l=>l.type==='in').length)} ورود</span>
-      <span class="badge badge-red">${toPersianNum(logs.filter(l=>l.type==='out').length)} خروج</span>
-    </div>`;
-  } else summary.innerHTML='';
-  const list=document.getElementById('reports-list');
-  if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📊</div>هیچ رکوردی یافت نشد</div>';return;}
-  list.innerHTML=logs.map(l=>`
-    <div class="report-item">
-      <div class="report-avatar">${l.userName[0]}</div>
-      <div class="report-info"><div class="report-name">${l.userName}</div><div class="report-meta">🏢 ${l.locationName} | 📅 ${l.date}</div></div>
-      <div style="text-align:left">
-        <div class="badge ${l.type==='in'?'badge-green':'badge-red'}" style="margin-bottom:4px">${l.type==='in'?'ورود':'خروج'}</div>
-        <div style="font-size:12px;color:var(--text2)">${l.time}</div>
-      </div>
-    </div>`).join('');
+    var inCount=logs.filter(function(l){return l.type==='in';}).length;
+    var outCount=logs.filter(function(l){return l.type==='out';}).length;
+    summary.innerHTML='<div style="display:flex;gap:8px;flex-wrap:wrap">'+
+      '<span class="badge badge-blue">'+toPersianNum(logs.length)+' رکورد</span>'+
+      '<span class="badge badge-green">'+toPersianNum(inCount)+' ورود</span>'+
+      '<span class="badge badge-red">'+toPersianNum(outCount)+' خروج</span>'+
+      '</div>';
+  } else {
+    summary.innerHTML='';
+  }
+  if(!logs.length){
+    list.innerHTML='<div class="empty-state"><div class="icon">&#128203;</div>رکوردی یافت نشد</div>';
+    return;
+  }
+  var html='<table style="width:100%;border-collapse:collapse;font-size:12px">'+
+    '<thead><tr style="background:var(--bg3)">'+
+    '<th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">نام</th>'+
+    '<th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">تاریخ</th>'+
+    '<th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">ساعت</th>'+
+    '<th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">نوع</th>'+
+    '<th style="padding:8px;text-align:right;border-bottom:1px solid var(--border)">شعبه</th>'+
+    '</tr></thead><tbody>';
+  logs.forEach(function(l){
+    var typeColor=l.type==='in'?'var(--green)':'var(--red)';
+    var typeText=l.type==='in'?'ورود':'خروج';
+    html+='<tr style="border-bottom:1px solid var(--border)">'+
+      '<td style="padding:7px">'+( l.userName||'—')+'</td>'+
+      '<td style="padding:7px">'+gregToJalali(l.date)+'</td>'+
+      '<td style="padding:7px">'+( l.time||'—')+'</td>'+
+      '<td style="padding:7px;color:'+typeColor+';font-weight:600">'+typeText+'</td>'+
+      '<td style="padding:7px">'+(l.locationName||'—')+'</td>'+
+    '</tr>';
+  });
+  html+='</tbody></table>';
+  list.innerHTML=html;
 }
 
 function exportExcel(){
-  const pid=document.getElementById('filter-person').value;
-  const date=document.getElementById('filter-date').value;
-  let logs=[...state.logs];
-  if(pid)logs=logs.filter(l=>l.userId===pid);
-  if(date)logs=logs.filter(l=>l.date===date);
-  if(!logs.length){showToast('هیچ رکوردی وجود ندارد','error');return;}
-  const BOM='\﻿';
-  const header='نام پرسنل,کد ملی,نوع,شعبه,تاریخ,ساعت,روش ثبت\
-';
-  const rows=logs.map(l=>`"${l.userName}","${l.userId}","${l.type==='in'?'ورود':'خروج'}","${l.locationName}","${l.date}","${l.time}","${l.method||'qr'}"`).join('\
-');
-  const blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download='گزارش_حضور_غیاب.csv';a.click();
-  URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
+  var rows=[['نام','تاریخ','ساعت','نوع','شعبه']];
+  var pid=document.getElementById('filter-person').value;
+  var date=document.getElementById('filter-date').value;
+  var logs=state.logs.slice();
+  if(pid)logs=logs.filter(function(l){return l.userId===pid;});
+  if(date)logs=logs.filter(function(l){return l.date===date;});
+  logs.forEach(function(l){rows.push([l.userName||'',gregToJalali(l.date)||'',l.time||'',l.type==='in'?'ورود':'خروج',l.locationName||'']);});
+  var csv=rows.map(function(r){return r.join(',');}).join('\n');
+  var blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');a.href=url;a.download='report.csv';a.click();
 }
-
-// ════ UTILS ════
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
