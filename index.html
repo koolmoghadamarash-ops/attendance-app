@@ -838,7 +838,7 @@ var state={
   workHours:{},
   leaves:[]
 };
-let addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
+var addMap=null, qrInstance=null, fsQrInstance=null, scanStream=null, scanInterval=null;
 
 function saveLocations(){}
 function savePersonnel(){}
@@ -852,7 +852,7 @@ function getQRToken(locId){
 }
 
 function getNextHourSeconds(){
-  const now=new Date();
+  var now=new Date();
   return 3600 - (now.getMinutes()*60 + now.getSeconds());
 }
 
@@ -892,20 +892,20 @@ function showScreen(n){
 
 // ════ CLOCK ════
 setInterval(()=>{
-  const el=document.getElementById('clock-display');if(!el)return;
+  var el=document.getElementById('clock-display');if(!el)return;
   el.textContent=new Date().toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
   document.getElementById('date-display').textContent=new Date().toLocaleDateString('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   // Update QR countdown
-  const cd=document.getElementById('qr-countdown');
+  var cd=document.getElementById('qr-countdown');
   if(cd&&cd.textContent!=='--:--'){
-    const s=getNextHourSeconds();
-    const m=Math.floor(s/60), sec=s%60;
+    var s=getNextHourSeconds();
+    var m=Math.floor(s/60), sec=s%60;
     cd.textContent=String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
   }
-  const fst=document.getElementById('fullscreen-timer');
+  var fst=document.getElementById('fullscreen-timer');
   if(fst&&fst.style.display!=='none'){
-    const s=getNextHourSeconds();
-    const m=Math.floor(s/60),sec=s%60;
+    var s=getNextHourSeconds();
+    var m=Math.floor(s/60),sec=s%60;
     fst.textContent='تغییر بعدی: '+String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');
   }
 },1000);
@@ -924,10 +924,10 @@ function initEmployee(){
 }
 
 function updateEmpStatus(){
-  const today=todayStr();
-  const logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
-  const last=logs[logs.length-1];
-  const badge=document.getElementById('emp-status-badge');
+  var today=todayStr();
+  var logs=state.logs.filter(l=>l.userId===state.currentUser.nationalId&&l.date===today);
+  var last=logs[logs.length-1];
+  var badge=document.getElementById('emp-status-badge');
   if(!last){badge.className='badge badge-orange';badge.textContent='حضور ثبت نشده';}
   else if(last.type==='in'){badge.className='badge badge-green';badge.textContent='✓ حاضر';}
   else{badge.className='badge badge-red';badge.textContent='✗ خارج شده';}
@@ -987,7 +987,7 @@ function closeQRScan(){
 function stopQRScan(){
   if(scanStream){scanStream.getTracks().forEach(t=>t.stop());scanStream=null;}
   if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
-  const video=document.getElementById('qr-video');
+  var video=document.getElementById('qr-video');
   video.style.display='none';
   video.srcObject=null;
 }
@@ -1004,24 +1004,24 @@ async function startCamera(){
 }
 
 function scanFrame(){
-  const video=document.getElementById('qr-video');
+  var video=document.getElementById('qr-video');
   if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
-  const canvas=document.getElementById('qr-canvas');
+  var canvas=document.getElementById('qr-canvas');
   canvas.width=video.videoWidth;
   canvas.height=video.videoHeight;
-  const ctx=canvas.getContext('2d');
+  var ctx=canvas.getContext('2d');
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  const imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
+  var imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
   // Use BarcodeDetector if available
   if('BarcodeDetector' in window){
-    const detector=new BarcodeDetector({formats:['qr_code']});
+    var detector=new BarcodeDetector({formats:['qr_code']});
     detector.detect(canvas).then(codes=>{
       if(codes.length>0) processQRCode(codes[0].rawValue);
     }).catch(()=>{});
   } else {
     // Fallback: jsQR
     if(typeof jsQR!=='undefined'){
-      const code=jsQR(imageData.data,imageData.width,imageData.height);
+      var code=jsQR(imageData.data,imageData.width,imageData.height);
       if(code) processQRCode(code.data);
     }
   }
@@ -1062,7 +1062,7 @@ function processQRCode(data){
 }
 
 function showResult(msg,type){
-  const el=document.getElementById('qr-scan-result');
+  var el=document.getElementById('qr-scan-result');
   el.textContent=msg;el.className='qr-result '+type;el.style.display='block';
 }
 
@@ -1083,14 +1083,14 @@ function generateQR(){
   if(td)td.textContent=token;
 }
 function openFullscreenQR(){
-  const locId=document.getElementById('qr-loc-select').value;
+  var locId=document.getElementById('qr-loc-select').value;
   if(!locId){showToast('ابتدا شعبه را انتخاب کنید','error');return;}
-  const loc=state.locations.find(l=>l.id===locId);
-  const token=getQRToken(locId);
-  const fs=document.getElementById('fullscreen-qr');
+  var loc=state.locations.find(l=>l.id===locId);
+  var token=getQRToken(locId);
+  var fs=document.getElementById('fullscreen-qr');
   fs.style.display='flex';
   document.getElementById('fullscreen-loc-name').textContent='📍 '+loc.name;
-  const container=document.getElementById('fullscreen-qr-code');
+  var container=document.getElementById('fullscreen-qr-code');
   container.innerHTML='';
   new QRCode(container,{text:token,width:280,height:280,colorDark:'#0a1628',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.H});
 }
@@ -1187,7 +1187,7 @@ function deleteLocation(id){
 }
 
 function openEditLocation(id){
-  const loc=state.locations.find(l=>l.id===id);if(!loc)return;
+  var loc=state.locations.find(l=>l.id===id);if(!loc)return;
   document.getElementById('edit-loc-id').value=id;
   document.getElementById('edit-loc-name').value=loc.name;
   document.getElementById('edit-loc-addr').value=loc.address||'';
@@ -1195,11 +1195,11 @@ function openEditLocation(id){
 }
 
 function saveEditLocation(){
-  const id=document.getElementById('edit-loc-id').value;
-  const name=document.getElementById('edit-loc-name').value.trim();
-  const addr=document.getElementById('edit-loc-addr').value.trim();
+  var id=document.getElementById('edit-loc-id').value;
+  var name=document.getElementById('edit-loc-name').value.trim();
+  var addr=document.getElementById('edit-loc-addr').value.trim();
   if(!name){showToast('نام الزامی است','error');return;}
-  const idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
+  var idx=state.locations.findIndex(l=>l.id===id);if(idx<0)return;
   state.locations[idx]={...state.locations[idx],name,address:addr};
   saveLocations();renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
@@ -1208,7 +1208,7 @@ function saveEditLocation(){
 
 // ── Personnel ──
 function renderLocCheckboxes(divId,selectedIds){
-  const div=document.getElementById(divId);
+  var div=document.getElementById(divId);
   var h='';
   state.locations.forEach(function(l){
     var checked=selectedIds.indexOf(l.id)>=0?'checked':'';
@@ -1294,7 +1294,7 @@ function addPersonnel(){
 }
 
 function openEditPersonnel(id){
-  const p=state.personnel.find(x=>x.id===id);if(!p)return;
+  var p=state.personnel.find(x=>x.id===id);if(!p)return;
   document.getElementById('edit-per-id').value=id;
   document.getElementById('edit-per-fname').value=p.fname;
   document.getElementById('edit-per-lname').value=p.lname;
@@ -1305,15 +1305,15 @@ function openEditPersonnel(id){
 }
 
 function saveEditPersonnel(){
-  const id=document.getElementById('edit-per-id').value;
-  const fname=document.getElementById('edit-per-fname').value.trim();
-  const lname=document.getElementById('edit-per-lname').value.trim();
-  const nid=document.getElementById('edit-per-nid').value.trim();
-  const pass=document.getElementById('edit-per-pass').value.trim();
-  const locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(c=>c.value);
+  var id=document.getElementById('edit-per-id').value;
+  var fname=document.getElementById('edit-per-fname').value.trim();
+  var lname=document.getElementById('edit-per-lname').value.trim();
+  var nid=document.getElementById('edit-per-nid').value.trim();
+  var pass=document.getElementById('edit-per-pass').value.trim();
+  var locs=[...document.querySelectorAll('#edit-loc-checkboxes input:checked')].map(c=>c.value);
   if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
   if(state.personnel.find(p=>p.nationalId===nid&&p.id!==id)){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
-  const idx=state.personnel.findIndex(p=>p.id===id);if(idx<0)return;
+  var idx=state.personnel.findIndex(p=>p.id===id);if(idx<0)return;
   state.personnel[idx]={...state.personnel[idx],fname,lname,nationalId:nid,locations:locs,...(pass?{password:pass}:{})};
   savePersonnel();renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
@@ -1330,11 +1330,11 @@ function deletePersonnel(id){
 // ── Map ──
 function initAddMap(){
   if(addMap)return;
-  const center=[35.6892,51.3890];
+  var center=[35.6892,51.3890];
   addMap=L.map('add-map',{zoomControl:true}).setView(center,12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OSM',maxZoom:19}).addTo(addMap);
   addMap.on('move',()=>{
-    const c=addMap.getCenter();
+    var c=addMap.getCenter();
     document.getElementById('loc-lat').value=c.lat.toFixed(6);
     document.getElementById('loc-lng').value=c.lng.toFixed(6);
   });
@@ -1434,13 +1434,13 @@ function exportExcel(){
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
-  const old=document.querySelector('.toast');if(old)old.remove();
-  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  var old=document.querySelector('.toast');if(old)old.remove();
+  var t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
   document.body.appendChild(t);setTimeout(()=>t.remove(),3500);
 }
 
 // Load jsQR fallback
-const s=document.createElement('script');
+var s=document.createElement('script');
 s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
 document.head.appendChild(s);
 
