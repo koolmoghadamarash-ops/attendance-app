@@ -151,17 +151,16 @@ function adminTab(tab,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
   el.classList.add('active');
   document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
-  document.getElementById('tab-'+tab).style.display='block';
-  loadDB().then(function(){
-    if(tab==='personnel'){renderLocCheckboxes('loc-checkboxes',[]);renderPersonnelList();}
-    if(tab==='reports'){loadReportFilters();loadReports();}
-    if(tab==='locations'){renderLocationsList();setTimeout(function(){if(addMap)addMap.invalidateSize();},200);}
-    if(tab==='qr')renderQRLocSelect();
-    if(tab==='messages')initMessagesTab();
-    if(tab==='tracking')initTrackingTab();
-    if(tab==='workhours')initWorkHoursTab();
-    if(tab==='leave')initLeaveTab();
-  });
+  var tabEl=document.getElementById('tab-'+tab);
+  if(tabEl)tabEl.style.display='block';
+  if(tab==='personnel'){renderLocCheckboxes('loc-checkboxes',[]);renderPersonnelList();}
+  if(tab==='reports'){loadReportFilters();loadReports();}
+  if(tab==='locations'){renderLocationsList();setTimeout(function(){if(addMap)addMap.invalidateSize();},200);}
+  if(tab==='qr')renderQRLocSelect();
+  if(tab==='messages')initMessagesTab();
+  if(tab==='tracking')initTrackingTab();
+  if(tab==='workhours')initWorkHoursTab();
+  if(tab==='leave')initLeaveTab();
 }
 function renderAdminStats(){
   var today=todayStr();var uids=[];
