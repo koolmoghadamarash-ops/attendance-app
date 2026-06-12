@@ -1452,5 +1452,20 @@ document.getElementById('qr-scan-modal').addEventListener('click',function(e){if
 document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
 </script>
+<div id="debug-panel" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.9);color:#0f0;font-family:monospace;font-size:10px;padding:8px;max-height:150px;overflow-y:auto;z-index:9999;direction:ltr"></div>
+<script>
+var dbg=document.getElementById('debug-panel');
+window.onerror=function(msg,src,line,col,err){
+  dbg.innerHTML+='<div style="color:red">ERR: '+msg+' (line '+line+')</div>';
+  return false;
+};
+var origAdmin=adminTab;
+adminTab=function(tab,el){
+  dbg.innerHTML+='<div>adminTab('+tab+') called</div>';
+  try{origAdmin(tab,el);}
+  catch(e){dbg.innerHTML+='<div style="color:red">adminTab ERROR: '+e.message+'</div>';}
+};
+dbg.innerHTML='<div style="color:yellow">Debug active</div>';
+</script>
 </body>
 </html>
