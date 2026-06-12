@@ -205,7 +205,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <button class="tab active" onclick="adminTab('qr',this)">QR</button>
       <button class="tab" onclick="adminTab('locations',this)">مکان‌ها</button>
       <button class="tab" onclick="adminTab('personnel',this)">پرسنل</button>
-      <button class="tab" onclick="alert('reports clicked - tab-reports exists: '+(document.getElementById('tab-reports')?'YES':'NO'));adminTab('reports',this)">گزارش</button>
+      <button class="tab" onclick="adminTab('reports',this)">گزارش</button>
       <button class="tab" onclick="adminTab('messages',this)">&#128233; پیام‌ها</button>
       <button class="tab" onclick="adminTab('tracking',this)">&#128205; ردیابی</button>
       <button class="tab" onclick="adminTab('workhours',this)">&#128336; ساعت کاری</button>
@@ -563,7 +563,7 @@ function adminTab(tab,el){
   // If data not loaded yet, load first
   var afterLoad=function(){
     if(tab==='personnel'){renderLocCheckboxes('loc-checkboxes',[]);renderPersonnelList();}
-    if(tab==='reports'){loadReportFilters();loadReports();}
+    if(tab==='reports'){try{loadReportFilters();loadReports();}catch(e){console.log('reports err',e);}}
     if(tab==='locations'){renderLocationsList();setTimeout(function(){if(addMap)addMap.invalidateSize();},200);}
     if(tab==='qr')renderQRLocSelect();
     if(tab==='messages')initMessagesTab();
