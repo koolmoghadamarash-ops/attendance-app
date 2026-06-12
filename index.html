@@ -1081,17 +1081,27 @@ function initEmployee(){
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
   var sl=localStorage.getItem('hg_leaves');if(sl)try{state.leaves=JSON.parse(sl);}catch(e){}
   updateEmpStatus();renderTodayLogs();checkInboxDot();
-  setTimeout(startGPSInfoWatch, 500);
+  setTimeout(function(){startGPSInfoWatch();},800);
 }
 
 function updateEmpStatus(){
+  var u=state.currentUser;
+  if(!u)return;
   var today=todayStr();
-  var logs=state.logs.filter(function(l){return l.userId}===state.currentUser.nationalId&&l.date===today);
-  var last=logs[logs.length-1];
+  var logs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  var last=logs.length?logs[logs.length-1]:null;
   var badge=document.getElementById('emp-status-badge');
-  if(!last){badge.className='badge badge-orange';badge.textContent='حضور ثبت نشده';}
-  else if(last.type==='in'){badge.className='badge badge-green';badge.textContent='✓ حاضر';}
-  else{badge.className='badge badge-red';badge.textContent='✗ خارج شده';}
+  if(!badge)return;
+  if(!last){
+    badge.className='badge badge-orange';
+    badge.textContent='حضور ثبت نشده';
+  } else if(last.type==='in'){
+    badge.className='badge badge-green';
+    badge.textContent='✓ حاضر — '+last.time;
+  } else {
+    badge.className='badge badge-red';
+    badge.textContent='✗ خروج — '+last.time;
+  }
 }
 
 function calcTodayDuration(logs){
