@@ -667,7 +667,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -1071,41 +1071,20 @@ function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
   if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
-  
-  // Admin login - instant, no DB needed
-  if(user==='admin'&&pass==='1234'){
-    state.currentUser={type:'admin'};
-    showScreen('admin');
-    renderAdmin();
-    return;
-  }
-  
   var btn=document.querySelector('#screen-login .btn-primary');
   if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
-  
-  // Employee login - try DB with 5s timeout
-  var done=false;
-  function tryLogin(personnel){
-    if(done)return;done=true;
+  if(user==='admin'&&pass==='1234'){
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    var p=personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+    state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;
+  }
+  loadDB().then(function(){
+    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
     showToast('نام کاربری یا رمز اشتباه است','error');
-  }
-  
-  // Timeout fallback
-  setTimeout(function(){
-    if(!done){
-      done=true;
-      if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-      showToast('اتصال به سرور برقرار نشد','error');
-    }
-  },20000);
-  
-  loadDB().then(function(){
-    tryLogin(state.personnel);
   }).catch(function(){
-    tryLogin(state.personnel);
+    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    showToast('خطا در اتصال به سرور','error');
   });
 }
 function doLogout(){
