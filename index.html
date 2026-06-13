@@ -21,7 +21,18 @@ function monthLabel(ds){if(!ds)return ds;var p=ds.split('-');var j=toJalali(+p[0
 var SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';var SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';var sb=null;
 function initSB(){if(sb)return true;try{if(typeof supabase==='undefined')return false;sb=supabase.createClient(SUPA_URL,SUPA_KEY);return true;}catch(e){return false;}}
 function dbGet(t){if(!initSB())return Promise.resolve([]);return sb.from(t).select('*').then(function(r){return r.data||[];}).catch(function(){return [];});}
-function dbAdd(t,row){if(!initSB())return Promise.resolve({error:{message:'no connection'}});return sb.from(t).insert(row).then(function(r){if(r.error)showToast('خطا: '+r.error.message,'error');return r;}).catch(function(e){return {error:e};});}
+function dbAdd(t,row){if(!initSB())return Promise.resolve({error:{message:'no connection'}});return sb.from(t).insert(row).then(function(r){if(r.error)showToast('\u062e\u0637\u0627: '+r.error.message,'error');return r;}).catch(function(e){return {error:e};});}
+function dbEdit(t,id,upd){if(!initSB())return;sb.from(t).update(upd).eq('id',id).catch(function(){});}
+function dbDel(t,id){if(!initSB())return;sb.from(t).delete().eq('id',id).catch(function(){});}
+function loadDB(){
+  if(!initSB())return Promise.resolve();
+  return Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]).then(function(res){
+    if(res[0]&&res[0].length)state.locations=res[0].map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};}); 
+    if(res[1]&&res[1].length)state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};}); 
+    if(res[2]&&res[2].length)state.logs=res[2].map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng};}); 
+    if(res[3]&&res[3].length)state.messages=res[3].map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};}); 
+  }).catch(function(e){console.log('loadDB err',e);});
+}
 
 // ════ EMAILJS ════
 var EMAILJS_PUBLIC_KEY='3anIyHG6kBYcVT4vS';var EMAILJS_SERVICE_ID='service_yflkjr8';var EMAILJS_TEMPLATE_ID='template_2mbmjlr';
@@ -72,128 +83,6 @@ function doChangePass(){
   if(idx>=0){state.personnel[idx].password=nw;state.currentUser.password=nw;dbEdit('personnel',state.personnel[idx].id,{password:nw});}
   document.getElementById('cp-modal').style.display='none';showToast('\u0631\u0645\u0632 \u062a\u063a\u06cc\u06cc\u0631 \u06a9\u0631\u062f','success');
 }
-
-
-// ════ EMP TABS 2 ════
-function empTab2(tab,el){
-  var tabs=['today','monthly','leave'];
-  tabs.forEach(function(t){
-    var btn=document.getElementById('etab2-'+t);
-    var cnt=document.getElementById('etab2-'+t+'-content');
-    if(btn){btn.style.background=t===tab?'var(--accent)':'var(--bg3)';btn.style.color=t===tab?'#000':'var(--text)';btn.style.border=t===tab?'none':'1px solid var(--border)';btn.style.fontWeight=t===tab?'700':'400';}
-    if(cnt)cnt.style.display=t===tab?'block':'none';
-  });
-  if(tab==='monthly')loadEmpMonthlyTable();
-  if(tab==='leave')renderEmpLeavesList2();
-}
-function minsToHM(m){var h=Math.floor(m/60),mn=m%60;return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);}
-function updateEmpSummaryCard(){
-  var u=state.currentUser;if(!u)return;
-  var today=todayStr();
-  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
-  var firstIn=null,lastOut=null;
-  todayLogs.forEach(function(l){if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;});
-  var ci=document.getElementById('sum-checkin');var co=document.getElementById('sum-checkout');
-  if(ci)ci.textContent=firstIn||'--:--';if(co)co.textContent=lastOut||'--:--';
-  var wh=getWorkHoursForLoc((u.locations||[])[0]||'');
-  var sp=wh.start.split(':');var startMins=parseInt(sp[0])*60+parseInt(sp[1]);
-  var lateMins=0;
-  if(firstIn){var ip=firstIn.split(':');var inMins=parseInt(ip[0])*60+parseInt(ip[1]);if(inMins>startMins+(wh.late||15))lateMins=inMins-startMins;}
-  var sl=document.getElementById('sum-late');if(sl)sl.textContent=lateMins?minsToHM(lateMins):'—';
-  var totalMins=0,lastInTime=null;
-  todayLogs.forEach(function(l){if(l.type==='in')lastInTime=new Date(l.timestamp);else if(l.type==='out'&&lastInTime){totalMins+=Math.floor((new Date(l.timestamp)-lastInTime)/60000);lastInTime=null;}});
-  if(lastInTime)totalMins+=Math.floor((Date.now()-lastInTime)/60000);
-  var ep=wh.end.split(':');var stdMins=parseInt(ep[0])*60+parseInt(ep[1])-startMins;
-  var overtime=Math.max(0,totalMins-stdMins);
-  var so=document.getElementById('sum-overtime');if(so)so.textContent=overtime?minsToHM(overtime):'—';
-  var sw=document.getElementById('sum-workhours');if(sw)sw.textContent=totalMins?minsToHM(totalMins):'—';
-}
-function loadEmpMonthlyTable(){
-  var u=state.currentUser;var el=document.getElementById('emp-monthly-table');if(!u||!el)return;
-  var wh=getWorkHoursForLoc((u.locations||[])[0]||'');
-  var sp=wh.start.split(':'),ep=wh.end.split(':');
-  var startMins=parseInt(sp[0])*60+parseInt(sp[1]),endMins=parseInt(ep[0])*60+parseInt(ep[1]),lateAllowed=wh.late||15;
-  var rows='',totalWorkMins=0,totalLateMins=0,totalOTMins=0,absentDays=0;
-  var now=new Date(),monthStart=new Date(now.getFullYear(),now.getMonth(),1);
-  var today2=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  var dayCount=Math.floor((today2-monthStart)/86400000)+1;
-  for(var d=dayCount-1;d>=0;d--){
-    var date=new Date();date.setDate(date.getDate()-d);
-    var dateStr=date.getFullYear()+'-'+(date.getMonth()+1<10?'0':'')+(date.getMonth()+1)+'-'+(date.getDate()<10?'0':'')+date.getDate();
-    var jDate=gregToJalali(dateStr);var dow=date.getDay();var isWorkDay=dow!==5;
-    var dayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===dateStr;});
-    var lv=(state.leaves||[]).filter(function(x){return x.userId===u.nationalId&&x.from<=dateStr&&x.to>=dateStr;})[0];
-    var firstIn=null,lastOut=null;
-    dayLogs.forEach(function(l){if(l.type==='in'&&(!firstIn||l.time<firstIn))firstIn=l.time;if(l.type==='out'&&(!lastOut||l.time>lastOut))lastOut=l.time;});
-    var wm=0,lm=0,om=0,status='',sc='var(--text3)';
-    if(lv){var lt={annual:'مرخصی',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};status=lt[lv.type]||'مرخصی';sc='var(--accent)';}
-    else if(!isWorkDay){status='تعطیل';}
-    else if(!firstIn){status='غیبت';sc='var(--red)';absentDays++;}
-    else{
-      if(firstIn&&lastOut){var ip=firstIn.split(':'),op=lastOut.split(':');var im=parseInt(ip[0])*60+parseInt(ip[1]),om2=parseInt(op[0])*60+parseInt(op[1]);wm=om2-im;if(im>startMins+lateAllowed){lm=im-startMins;totalLateMins+=lm;}if(wm>endMins-startMins){om=wm-(endMins-startMins);totalOTMins+=om;}totalWorkMins+=wm;}
-      status=firstIn?'حاضر':'ناقص';sc=firstIn?'var(--green)':'var(--orange)';
-    }
-    rows+='<tr style="background:'+(d%2===0?'var(--card)':'var(--bg3)')+'"><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;white-space:nowrap">'+jDate+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--green)">'+(firstIn||'—')+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--red)">'+(lastOut||'—')+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px">'+(wm?minsToHM(wm):'—')+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--orange)">'+(lm?minsToHM(lm):'—')+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--accent)">'+(om?minsToHM(om):'—')+'</td><td style="padding:6px;border-bottom:1px solid var(--border);font-size:10px;font-weight:600;color:'+sc+'">'+status+'</td></tr>';
-  }
-  el.innerHTML='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px"><div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--accent)">'+minsToHM(totalWorkMins)+'</div><div style="font-size:10px;color:var(--text2)">کارکرد</div></div><div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+minsToHM(totalLateMins)+'</div><div style="font-size:10px;color:var(--text2)">تاخیر</div></div><div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--green)">'+minsToHM(totalOTMins)+'</div><div style="font-size:10px;color:var(--text2)">اضافه</div></div><div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+toPersianNum(absentDays)+'</div><div style="font-size:10px;color:var(--text2)">غیبت</div></div></div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:var(--accent);color:#000"><th style="padding:7px;text-align:right">تاریخ</th><th style="padding:7px;text-align:right">ورود</th><th style="padding:7px;text-align:right">خروج</th><th style="padding:7px;text-align:right">کارکرد</th><th style="padding:7px;text-align:right">تاخیر</th><th style="padding:7px;text-align:right">اضافه</th><th style="padding:7px;text-align:right">وضعیت</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-}
-function saveEmpLeave(){
-  var u=state.currentUser;
-  var from=document.getElementById('emp-leave-from').value;var to=document.getElementById('emp-leave-to').value;
-  var type=document.getElementById('emp-leave-type').value;var desc=document.getElementById('emp-leave-desc').value;
-  if(!from||!to){showToast('تاریخ را وارد کنید','error');return;}
-  if(from>to){showToast('تاریخ شروع باید قبل از پایان باشد','error');return;}
-  var lv={id:'lv_'+Date.now(),userId:u.nationalId,userName:u.fname+' '+u.lname,from:from,to:to,type:type,desc:desc,date:todayStr()};
-  state.leaves.push(lv);localStorage.setItem('hg_leaves',JSON.stringify(state.leaves));
-  dbAdd('leaves',{id:lv.id,user_id:u.nationalId,user_name:lv.userName,from_date:from,to_date:to,type:type,description:desc});
-  document.getElementById('emp-leave-from').value='';document.getElementById('emp-leave-to').value='';document.getElementById('emp-leave-desc').value='';
-  renderEmpLeavesList2();showToast('مرخصی ثبت شد','success');
-}
-function renderEmpLeavesList2(){
-  var u=state.currentUser;var el=document.getElementById('emp-leaves-list-2');if(!el||!u)return;
-  var my=(state.leaves||[]).filter(function(lv){return lv.userId===u.nationalId;}).slice().reverse();
-  if(!my.length){el.innerHTML='<div style="text-align:center;padding:16px;color:var(--text3)">مرخصی ثبت نشده</div>';return;}
-  var types={annual:'سالانه',sick:'استعلاجی',unpaid:'بی‌حقوق',mission:'ماموریت'};
-  el.innerHTML=my.map(function(lv){return '<div style="padding:10px 12px;background:var(--card);border-radius:12px;margin-bottom:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><div style="font-weight:600;font-size:13px">'+gregToJalali(lv.from)+' تا '+gregToJalali(lv.to)+'</div>'+(lv.desc?'<div style="font-size:11px;color:var(--text3)">'+lv.desc+'</div>':'')+'</div><span style="background:var(--accent);color:#000;padding:3px 10px;border-radius:20px;font-size:11px;white-space:nowrap">'+(types[lv.type]||lv.type)+'</span></div>';}).join('');
-}
-// ════ GPS INFO BOX ════
-var gpsWatchId=null;
-function startGPSInfoWatch(){
-  var u=state.currentUser;if(!u||!navigator.geolocation)return;
-  var box=document.getElementById('gps-info-box');if(box)box.style.display='block';
-  var userLocs=(u.locations||[]).map(function(id){return state.locations.find(function(l){return l.id===id;});}).filter(Boolean);
-  if(!userLocs.length)return;
-  var loc=userLocs[0];
-  var bc=document.getElementById('gps-branch-coords');var bn=document.getElementById('gps-branch-name');
-  if(bc&&loc.lat)bc.textContent=parseFloat(loc.lat).toFixed(5)+', '+parseFloat(loc.lng).toFixed(5);
-  if(bn)bn.textContent=loc.name;
-  if(gpsWatchId)navigator.geolocation.clearWatch(gpsWatchId);
-  gpsWatchId=navigator.geolocation.watchPosition(
-    function(pos){
-      var lat=pos.coords.latitude,lng=pos.coords.longitude,acc=Math.round(pos.coords.accuracy);
-      var ce=document.getElementById('gps-current-coords');if(ce)ce.textContent=lat.toFixed(5)+', '+lng.toFixed(5);
-      var ae=document.getElementById('gps-accuracy');if(ae)ae.textContent=toPersianNum(acc)+' متر';
-      if(loc.lat&&loc.lng){
-        var dist=Math.round(calcDistance(lat,lng,parseFloat(loc.lat),parseFloat(loc.lng)));
-        var radius=loc.radius||500;
-        var distBox=document.getElementById('gps-distance-box');var distText=document.getElementById('gps-distance-text');var statusBadge=document.getElementById('gps-status-badge');
-        if(distText)distText.textContent='فاصله تا شعبه: '+toPersianNum(dist)+' متر';
-        if(dist<=radius){
-          if(distBox){distBox.style.background='rgba(0,200,83,0.15)';distBox.style.border='1px solid rgba(0,200,83,0.3)';}
-          if(distText)distText.style.color='var(--green)';
-          if(statusBadge){statusBadge.innerHTML='&#10003; در محدوده';statusBadge.style.background='rgba(0,200,83,0.2)';statusBadge.style.color='var(--green)';}
-        }else{
-          if(distBox){distBox.style.background='rgba(229,62,62,0.1)';distBox.style.border='1px solid rgba(229,62,62,0.2)';}
-          if(distText)distText.style.color='var(--red)';
-          if(statusBadge){statusBadge.innerHTML='&#10007; خارج از محدوده ('+toPersianNum(radius)+' متر)';statusBadge.style.background='rgba(229,62,62,0.15)';statusBadge.style.color='var(--red)';}
-        }
-      }
-    },
-    function(){var sb=document.getElementById('gps-status-badge');if(sb){sb.textContent='GPS دریافت نشد';sb.style.background='rgba(255,152,0,0.2)';sb.style.color='var(--orange)';}},
-    {enableHighAccuracy:true,timeout:30000,maximumAge:5000}
-  );
-}
-function stopGPSInfoWatch(){if(gpsWatchId){navigator.geolocation.clearWatch(gpsWatchId);gpsWatchId=null;}}
 
 // ════ CHECKIN FLOW ════
 function startCheckin(type){
@@ -249,7 +138,7 @@ function registerLog(locId,locName,lat,lng,method){
   var log={id:'log_'+Date.now(),userId:u.nationalId,userName:u.fname+' '+u.lname,locationId:locId,locationName:locName,type:state.checkinType,date:todayStr(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),timestamp:now.toISOString(),lat:lat,lng:lng};
   state.logs.push(log);
   dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:log.locationId,location_name:log.locationName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,lat:lat,lng:lng,method:method||'gps'});
-  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();
+  updateEmpStatus();renderTodayLogs();
   showToast(state.checkinType==='in'?'&#10003; \u0648\u0631\u0648\u062f \u062f\u0631 '+locName+' \u062b\u0628\u062a \u0634\u062f':'&#10003; \u062e\u0631\u0648\u062c \u0627\u0632 '+locName+' \u062b\u0628\u062a \u0634\u062f','success');
 }
 
@@ -706,58 +595,14 @@ input[type=range]{accent-color:var(--accent);width:100%}
       <div class="action-btns">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; ثبت خروج</button>
-      <!-- GPS Info Box -->
-      <div id="gps-info-box" style="margin-top:12px;background:var(--bg3);border-radius:12px;padding:12px;font-size:12px;border:1px solid var(--border);display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-          <span style="font-weight:600;color:var(--text)">&#128205; اطلاعات موقعیت</span>
-          <span id="gps-status-badge" style="font-size:11px;padding:2px 8px;border-radius:10px;background:var(--bg);color:var(--text2)">در حال دریافت...</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-          <div style="background:var(--card);border-radius:8px;padding:8px">
-            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">&#128247; موقعیت شما</div>
-            <div id="gps-current-coords" style="color:var(--accent);font-family:monospace;font-size:11px;direction:ltr">---</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:2px">دقت: <span id="gps-accuracy">---</span></div>
-          </div>
-          <div style="background:var(--card);border-radius:8px;padding:8px">
-            <div style="font-size:10px;color:var(--text3);margin-bottom:3px">&#127970; شعبه مجاز</div>
-            <div id="gps-branch-coords" style="color:var(--text2);font-family:monospace;font-size:11px;direction:ltr">---</div>
-            <div style="font-size:10px;color:var(--text3);margin-top:2px"><span id="gps-branch-name">---</span></div>
-          </div>
-        </div>
-        <div style="margin-top:8px;text-align:center;padding:8px;border-radius:8px" id="gps-distance-box">
-          <span style="font-size:13px;font-weight:700" id="gps-distance-text">---</span>
-        </div>
-      </div>
       </div>
     </div>
 
-    <!-- Summary Card -->
-    <div id="emp-summary-card" style="background:var(--card);border-radius:14px;padding:10px 12px;border:1px solid var(--border)">
-      <div style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">&#128203; خلاصه وضعیت امروز</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px"><div style="font-size:15px;font-weight:700;color:var(--green)" id="sum-checkin">--:--</div><div style="font-size:10px;color:var(--text3)">ورود</div></div>
-        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px"><div style="font-size:15px;font-weight:700;color:var(--red)" id="sum-checkout">--:--</div><div style="font-size:10px;color:var(--text3)">خروج</div></div>
-        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px"><div style="font-size:15px;font-weight:700;color:var(--orange)" id="sum-late">--:--</div><div style="font-size:10px;color:var(--text3)">تاخیر</div></div>
-        <div style="text-align:center;background:var(--bg3);border-radius:10px;padding:8px 4px"><div style="font-size:15px;font-weight:700;color:var(--accent)" id="sum-overtime">--:--</div><div style="font-size:10px;color:var(--text3)">اضافه</div></div>
-      </div>
-      <div style="margin-top:8px;text-align:center;font-size:12px;color:var(--text2)">کارکرد: <span id="sum-workhours" style="font-weight:700;color:var(--text)">---</span></div>
-    </div>
-
-    <!-- Tabs -->
-    <div style="display:flex;gap:6px;margin-bottom:10px;overflow-x:auto">
-      <button onclick="empTab2('today',this)" id="etab2-today" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:700;cursor:pointer">امروز</button>
-      <button onclick="empTab2('monthly',this)" id="etab2-monthly" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">ماه اخیر</button>
-      <button onclick="empTab2('leave',this)" id="etab2-leave" style="white-space:nowrap;padding:7px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">مرخصی</button>
-    </div>
-
-    <!-- Today Logs -->
-    <div id="etab2-today-content">
     <div class="today-log">
       <div class="status-header" style="margin-bottom:0"><span class="status-title">گزارش امروز</span><span class="badge badge-blue" id="today-count">۰ رکورد</span></div>
       <div style="margin-top:8px" id="today-summary"></div>
       <div class="divider"></div>
       <div id="today-logs-list"><div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div></div>
-    </div>
     </div>
 
     <!-- Employee Sub Tabs -->
@@ -776,26 +621,6 @@ input[type=range]{accent-color:var(--accent);width:100%}
     </div>
     <div id="etab-leaves-content" style="display:none">
       <div id="emp-leaves-list"><div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div></div>
-    </div>
-    <!-- Monthly Report -->
-    <div id="etab2-monthly-content" style="display:none">
-      <div id="emp-monthly-table"><div style="text-align:center;padding:20px;color:var(--text3)">در حال بارگذاری...</div></div>
-    </div>
-
-    <!-- Leave -->
-    <div id="etab2-leave-content" style="display:none">
-      <div style="background:var(--card);border-radius:14px;padding:14px;margin-bottom:12px;border:1px solid var(--border)">
-        <div style="font-size:14px;font-weight:700;margin-bottom:12px">&#128197; ثبت مرخصی</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">از تاریخ</label><input type="date" id="emp-leave-from" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
-          <div><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">تا تاریخ</label><input type="date" id="emp-leave-to" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;box-sizing:border-box"></div>
-        </div>
-        <div style="margin-bottom:8px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">نوع مرخصی</label><select id="emp-leave-type" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px"><option value="annual">سالانه</option><option value="sick">استعلاجی</option><option value="unpaid">بی‌حقوق</option><option value="mission">ماموریت</option></select></div>
-        <div style="margin-bottom:12px"><label style="font-size:11px;color:var(--text2);display:block;margin-bottom:4px">توضیحات</label><textarea id="emp-leave-desc" rows="2" placeholder="توضیحات (اختیاری)" style="width:100%;padding:9px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;resize:none;box-sizing:border-box"></textarea></div>
-        <button onclick="saveEmpLeave()" style="width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;cursor:pointer">ثبت مرخصی</button>
-      </div>
-      <div style="font-size:13px;font-weight:600;margin-bottom:8px">مرخصی‌های من</div>
-      <div id="emp-leaves-list-2"></div>
     </div>
   </div>
 </div>
@@ -1073,22 +898,19 @@ function doLogin(){
   if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
   var btn=document.querySelector('#screen-login .btn-primary');
   if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
-  if(user==='admin'&&pass==='1234'){
-    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;
-  }
   loadDB().then(function(){
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
     var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
     showToast('نام کاربری یا رمز اشتباه است','error');
   }).catch(function(){
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    showToast('خطا در اتصال به سرور','error');
+    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
+    showToast('خطا در اتصال','error');
   });
 }
 function doLogout(){
-  stopGPSInfoWatch();
   state.currentUser=null;
   stopQRScan();
   document.getElementById('login-user').value='';
@@ -1133,8 +955,7 @@ function initEmployee(){
   }).filter(Boolean).join(' - ');
   document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
   var sl=localStorage.getItem('hg_leaves');if(sl)try{state.leaves=JSON.parse(sl);}catch(e){}
-  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();checkInboxDot();
-  setTimeout(function(){startGPSInfoWatch();},800);
+  updateEmpStatus();renderTodayLogs();checkInboxDot();
 }
 
 function updateEmpStatus(){
@@ -1268,7 +1089,7 @@ function processQRCode(data){
   saveLogs();
   document.getElementById('qr-scan-modal').classList.remove('open');
   showToast(state.checkinType==='in'?`✅ ورود در ${locName} ثبت شد`:`✅ خروج از ${locName} ثبت شد`,'success');
-  updateEmpStatus();updateEmpSummaryCard();renderTodayLogs();
+  updateEmpStatus();renderTodayLogs();
 }
 
 function showResult(msg,type){
@@ -1595,7 +1416,7 @@ function exportExcel(){
 }
 
 // ════ UTILS ════
-function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
+function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
   const old=document.querySelector('.toast');if(old)old.remove();
