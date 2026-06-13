@@ -896,18 +896,25 @@ function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
   if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
+  if(user==='admin'&&pass==='1234'){
+    state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;
+  }
   var btn=document.querySelector('#screen-login .btn-primary');
   if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
+  var done=false;
+  var timer=setTimeout(function(){
+    if(!done){done=true;if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}showToast('خطا در اتصال به سرور','error');}
+  },15000);
   loadDB().then(function(){
+    if(done)return;done=true;clearTimeout(timer);
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
     var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
     showToast('نام کاربری یا رمز اشتباه است','error');
   }).catch(function(){
+    if(done)return;done=true;clearTimeout(timer);
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
-    showToast('خطا در اتصال','error');
+    showToast('خطا در اتصال به سرور','error');
   });
 }
 function doLogout(){
