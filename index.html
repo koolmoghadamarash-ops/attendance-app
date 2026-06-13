@@ -27,7 +27,7 @@ function dbDel(t,id){if(!initSB())return;sb.from(t).delete().eq('id',id).catch(f
 function loadDB(){
   if(!initSB())return Promise.resolve();
   // Add 8 second timeout
-  var timeout=new Promise(function(resolve){setTimeout(resolve,8000);});
+  var timeout=new Promise(function(resolve){setTimeout(resolve,15000);});
   var fetch=Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]);
   return Promise.race([fetch,timeout]).then(function(res){
     if(!res)return; // timeout
@@ -1096,7 +1096,8 @@ function doLogin(){
   }
   
   var btn=document.querySelector('#screen-login .btn-primary');
-  if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
+  if(btn){btn.textContent='در حال اتصال به سرور...';btn.disabled=true;}
+  showToast('در حال بارگذاری اطلاعات...','info');
   
   // Employee login - try DB with 5s timeout
   var done=false;
@@ -1115,7 +1116,7 @@ function doLogin(){
       if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
       showToast('اتصال به سرور برقرار نشد','error');
     }
-  },5000);
+  },15000);
   
   loadDB().then(function(){
     tryLogin(state.personnel);
