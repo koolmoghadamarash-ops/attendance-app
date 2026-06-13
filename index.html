@@ -1086,20 +1086,41 @@ function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
   if(!user||!pass){showToast('لطفاً نام کاربری و رمز را وارد کنید','error');return;}
+  
+  // Admin login - instant, no DB needed
+  if(user==='admin'&&pass==='1234'){
+    state.currentUser={type:'admin'};
+    showScreen('admin');
+    renderAdmin();
+    return;
+  }
+  
   var btn=document.querySelector('#screen-login .btn-primary');
   if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
-  loadDB().then(function(){
+  
+  // Employee login - try DB with 5s timeout
+  var done=false;
+  function tryLogin(personnel){
+    if(done)return;done=true;
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
-    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+    var p=personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
     showToast('نام کاربری یا رمز اشتباه است','error');
+  }
+  
+  // Timeout fallback
+  setTimeout(function(){
+    if(!done){
+      done=true;
+      if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+      showToast('اتصال به سرور برقرار نشد','error');
+    }
+  },5000);
+  
+  loadDB().then(function(){
+    tryLogin(state.personnel);
   }).catch(function(){
-    if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
-    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
-    if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
-    showToast('خطا در اتصال به سرور','error');
+    tryLogin(state.personnel);
   });
 }
 function doLogout(){
@@ -1609,7 +1630,7 @@ function exportExcel(){
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
-// ════ UTILS ═══
+// ════ UTILS ════
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+(d.getMonth()+1<10?'0':'')+(d.getMonth()+1)+'-'+(d.getDate()<10?'0':'')+d.getDate();}
 function toPersianNum(n){return String(n).replace(/\\d/g,d=>'۰۱۲۳۴۵۶۷۸۹'[d]);}
 function showToast(msg,type){
