@@ -667,7 +667,7 @@ input[type=range]{accent-color:var(--accent);width:100%}
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 </head>
 <body>
@@ -1100,7 +1100,7 @@ function doLogin(){
       if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
       showToast('اتصال به سرور برقرار نشد','error');
     }
-  },10000);
+  },20000);
   
   loadDB().then(function(){
     tryLogin(state.personnel);
