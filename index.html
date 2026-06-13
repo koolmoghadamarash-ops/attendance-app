@@ -26,7 +26,11 @@ function dbEdit(t,id,upd){if(!initSB())return;sb.from(t).update(upd).eq('id',id)
 function dbDel(t,id){if(!initSB())return;sb.from(t).delete().eq('id',id).catch(function(){});}
 function loadDB(){
   if(!initSB())return Promise.resolve();
-  return Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]).then(function(res){
+  // Add 8 second timeout
+  var timeout=new Promise(function(resolve){setTimeout(resolve,8000);});
+  var fetch=Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]);
+  return Promise.race([fetch,timeout]).then(function(res){
+    if(!res)return; // timeout
     if(res[0]&&res[0].length)state.locations=res[0].map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};}); 
     if(res[1]&&res[1].length)state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};}); 
     if(res[2]&&res[2].length)state.logs=res[2].map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng};}); 
@@ -1093,7 +1097,9 @@ function doLogin(){
   }).catch(function(){
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
     if(user==='admin'&&pass==='1234'){state.currentUser={type:'admin'};showScreen('admin');renderAdmin();return;}
-    showToast('خطا در اتصال','error');
+    var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+    if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
+    showToast('خطا در اتصال به سرور','error');
   });
 }
 function doLogout(){
