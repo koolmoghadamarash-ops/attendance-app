@@ -21,22 +21,7 @@ function monthLabel(ds){if(!ds)return ds;var p=ds.split('-');var j=toJalali(+p[0
 var SUPA_URL='https://cxoviwphdfestedkpgwm.supabase.co';var SUPA_KEY='sb_publishable_19ff6JibcVzYXmeQ6ZK1oA_qVGQA3r_';var sb=null;
 function initSB(){if(sb)return true;try{if(typeof supabase==='undefined')return false;sb=supabase.createClient(SUPA_URL,SUPA_KEY);return true;}catch(e){return false;}}
 function dbGet(t){if(!initSB())return Promise.resolve([]);return sb.from(t).select('*').then(function(r){return r.data||[];}).catch(function(){return [];});}
-function dbAdd(t,row){if(!initSB())return Promise.resolve({error:{message:'no connection'}});return sb.from(t).insert(row).then(function(r){if(r.error)showToast('\u062e\u0637\u0627: '+r.error.message,'error');return r;}).catch(function(e){return {error:e};});}
-function dbEdit(t,id,upd){if(!initSB())return;sb.from(t).update(upd).eq('id',id).catch(function(){});}
-function dbDel(t,id){if(!initSB())return;sb.from(t).delete().eq('id',id).catch(function(){});}
-function loadDB(){
-  if(!initSB())return Promise.resolve();
-  // Add 8 second timeout
-  var timeout=new Promise(function(resolve){setTimeout(resolve,15000);});
-  var fetch=Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]);
-  return Promise.race([fetch,timeout]).then(function(res){
-    if(!res)return; // timeout
-    if(res[0]&&res[0].length)state.locations=res[0].map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};}); 
-    if(res[1]&&res[1].length)state.personnel=res[1].map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};}); 
-    if(res[2]&&res[2].length)state.logs=res[2].map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng};}); 
-    if(res[3]&&res[3].length)state.messages=res[3].map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};}); 
-  }).catch(function(e){console.log('loadDB err',e);});
-}
+function dbAdd(t,row){if(!initSB())return Promise.resolve({error:{message:'no connection'}});return sb.from(t).insert(row).then(function(r){if(r.error)showToast('خطا: '+r.error.message,'error');return r;}).catch(function(e){return {error:e};});}
 
 // ════ EMAILJS ════
 var EMAILJS_PUBLIC_KEY='3anIyHG6kBYcVT4vS';var EMAILJS_SERVICE_ID='service_yflkjr8';var EMAILJS_TEMPLATE_ID='template_2mbmjlr';
@@ -1096,8 +1081,7 @@ function doLogin(){
   }
   
   var btn=document.querySelector('#screen-login .btn-primary');
-  if(btn){btn.textContent='در حال اتصال به سرور...';btn.disabled=true;}
-  showToast('در حال بارگذاری اطلاعات...','info');
+  if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
   
   // Employee login - try DB with 5s timeout
   var done=false;
@@ -1116,7 +1100,7 @@ function doLogin(){
       if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
       showToast('اتصال به سرور برقرار نشد','error');
     }
-  },15000);
+  },10000);
   
   loadDB().then(function(){
     tryLogin(state.personnel);
