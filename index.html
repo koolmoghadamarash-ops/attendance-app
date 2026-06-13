@@ -892,6 +892,27 @@ function getNextHourSeconds(){
 }
 
 // ════ AUTH ════
+function tryLoginWithCache(user,pass){
+  var cached=localStorage.getItem('hg_personnel_cache');
+  if(cached){
+    try{
+      var personnel=JSON.parse(cached);
+      var p=personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
+      if(p){
+        // Load locations from cache too
+        var locCached=localStorage.getItem('hg_locations_cache');
+        if(locCached)try{state.locations=JSON.parse(locCached);}catch(e){}
+        state.personnel=personnel;
+        state.currentUser=Object.assign({type:'employee'},p);
+        showScreen('emp');initEmployee();
+        showToast('ورود با حافظه محلی','info');
+        return;
+      }
+    }catch(e){}
+  }
+  showToast('خطا در اتصال به سرور','error');
+}
+
 function doLogin(){
   var user=document.getElementById('login-user').value.trim();
   var pass=document.getElementById('login-pass').value.trim();
@@ -903,18 +924,25 @@ function doLogin(){
   if(btn){btn.textContent='در حال ورود...';btn.disabled=true;}
   var done=false;
   var timer=setTimeout(function(){
-    if(!done){done=true;if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}showToast('خطا در اتصال به سرور','error');}
-  },15000);
+    if(!done){
+      done=true;
+      if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+      // Try localStorage cache
+      tryLoginWithCache(user,pass);
+    }
+  },10000);
   loadDB().then(function(){
     if(done)return;done=true;clearTimeout(timer);
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
+    // Save to cache
+    if(state.personnel.length)localStorage.setItem('hg_personnel_cache',JSON.stringify(state.personnel));
     var p=state.personnel.find(function(x){return x.nationalId===user&&x.password===pass;});
     if(p){state.currentUser=Object.assign({type:'employee'},p);showScreen('emp');initEmployee();return;}
     showToast('نام کاربری یا رمز اشتباه است','error');
   }).catch(function(){
     if(done)return;done=true;clearTimeout(timer);
     if(btn){btn.textContent='ورود به سیستم';btn.disabled=false;}
-    showToast('خطا در اتصال به سرور','error');
+    tryLoginWithCache(user,pass);
   });
 }
 function doLogout(){
