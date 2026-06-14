@@ -1191,22 +1191,28 @@ function renderLocationsList(){
 }
 
 function addLocation(){
-  var name=document.getElementById('loc-name').value.trim();
-  var addr=document.getElementById('loc-addr').value.trim();
-  var lat=35.6892,lng=51.3890;
-  try{if(addMap&&addMap.getCenter){lat=addMap.getCenter().lat;lng=addMap.getCenter().lng;}}catch(e){}
-  var rEl=document.getElementById('loc-radius');
-  var radius=rEl?parseInt(rEl.value)||500:500;
-  if(!name){showToast('نام شعبه الزامی است','error');return;}
-  var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
-  state.locations.push(nl);
-  dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
-  renderLocationsList();renderAdminStats();renderQRLocSelect();
-  document.getElementById('loc-name').value='';
-  document.getElementById('loc-addr').value='';
-  showToast('شعبه ذخیره شد','success');
+  try{
+    var name=document.getElementById('loc-name').value.trim();
+    var addr=document.getElementById('loc-addr').value.trim();
+    var lat=35.6892,lng=51.3890;
+    try{if(addMap&&addMap.getCenter){lat=addMap.getCenter().lat;lng=addMap.getCenter().lng;}}catch(e){}
+    var rEl=document.getElementById('loc-radius');
+    var radius=rEl?parseInt(rEl.value)||500:500;
+    if(!name){showToast('نام شعبه الزامی است','error');return;}
+    var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
+    state.locations.push(nl);
+    dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
+    renderLocationsList();
+    renderAdminStats();
+    renderQRLocSelect();
+    document.getElementById('loc-name').value='';
+    document.getElementById('loc-addr').value='';
+    showToast('شعبه ذخیره شد ('+state.locations.length+')','success');
+  }catch(err){
+    showToast('خطا: '+err.message,'error');
+    alert('خطای ذخیره شعبه:\n'+err.message+'\n\n'+err.stack);
+  }
 }
-
 function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.locations=state.locations.filter(function(l){return l.id!==id;});
