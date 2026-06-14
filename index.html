@@ -11,7 +11,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+
 // ════ JALALI ════
 function toJalali(gy,gm,gd){var g_d_no,jy,jm,jd;var g_dm=[31,28,31,30,31,30,31,31,30,31,30,31];var j_dm=[31,31,31,31,31,31,30,30,30,30,30,29];gy-=1600;gm-=1;gd-=1;g_d_no=365*gy+Math.floor((gy+3)/4)-Math.floor((gy+99)/100)+Math.floor((gy+399)/400);for(var i=0;i<gm;i++)g_d_no+=g_dm[i];if(gm>1&&((gy%4==0&&gy%100!=0)||(gy+400)%400==0))g_d_no++;g_d_no+=gd;var j_np=g_d_no-79;var imp=Math.floor(j_np/12053);j_np%=12053;jy=979+33*imp+4*Math.floor(j_np/1461);j_np%=1461;if(j_np>=366){jy+=Math.floor((j_np-1)/365);j_np=(j_np-1)%365;}for(i=0;i<11&&j_np>=j_dm[i];i++)j_np-=j_dm[i];jm=i+1;jd=j_np+1;return {y:jy,m:jm,d:jd};}
 function gregToJalali(ds){if(!ds)return ds;var p=ds.split('-');if(p.length!==3)return ds;var j=toJalali(+p[0],+p[1],+p[2]);return j.y+'/'+(j.m<10?'0':'')+j.m+'/'+(j.d<10?'0':'')+j.d;}
@@ -472,6 +474,7 @@ function loadReportFilters(){
   ds.innerHTML='<option value="">\u0647\u0645\u0647 \u062a\u0627\u0631\u06cc\u062e\u200c\u0647\u0627</option>';
   dArr.forEach(function(d){ds.innerHTML+='<option value="'+d+'">'+gregToJalali(d)+'</option>';});
 }
+
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -1191,27 +1194,20 @@ function renderLocationsList(){
 }
 
 function addLocation(){
-  try{
-    var name=document.getElementById('loc-name').value.trim();
-    var addr=document.getElementById('loc-addr').value.trim();
-    var lat=35.6892,lng=51.3890;
-    try{if(addMap&&addMap.getCenter){lat=addMap.getCenter().lat;lng=addMap.getCenter().lng;}}catch(e){}
-    var rEl=document.getElementById('loc-radius');
-    var radius=rEl?parseInt(rEl.value)||500:500;
-    if(!name){showToast('نام شعبه الزامی است','error');return;}
-    var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
-    state.locations.push(nl);
-    dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
-    renderLocationsList();
-    renderAdminStats();
-    renderQRLocSelect();
-    document.getElementById('loc-name').value='';
-    document.getElementById('loc-addr').value='';
-    showToast('شعبه ذخیره شد ('+state.locations.length+')','success');
-  }catch(err){
-    showToast('خطا: '+err.message,'error');
-    alert('خطای ذخیره شعبه:\n'+err.message+'\n\n'+err.stack);
-  }
+  var name=document.getElementById('loc-name').value.trim();
+  var addr=document.getElementById('loc-addr').value.trim();
+  var lat=35.6892,lng=51.3890;
+  try{if(addMap&&addMap.getCenter){lat=addMap.getCenter().lat;lng=addMap.getCenter().lng;}}catch(e){}
+  var rEl=document.getElementById('loc-radius');
+  var radius=rEl?parseInt(rEl.value)||500:500;
+  if(!name){showToast('نام شعبه الزامی است','error');return;}
+  var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
+  state.locations.push(nl);
+  dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
+  renderLocationsList();renderAdminStats();renderQRLocSelect();
+  document.getElementById('loc-name').value='';
+  document.getElementById('loc-addr').value='';
+  showToast('شعبه ذخیره شد','success');
 }
 function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
