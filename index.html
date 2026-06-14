@@ -1193,23 +1193,18 @@ function renderLocationsList(){
 function addLocation(){
   var name=document.getElementById('loc-name').value.trim();
   var addr=document.getElementById('loc-addr').value.trim();
-  var lat=addMap?addMap.getCenter().lat:35.6892;
-  var lng=addMap?addMap.getCenter().lng:51.3890;
+  var lat=35.6892,lng=51.3890;
+  try{if(addMap&&addMap.getCenter){lat=addMap.getCenter().lat;lng=addMap.getCenter().lng;}}catch(e){}
   var rEl=document.getElementById('loc-radius');
   var radius=rEl?parseInt(rEl.value)||500:500;
   if(!name){showToast('نام شعبه الزامی است','error');return;}
-  var btn=document.querySelector('#tab-locations .btn-primary');
-  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
   var nl={id:'loc_'+Date.now(),name:name,address:addr,lat:lat,lng:lng,radius:radius};
-  dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius}).then(function(r){
-    if(btn){btn.textContent='ذخیره شعبه';btn.disabled=false;}
-    if(r&&r.error)return;
-    state.locations.push(nl);
-    renderLocationsList();renderAdminStats();renderQRLocSelect();
-    document.getElementById('loc-name').value='';
-    document.getElementById('loc-addr').value='';
-    showToast('شعبه ذخیره شد','success');
-  });
+  state.locations.push(nl);
+  dbAdd('locations',{id:nl.id,name:name,address:addr,lat:lat,lng:lng,radius:radius});
+  renderLocationsList();renderAdminStats();renderQRLocSelect();
+  document.getElementById('loc-name').value='';
+  document.getElementById('loc-addr').value='';
+  showToast('شعبه ذخیره شد','success');
 }
 
 function deleteLocation(id){
@@ -1271,21 +1266,16 @@ function addPersonnel(){
   if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
   var exists=state.personnel.find(function(p){return p.nationalId===nid;});
   if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
-  var btn=document.querySelector('#tab-personnel .btn-primary');
-  if(btn){btn.textContent='در حال ذخیره...';btn.disabled=true;}
   var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
   var row={id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked};
   if(email)row.email=email;
-  dbAdd('personnel',row).then(function(r){
-    if(btn){btn.textContent='ذخیره پرسنل';btn.disabled=false;}
-    if(r&&r.error)return;
-    state.personnel.push(np);
-    renderPersonnelList();renderAdminStats();
-    document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
-    document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
-    if(eEl)eEl.value='';
-    showToast('پرسنل ذخیره شد','success');
-  });
+  state.personnel.push(np);
+  dbAdd('personnel',row);
+  renderPersonnelList();renderAdminStats();
+  document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
+  document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
+  if(eEl)eEl.value='';
+  showToast('پرسنل ذخیره شد','success');
 }
 
 function openEditPersonnel(id){
