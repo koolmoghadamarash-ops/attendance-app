@@ -1266,6 +1266,7 @@ function addPersonnel(){
   var checked=Array.from(document.querySelectorAll('#loc-checkboxes input:checked')).map(function(c){return c.value;});
   if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
   if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
+  if(!checked.length){showToast('حداقل یک شعبه را انتخاب کنید','error');return;}
   var exists=state.personnel.find(function(p){return p.nationalId===nid;});
   if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
   var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
