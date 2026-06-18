@@ -2,28 +2,26 @@
 <html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{font-family:monospace;padding:20px;background:#111;color:#0f0;font-size:13px}
+button{padding:12px;background:#00d4ff;color:#000;border:none;border-radius:8px;width:100%;margin:6px 0}
 div{margin:4px 0;padding:8px;background:#222;border-radius:4px;word-break:break-all}</style>
 </head><body>
-<h3>تست خواندن از دیتابیس</h3>
-<div id="log">شروع...</div>
+<h3>تست ثبت لاگ</h3>
+<button onclick="addLog()">ثبت یک لاگ تستی</button>
+<button onclick="getLogs()">خواندن لاگ‌ها</button>
+<div id="log"></div>
 <script>
 var API='https://bold-tereshkova-gqbaxsgi.liara.run/api.php';
 var L=document.getElementById('log');
-function log(m,c){L.innerHTML=L.innerHTML+'<div style="color:'+(c||'#0f0')+'">'+m+'</div>';}
+function log(m,c){L.innerHTML='<div style="color:'+(c||"#0f0")+'">'+m+'</div>'+L.innerHTML;}
 
-log('صفحه: '+location.protocol,'#ff0');
-
-function dbGet(t){
-  return fetch(API+'?table='+t).then(function(r){return r.ok?r.json():[];}).catch(function(e){log(t+' خطا: '+e.message,'#f00');return [];});
+function addLog(){
+  var row={id:'log_'+Date.now(),user_id:'1111',user_name:'تست',location_id:'loc_1',location_name:'شعبه تست',type:'in',date:'2026-06-18',time:'10:30',timestamp:new Date().toISOString(),lat:35.7,lng:51.4};
+  log('ارسال: timestamp='+row.timestamp,'#ff0');
+  fetch(API+'?table=logs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)})
+  .then(function(r){return r.text().then(function(t){log('Status '+r.status+': '+t,r.ok?'#0f0':'#f00');});})
+  .catch(function(e){log('خطا: '+e.message,'#f00');});
 }
-
-Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]).then(function(res){
-  log('شعبه‌ها: '+res[0].length+' تا','#0ff');
-  log('پرسنل: '+res[1].length+' تا','#0ff');
-  if(res[1].length>0){
-    log('اولین پرسنل: '+JSON.stringify(res[1][0]),'#0f0');
-  }
-  log('لاگ‌ها: '+res[2].length+' تا','#0ff');
-  log('پیام‌ها: '+res[3].length+' تا','#0ff');
-});
+function getLogs(){
+  fetch(API+'?table=logs').then(function(r){return r.text();}).then(function(t){log('لاگ‌ها: '+t,'#0ff');});
+}
 </script></body></html>
