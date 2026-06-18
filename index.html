@@ -1461,12 +1461,34 @@ function initAddMap(){
 async function searchCity(){
   var q=document.getElementById('city-search-input').value.trim();
   if(!q)return;
-  fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(q)+'&format=json&limit=1')
+  showToast('در حال جستجو...','info');
+  // تلاش اول: nominatim با هدر مناسب
+  fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&accept-language=fa&q='+encodeURIComponent(q),{headers:{'Accept':'application/json'}})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(d&&d[0]){addMap.setView([+d[0].lat,+d[0].lon],15);showToast('شهر یافت شد','success');}
-      else showToast('شهر پیدا نشد','error');
-    }).catch(function(){showToast('خطا در جستجو','error');});
+      if(d&&d[0]){
+        if(addMap)addMap.setView([+d[0].lat,+d[0].lon],15);
+        showToast('مکان یافت شد','success');
+      }else{
+        searchCityFallback(q);
+      }
+    }).catch(function(){searchCityFallback(q);});
+}
+function searchCityFallback(q){
+  // تلاش دوم: سرویس photon
+  fetch('https://photon.komoot.io/api/?limit=1&q='+encodeURIComponent(q))
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d&&d.features&&d.features[0]){
+        var c=d.features[0].geometry.coordinates;
+        if(addMap)addMap.setView([c[1],c[0]],15);
+        showToast('مکان یافت شد','success');
+      }else{
+        showToast('مکان پیدا نشد - نقشه را دستی جابجا کنید','error');
+      }
+    }).catch(function(){
+      showToast('جستجو در دسترس نیست - نقشه را دستی جابجا کنید','error');
+    });
 }
 
 function useMyLocationForMap(){
