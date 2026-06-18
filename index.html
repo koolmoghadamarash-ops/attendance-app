@@ -929,9 +929,10 @@ body::before{
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
     <div class="scan-overlay">
-      <video id="qr-video" autoplay playsinline></video>
+      <video id="qr-video" autoplay playsinline style="display:none"></video>
       <canvas id="qr-canvas" style="display:none"></canvas>
     </div>
+    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
@@ -1053,10 +1054,11 @@ function saveLogs(){}
 
 // ════ QR TOKEN ════
 function getQRToken(locId){
-  // Token changes every hour — based on locId + current hour
+  // توکن هر ۱۵ دقیقه عوض می‌شود
   var now=new Date();
-  var hourKey=((now.getFullYear())+'-'+(now.getMonth())+'-'+(now.getDate())+'-'+(now.getHours()));
-  return btoa(('HG:'+(locId)+':'+(hourKey))).replace(/=/g,'');
+  var slot=Math.floor(now.getMinutes()/15);
+  var key=((now.getFullYear())+'-'+(now.getMonth())+'-'+(now.getDate())+'-'+(now.getHours())+'-'+slot);
+  return btoa(('HG:'+(locId)+':'+(key))).replace(/=/g,'');
 }
 
 function getNextHourSeconds(){
@@ -1090,6 +1092,9 @@ function doLogout(){
 
 // ════ SCREENS ════
 function showScreen(n){
+  // هر بار که صفحه عوض می‌شود، دوربین و مودال اسکن را ببند
+  try{stopQRScan();}catch(e){}
+  var qm=document.getElementById('qr-scan-modal');if(qm)qm.classList.remove('open');
   document.querySelectorAll('.screen').forEach(function(s){return s.classList.remove('active');});
   document.getElementById('screen-'+n).classList.add('active');
   if(n==='admin') setTimeout(function(){initAddMap();renderQRLocSelect();},400);
@@ -1169,8 +1174,9 @@ function openQRScan(type){
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
+  var video=document.getElementById('qr-video');if(video)video.style.display='none';
+  var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
   document.getElementById('qr-scan-modal').classList.add('open');
-  startCamera();
 }
 
 function closeQRScan(){
@@ -1188,13 +1194,20 @@ function stopQRScan(){
 
 function startCamera(){
   var video=document.getElementById('qr-video');
+  var sb=document.getElementById('qr-start-btn');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    showToast('دوربین پشتیبانی نمیشود','error');closeQRScan();return;
+    showToast('دوربین پشتیبانی نمیشود','error');return;
   }
+  if(sb)sb.style.display='none';
+  document.getElementById('qr-scan-result').style.display='none';
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;video.srcObject=stream;video.style.display='block';video.play();
+    if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
-  }).catch(function(e){showToast('دسترسی به دوربین رد شد','error');closeQRScan();});
+  }).catch(function(e){
+    showToast('دسترسی به دوربین رد شد','error');
+    if(sb)sb.style.display='block';
+  });
 }
 
 function scanFrame(){
@@ -1274,7 +1287,7 @@ function showResult(msg,type){
 }
 function retryQRScan(){
   document.getElementById('qr-scan-result').style.display='none';
-  startCamera();
+  var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
 }
 
 // ════ QR GENERATOR ════
