@@ -166,8 +166,13 @@ function registerLog(locId,locName,lat,lng,method){
 
 // ════ ADMIN ════
 function renderAdmin(){
-  var sl=localStorage.getItem('hg_leaves');if(sl)try{state.leaves=JSON.parse(sl);}catch(e){}
-  loadDB().then(function(){renderAdminStats();renderLocationsList();renderPersonnelList();renderQRLocSelect();});
+  loadDB().then(function(){
+    try{renderAdminStats();}catch(e){alert('renderAdminStats error: '+e.message);}
+    try{renderLocationsList();}catch(e){alert('renderLocationsList error: '+e.message);}
+    try{renderPersonnelList();}catch(e){alert('renderPersonnelList error: '+e.message);}
+    try{renderQRLocSelect();}catch(e){alert('renderQRLocSelect error: '+e.message);}
+    alert('لود شد: '+state.personnel.length+' پرسنل، '+state.locations.length+' شعبه');
+  }).catch(function(e){alert('loadDB error: '+e.message);});
 }
 function adminTab(tab,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
