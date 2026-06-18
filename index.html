@@ -1186,7 +1186,7 @@ function stopQRScan(){
   video.srcObject=null;
 }
 
-async function startCamera(){
+function startCamera(){
   var video=document.getElementById('qr-video');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     showToast('دوربین پشتیبانی نمیشود','error');closeQRScan();return;
@@ -1264,7 +1264,17 @@ function processQRCode(data){
 
 function showResult(msg,type){
   var el=document.getElementById('qr-scan-result');
-  el.textContent=msg;el.className='qr-result '+type;el.style.display='block';
+  el.className='qr-result '+type;el.style.display='block';
+  if(type==='error'){
+    el.innerHTML='<div style="margin-bottom:10px">'+msg+'</div>'+
+      '<button class="btn btn-primary" style="width:100%" onclick="retryQRScan()">📷 تلاش دوباره</button>';
+  }else{
+    el.textContent=msg;
+  }
+}
+function retryQRScan(){
+  document.getElementById('qr-scan-result').style.display='none';
+  startCamera();
 }
 
 // ════ QR GENERATOR ════
@@ -1458,7 +1468,7 @@ function initAddMap(){
   });
 }
 
-async function searchCity(){
+function searchCity(){
   var q=document.getElementById('city-search-input').value.trim();
   if(!q)return;
   showToast('در حال جستجو...','info');
