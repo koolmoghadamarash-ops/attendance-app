@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:monospace;padding:20px;background:#111;color:#0f0;font-size:13px}
+div{margin:4px 0;padding:8px;background:#222;border-radius:4px;word-break:break-all}</style>
+</head><body>
+<h3>CORS Test</h3>
+<div id="log">شروع خودکار...</div>
+<script>
+var L=document.getElementById('log');
+function log(m,c){L.innerHTML='<div style="color:'+(c||'#0f0')+'">'+m+'</div>'+L.innerHTML;}
+log('صفحه: '+location.protocol,'#ff0');
+log('در حال اتصال به API...','#ff0');
+fetch('https://bold-tereshkova-gqbaxsgi.liara.run/api.php?table=personnel')
+.then(function(r){
+  log('Status: '+r.status,r.ok?'#0f0':'#f00');
+  return r.text();
+}).then(function(t){
+  log('موفق! داده: '+t,'#0ff');
+}).catch(function(e){
+  log('خطا: '+e.message,'#f00');
+  log('نوع: '+e.name,'#f00');
+});
+</script></body></html>
