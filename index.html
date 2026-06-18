@@ -167,12 +167,8 @@ function registerLog(locId,locName,lat,lng,method){
 // ════ ADMIN ════
 function renderAdmin(){
   loadDB().then(function(){
-    try{renderAdminStats();}catch(e){alert('renderAdminStats error: '+e.message);}
-    try{renderLocationsList();}catch(e){alert('renderLocationsList error: '+e.message);}
-    try{renderPersonnelList();}catch(e){alert('renderPersonnelList error: '+e.message);}
-    try{renderQRLocSelect();}catch(e){alert('renderQRLocSelect error: '+e.message);}
-    alert('لود شد: '+state.personnel.length+' پرسنل، '+state.locations.length+' شعبه');
-  }).catch(function(e){alert('loadDB error: '+e.message);});
+    renderAdminStats();renderLocationsList();renderPersonnelList();renderQRLocSelect();
+  });
 }
 function adminTab(tab,el){
   document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
@@ -429,20 +425,9 @@ function buildMonthReport(pid,month,el,size){
     function fmt(x){if(!x)return '\u2014';var h=Math.floor(x/60),mn=x%60;return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);}
     rows+='<tr style="background:'+(d%2?'var(--card)':'var(--bg3)')+'"><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px">'+gregToJalali(ds)+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px">'+(fi||'\u2014')+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px">'+(lo||'\u2014')+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px">'+fmt(wm)+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--red)">'+(lm?fmt(lm):'\u2014')+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:11px;color:var(--green)">'+(om?fmt(om):'\u2014')+'</td><td style="padding:5px 6px;border-bottom:1px solid var(--border);font-size:10px;color:'+sc+';font-weight:600">'+status+'</td></tr>';
   }
-  function fmt(x){if(!x)return '\u2014';var h=Math.floor(x/60),mn=x%60;return toPersianNum(h)+':'+(mn<10?'0':'')+toPersianNum(mn);}
-  var th=Math.floor(twm/60),tm=twm%60,lh=Math.floor(tlm/60),lmm=tlm%60,oh=Math.floor(tom/60),omm=tom%60;
-  el.innerHTML=
-    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px">'+
-    '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--accent)">'+toPersianNum(th)+':'+toPersianNum(tm<10?'0'+tm:tm)+'</div><div style="font-size:10px;color:var(--text2)">\u06a9\u0627\u0631\u06a9\u0631\u062f</div></div>'+
-    '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+toPersianNum(lh)+':'+toPersianNum(lmm<10?'0'+lmm:lmm)+'</div><div style="font-size:10px;color:var(--text2)">\u062a\u0627\u062e\u06cc\u0631</div></div>'+
-    '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--green)">'+toPersianNum(oh)+':'+toPersianNum(omm<10?'0'+omm:omm)+'</div><div style="font-size:10px;color:var(--text2)">\u0627\u0636\u0627\u0641\u0647</div></div>'+
-    '<div style="background:var(--card);border-radius:10px;padding:8px;text-align:center;border:1px solid var(--border)"><div style="font-size:14px;font-weight:700;color:var(--red)">'+toPersianNum(tab)+'</div><div style="font-size:10px;color:var(--text2)">\u063a\u06cc\u0628\u062a</div></div></div>'+
-    '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:11px">'+
-    '<thead><tr style="background:var(--accent);color:#000"><th style="padding:6px;text-align:right">\u062a\u0627\u0631\u06cc\u062e</th><th style="padding:6px;text-align:right">\u0648\u0631\u0648\u062f</th><th style="padding:6px;text-align:right">\u062e\u0631\u0648\u062c</th><th style="padding:6px;text-align:right">\u06a9\u0627\u0631\u06a9\u0631\u062f</th><th style="padding:6px;text-align:right">\u062a\u0627\u062e\u06cc\u0631</th><th style="padding:6px;text-align:right">\u0627\u0636\u0627\u0641\u0647</th><th style="padding:6px;text-align:right">\u0648\u0636\u0639\u06cc\u062a</th></tr></thead>'+
-    '<tbody>'+rows+'</tbody></table></div>';
+  
 }
 
-// ════ EMPLOYEE TABS ════
 function empTab(tab,el){
   var tabs=['today','monthly','leaves'];
   tabs.forEach(function(t){
@@ -1323,24 +1308,7 @@ function openFullscreenQR(){
 function closeFullscreenQR(){document.getElementById('fullscreen-qr').style.display='none';}
 
 // ════ ADMIN ════
-function adminTab(tab,el){
-  document.querySelectorAll('.tab').forEach(function(t){return t.classList.remove('active');});
-  el.classList.add('active');
-  document.querySelectorAll('.tab-content').forEach(function(c){return c.style.display='none';});
-  document.getElementById('tab-'+tab).style.display='block';
-  if(tab==='personnel')renderLocCheckboxes('loc-checkboxes',[]);
-  if(tab==='reports'){loadReportFilters();loadReports();}
-  if(tab==='locations')setTimeout(function(){if(addMap)addMap.invalidateSize();},200);
-  if(tab==='qr')renderQRLocSelect();
-}
 
-function renderAdmin(){renderAdminStats();renderLocationsList();renderPersonnelList();}
-
-function renderAdminStats(){
-  var today=todayStr();
-  var presentToday=new Set(state.logs.filter(function(l){return l.date===today&&l.type==='in';}).map(function(l){return l.userId;})).size;
-  document.getElementById('admin-stats').innerHTML=('\n    <div class="stat-box"><div class="stat-num" style="color:var(--accent)">'+(toPersianNum(state.locations.length))+'</div><div class="stat-label">شعبه</div></div>\n    <div class="stat-box"><div class="stat-num" style="color:var(--purple)">'+(toPersianNum(state.personnel.length))+'</div><div class="stat-label">پرسنل</div></div>\n    <div class="stat-box"><div class="stat-num" style="color:var(--green)">'+(toPersianNum(presentToday))+'</div><div class="stat-label">حاضر امروز</div></div>\n    <div class="stat-box"><div class="stat-num" style="color:var(--orange)">'+(toPersianNum(state.logs.filter(function(l){return l.date===today;}).length))+'</div><div class="stat-label">ثبت امروز</div></div>');
-}
 
 function renderLocationsList(){
   var list=document.getElementById('locations-list');
@@ -1510,12 +1478,6 @@ function useMyLocationForMap(){
 }
 
 // ── Reports ──
-function loadReportFilters(){
-  document.getElementById('filter-person').innerHTML='<option value="">همه پرسنل</option>'+
-    state.personnel.map(function(p){return ('<option value="'+(p.nationalId)+'">'+(p.fname)+' '+(p.lname)+'</option>');}).join('');
-  var dates=Array.prototype.slice.call(new Set(state.logs.map(function(l){return l.date;}))).sort().reverse();
-  document.getElementById('filter-date').innerHTML='<option value="">همه تاریخ‌ها</option>'+dates.map(function(d){return ('<option value="'+(d)+'">'+(d)+'</option>');}).join('');
-}
 
 function loadReports(){
   var pid=document.getElementById('filter-person').value;
@@ -1551,7 +1513,7 @@ function exportExcel(){
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
-// ════ UTILS ═══
+// ════ UTILS ════
 function todayStr(){return new Date().toLocaleDateString('fa-IR');}
 function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
