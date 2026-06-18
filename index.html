@@ -159,7 +159,7 @@ function registerLog(locId,locName,lat,lng,method){
   var u=state.currentUser;var now=new Date();
   var log={id:'log_'+Date.now(),userId:u.nationalId,userName:u.fname+' '+u.lname,locationId:locId,locationName:locName,type:state.checkinType,date:todayStr(),time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),timestamp:now.toISOString(),lat:lat,lng:lng};
   state.logs.push(log);
-  dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:log.locationId,location_name:log.locationName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,lat:lat,lng:lng,method:method||'gps'});
+  dbAdd('logs',{id:log.id,user_id:log.userId,user_name:log.userName,location_id:log.locationId,location_name:log.locationName,type:log.type,date:log.date,time:log.time,timestamp:log.timestamp,lat:lat,lng:lng});
   updateEmpStatus();renderTodayLogs();
   showToast(state.checkinType==='in'?'&#10003; \u0648\u0631\u0648\u062f \u062f\u0631 '+locName+' \u062b\u0628\u062a \u0634\u062f':'&#10003; \u062e\u0631\u0648\u062c \u0627\u0632 '+locName+' \u062b\u0628\u062a \u0634\u062f','success');
 }
@@ -1129,13 +1129,17 @@ setInterval(function(){
 function initEmployee(){
   var u=state.currentUser;
   document.getElementById('emp-name').textContent=u.fname+' '+u.lname;
-  document.getElementById('emp-avatar').textContent=u.fname[0];
-  var locs=(u.locations||[]).map(function(id){
-    var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;
-  }).filter(Boolean).join(' - ');
-  document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
-  var sl=localStorage.getItem('hg_leaves');if(sl)try{state.leaves=JSON.parse(sl);}catch(e){}
-  updateEmpStatus();renderTodayLogs();checkInboxDot();
+  document.getElementById('emp-avatar').textContent=(u.fname||'?').charAt(0);
+  // همیشه از دیتابیس تازه بخوان
+  loadDB().then(function(){
+    var cu=state.personnel.find(function(p){return p.nationalId===u.nationalId;});
+    if(cu){state.currentUser=Object.assign({type:'employee'},cu);u=state.currentUser;}
+    var locs=(u.locations||[]).map(function(id){
+      var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;
+    }).filter(Boolean).join(' - ');
+    document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
+    updateEmpStatus();renderTodayLogs();checkInboxDot();
+  });
 }
 
 function updateEmpStatus(){
@@ -1250,7 +1254,7 @@ function processQRCode(data){
   stopQRScan();
   // Register checkin
   var now=new Date();
-  state.logs.push({
+  var qlog={
     id:'log_'+Date.now(),
     userId:state.currentUser.nationalId,
     userName:state.currentUser.fname+' '+state.currentUser.lname,
@@ -1259,10 +1263,10 @@ function processQRCode(data){
     type:state.checkinType,
     date:todayStr(),
     time:now.toLocaleTimeString('fa-IR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),
-    timestamp:now.toISOString(),
-    method:'qr',
-  });
-  saveLogs();
+    timestamp:now.toISOString()
+  };
+  state.logs.push(qlog);
+  dbAdd('logs',{id:qlog.id,user_id:qlog.userId,user_name:qlog.userName,location_id:qlog.locationId,location_name:qlog.locationName,type:qlog.type,date:qlog.date,time:qlog.time,timestamp:qlog.timestamp,lat:null,lng:null});
   document.getElementById('qr-scan-modal').classList.remove('open');
   showToast(state.checkinType==='in'?('✅ ورود در '+(locName)+' ثبت شد'):('✅ خروج از '+(locName)+' ثبت شد'),'success');
   updateEmpStatus();renderTodayLogs();
@@ -1358,8 +1362,8 @@ function addLocation(){
 function deleteLocation(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.locations=state.locations.filter(function(l){return l.id!==id;});
-  state.personnel.forEach(function(p){p.locations=p.locations.filter(function(lid){return lid!==id;});});
-  saveLocations();savePersonnel();renderLocationsList();renderAdminStats();renderQRLocSelect();
+  dbDel('locations',id);
+  renderLocationsList();renderAdminStats();renderQRLocSelect();
   showToast('شعبه حذف شد','error');
 }
 
@@ -1378,7 +1382,10 @@ function saveEditLocation(){
   if(!name){showToast('نام الزامی است','error');return;}
   var idx=state.locations.findIndex(function(l){return l.id===id;});if(idx<0)return;
   state.locations[idx]=Object.assign({},state.locations[idx],{name:name,address:addr});
-  saveLocations();renderLocationsList();renderQRLocSelect();
+  var _lid=document.getElementById('edit-loc-id').value;
+  var _lidx=state.locations.findIndex(function(l){return l.id===_lid;});
+  if(_lidx>=0){var _l=state.locations[_lidx];dbEdit('locations',_lid,{name:_l.name,address:_l.address});}
+  renderLocationsList();renderQRLocSelect();
   document.getElementById('edit-loc-modal').classList.remove('open');
   showToast('شعبه ویرایش شد ✅','success');
 }
@@ -1449,7 +1456,10 @@ function saveEditPersonnel(){
   if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
   var idx=state.personnel.findIndex(function(p){return p.id===id;});if(idx<0)return;
   state.personnel[idx]=Object.assign({},state.personnel[idx],{fname:fname,lname:lname,nationalId:nid,locations:locs},(pass?{password:pass}:{}));
-  savePersonnel();renderPersonnelList();
+  var _pid=document.getElementById('edit-per-id').value;
+  var _pidx=state.personnel.findIndex(function(p){return p.id===_pid;});
+  if(_pidx>=0){var _p=state.personnel[_pidx];dbEdit('personnel',_pid,{fname:_p.fname,lname:_p.lname,national_id:_p.nationalId,password:_p.password,locations:_p.locations});}
+  renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
   showToast('پرسنل ویرایش شد ✅','success');
 }
@@ -1457,7 +1467,8 @@ function saveEditPersonnel(){
 function deletePersonnel(id){
   if(!confirm('آیا مطمئن هستید؟'))return;
   state.personnel=state.personnel.filter(function(p){return p.id!==id;});
-  savePersonnel();renderPersonnelList();renderAdminStats();
+  dbDel('personnel',id);
+  renderPersonnelList();renderAdminStats();
   showToast('پرسنل حذف شد','error');
 }
 
