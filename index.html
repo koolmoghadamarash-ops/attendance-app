@@ -589,6 +589,70 @@ input[type=range]{accent-color:var(--accent);width:100%}
 #qr-video{width:100%;border-radius:12px;display:none}
 .scan-overlay{position:relative}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
+
+/* ════ خفن‌سازی (فاز ۳) ════ */
+:root{
+  --glow:0 0 24px rgba(0,212,255,0.35);
+  --glow-green:0 0 20px rgba(0,230,118,0.4);
+  --glass:rgba(26,45,74,0.55);
+}
+/* پس‌زمینه‌ی متحرک با نقاط نورانی */
+body::before{
+  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(circle at 15% 20%,rgba(0,212,255,0.08),transparent 35%),
+    radial-gradient(circle at 85% 75%,rgba(167,139,250,0.07),transparent 35%),
+    radial-gradient(circle at 50% 50%,rgba(0,102,255,0.04),transparent 50%);
+}
+/* کارت‌های شیشه‌ای */
+.login-box,.stat-card,.card,.report-card,.tab-content,.modal-box{
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+}
+/* لوگوی لاگین با درخشش متحرک */
+.login-logo .icon-wrap{
+  box-shadow:0 8px 32px rgba(0,212,255,0.4);
+  animation:logoPulse 3s ease-in-out infinite;
+}
+@keyframes logoPulse{
+  0%,100%{box-shadow:0 8px 32px rgba(0,212,255,0.35);}
+  50%{box-shadow:0 8px 48px rgba(0,212,255,0.6);}
+}
+/* دکمه‌های اصلی با درخشش */
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),#0066ff)!important;
+  box-shadow:0 4px 20px rgba(0,212,255,0.3);
+  transition:all 0.25s ease;border:none!important;
+}
+.btn-primary:active{transform:scale(0.97);box-shadow:0 2px 12px rgba(0,212,255,0.5);}
+.btn-primary:hover{box-shadow:0 6px 28px rgba(0,212,255,0.5);}
+/* کارت‌های آماری با hover */
+.stat-card{transition:transform 0.2s ease,box-shadow 0.2s ease;cursor:pointer;}
+.stat-card:active{transform:translateY(2px);}
+.stat-card:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,212,255,0.2);}
+/* انیمیشن ورود صفحه */
+.screen.active{animation:fadeInUp 0.4s ease;}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+/* انیمیشن ورود کارت‌ها */
+.stat-card,.report-card,.card{animation:cardIn 0.4s ease backwards;}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+/* تب‌های فعال با خط درخشان */
+.tab.active{position:relative;}
+.tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:20%;right:20%;height:2px;
+  background:var(--accent);box-shadow:var(--glow);border-radius:2px;
+}
+/* اسکرول‌بار سفارشی */
+::-webkit-scrollbar{width:8px;height:8px;}
+::-webkit-scrollbar-track{background:var(--bg2);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+::-webkit-scrollbar-thumb:hover{background:var(--accent);}
+/* دکمه‌های ورود/خروج با درخشش */
+.checkin-btn,.btn-checkin{box-shadow:var(--glow);transition:all 0.25s ease;}
+.checkin-btn:active,.btn-checkin:active{transform:scale(0.97);}
+/* ساعت بزرگ با درخشش ملایم */
+.clock-time,.emp-clock{text-shadow:0 0 20px rgba(0,212,255,0.3);}
+/* toast خفن‌تر */
+.toast{backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
