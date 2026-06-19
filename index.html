@@ -770,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۲</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۳</button>
       </div>
     </div>
 
@@ -933,7 +933,7 @@ body::before{
     <div class="modal-handle"></div>
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <video id="qr-video" autoplay playsinline muted style="width:100%;height:300px;object-fit:cover;border-radius:12px;background:#000;display:none"></video>
+    <video id="qr-video" autoplay playsinline muted style="width:100%;height:260px;object-fit:cover;border-radius:10px;background:#222;display:block"></video>
     <canvas id="qr-canvas" style="display:none"></canvas>
     <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
     <div id="qr-scan-result" class="qr-result"></div>
@@ -1193,7 +1193,6 @@ function openQRScan(type){
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
-  var video=document.getElementById('qr-video');if(video)video.style.display='none';
   var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
   document.getElementById('qr-scan-modal').classList.add('open');
 }
@@ -1222,20 +1221,8 @@ function startCamera(){
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.srcObject=stream;
-    video.setAttribute('playsinline','');
-    video.muted=true;
-    video.style.display='block';
-    video.style.width='100%';
-    video.style.height='300px';
-    video.style.objectFit='cover';
-    // ترفند iOS: بعد از آماده شدن متادیتا، پخش کن و رندر را مجبور کن
-    video.onloadedmetadata=function(){
-      video.play();
-      // تکان دادن برای رندر روی iOS
-      video.style.transform='translateZ(0)';
-      setTimeout(function(){video.style.transform='none';},50);
-    };
-    video.play();
+    var p=video.play();
+    if(p&&p.catch)p.catch(function(){});
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
