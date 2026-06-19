@@ -612,7 +612,7 @@ body{font-family:'Vazirmatn','Tahoma',sans-serif;background:var(--bg);color:var(
 input[type=range]{accent-color:var(--accent);width:100%}
 .excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
 /* QR Scanner video */
-#qr-video{width:100%;border-radius:12px;display:none}
+#qr-video{width:100%;height:240px;object-fit:cover;border-radius:12px}
 .scan-overlay{position:relative;min-height:240px;background:#000;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
 
@@ -769,7 +769,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۴</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۵</button>
       </div>
     </div>
 
@@ -1228,6 +1228,8 @@ function startCamera(){
     video.muted=true;
     video.srcObject=stream;
     video.style.display='block';
+    video.style.width='100%';
+    video.style.height='240px';
     var pp=video.play();
     if(pp&&pp.then){pp.then(function(){}).catch(function(err){
       showToast('خطا در پخش دوربین','error');
