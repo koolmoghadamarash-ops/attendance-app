@@ -4,7 +4,9 @@
 
 <script>
 window.onerror=function(msg,src,line,col,err){
-  alert('خطای برنامه:\n'+msg+'\nخط: '+line);
+  var detail=msg+'\nخط: '+line+'\nمنبع: '+(src||'').split('/').pop();
+  if(err&&err.stack)detail+='\n'+err.stack.substring(0,200);
+  alert('خطا: '+detail);
   return false;
 };
 </script>
@@ -1592,6 +1594,19 @@ document.head.appendChild(s);
 document.getElementById('qr-scan-modal').addEventListener('click',function(e){if(e.target===this)closeQRScan();});
 document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
+
+
+// تست: آیا توابع تعریف شدند؟
+window.addEventListener('load',function(){
+  setTimeout(function(){
+    var msg='تست توابع:\n';
+    msg+='openScanDirect: '+(typeof openScanDirect)+'\n';
+    msg+='startCamera: '+(typeof startCamera)+'\n';
+    msg+='startCheckin: '+(typeof startCheckin)+'\n';
+    msg+='doLogin: '+(typeof doLogin);
+    if(typeof openScanDirect!=='function'){alert(msg);}
+  },1000);
+});
 </script>
 </body>
 </html>
