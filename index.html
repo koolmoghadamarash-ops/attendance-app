@@ -769,7 +769,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۶</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۷</button>
       </div>
     </div>
 
@@ -1220,8 +1220,18 @@ function startCamera(){
   document.getElementById('qr-scan-result').style.display='none';
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
+    video.setAttribute('autoplay','');
+    video.setAttribute('muted','');
+    video.setAttribute('playsinline','');
+    video.muted=true;
+    video.playsInline=true;
     video.srcObject=stream;
     video.style.display='block';
+    video.onloadedmetadata=function(){
+      video.play().then(function(){}).catch(function(){});
+    };
+    var pp=video.play();
+    if(pp&&pp.catch)pp.catch(function(){});
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
