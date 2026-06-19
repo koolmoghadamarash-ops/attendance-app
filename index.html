@@ -12,6 +12,12 @@
   }catch(e){}
 })();
 </script>
+<script>
+window.onerror=function(msg,src,line,col,err){
+  alert('خطای برنامه:\n'+msg+'\nخط: '+line);
+  return false;
+};
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="theme-color" content="#0a1628">
