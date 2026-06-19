@@ -770,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۳</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۴</button>
       </div>
     </div>
 
@@ -933,9 +933,12 @@ body::before{
     <div class="modal-handle"></div>
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <video id="qr-video" autoplay playsinline muted style="width:100%;height:260px;object-fit:cover;border-radius:10px;background:#222;display:block"></video>
+    <video id="qr-video" autoplay playsinline muted style="width:100%;height:260px;object-fit:cover;border-radius:10px;background:#222;display:none"></video>
     <canvas id="qr-canvas" style="display:none"></canvas>
-    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
+    <img id="qr-preview" style="width:100%;border-radius:10px;display:none;margin-bottom:8px">
+    <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleQRPhoto(event)">
+    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="openNativeCamera()">📷 گرفتن عکس از QR کد</button>
+    <button class="btn btn-ghost" id="qr-live-btn" style="width:100%;margin-top:8px" onclick="startCamera()">یا دوربین زنده</button>
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
@@ -1208,6 +1211,44 @@ function stopQRScan(){
   var video=document.getElementById('qr-video');
   video.style.display='none';
   video.srcObject=null;
+}
+
+function openNativeCamera(){
+  var inp=document.getElementById('qr-file-input');
+  if(inp)inp.click();
+}
+
+function handleQRPhoto(e){
+  var file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  var reader=new FileReader();
+  reader.onload=function(ev){
+    var img=new Image();
+    img.onload=function(){
+      var canvas=document.getElementById('qr-canvas');
+      var ctx=canvas.getContext('2d');
+      var maxDim=1000;
+      var w=img.width,h=img.height;
+      if(w>maxDim||h>maxDim){
+        if(w>h){h=Math.round(h*maxDim/w);w=maxDim;}
+        else{w=Math.round(w*maxDim/h);h=maxDim;}
+      }
+      canvas.width=w;canvas.height=h;
+      ctx.drawImage(img,0,0,w,h);
+      var preview=document.getElementById('qr-preview');
+      if(preview){preview.src=ev.target.result;preview.style.display='block';}
+      try{
+        var imgData=ctx.getImageData(0,0,w,h);
+        if(typeof jsQR!=='undefined'){
+          var code=jsQR(imgData.data,imgData.width,imgData.height);
+          if(code&&code.data){processQRCode(code.data);}
+          else{showToast('QR کد در عکس پیدا نشد، دوباره و واضح‌تر عکس بگیرید','error');}
+        }else{showToast('کتابخانه QR هنوز بارگذاری نشده','error');}
+      }catch(err){showToast('خطا در خواندن عکس','error');}
+    };
+    img.src=ev.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function startCamera(){
