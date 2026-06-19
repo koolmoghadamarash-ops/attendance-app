@@ -726,6 +726,7 @@ body::before{
 }
 .live-num{font-size:32px;font-weight:800;color:var(--green);line-height:1;}
 .live-label{font-size:13px;color:var(--text2);}
+
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -769,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۸</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۰</button>
       </div>
     </div>
 
@@ -1223,6 +1224,9 @@ function startCamera(){
     video.srcObject=stream;
     video.style.display='block';
     video.play();
+    setTimeout(function(){
+      alert('دوربین: videoWidth='+video.videoWidth+' x '+video.videoHeight+'\ndisplay='+getComputedStyle(video).display+'\nvisibility='+getComputedStyle(video).visibility+'\nopacity='+getComputedStyle(video).opacity+'\nheight='+getComputedStyle(video).height);
+    },1500);
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
