@@ -135,7 +135,6 @@ function startCheckin(type){
 }
 function handleGPSFail(type,userLocs,u){
   var loc=userLocs[0];var qrToken=getQRToken(loc.id);var email=u.email||'';
-  openQRScan(type);
   if(email&&email.indexOf('@')>0){
     showToast('\u0627\u0631\u0633\u0627\u0644 QR \u0628\u0647 '+email+'...','info');
     sendQRByEmail(email,u.fname+' '+u.lname,loc.name,qrToken).then(function(ok){if(ok)showEmailSentPopup(email);else showNoGPSPopup();});
@@ -145,8 +144,8 @@ function closeEmailPopup(){var p=document.getElementById('email-popup');if(p)p.r
 function showEmailSentPopup(email){
   var p=document.createElement('div');p.id='email-popup';
   p.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9999;background:var(--card);border:2px solid var(--accent);border-radius:20px;padding:28px 24px;width:85%;max-width:320px;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,0.7);font-family:Vazirmatn,Tahoma,sans-serif;direction:rtl';
-  p.innerHTML='<div style="font-size:48px;margin-bottom:12px">&#128233;</div><div style="font-size:16px;font-weight:700;margin-bottom:8px">\u0627\u06cc\u0645\u06cc\u0644 \u0627\u0631\u0633\u0627\u0644 \u0634\u062f</div><div style="font-size:13px;color:var(--text2);margin-bottom:6px">QR \u0628\u0647</div><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px;word-break:break-all">'+email+'</div><div style="font-size:12px;color:var(--text3);margin-bottom:20px">\u0627\u0631\u0633\u0627\u0644 \u0634\u062f \u2014 QR \u0631\u0627 \u0627\u0633\u06a9\u0646 \u06a9\u0646\u06cc\u062f</div><button onclick="closeEmailPopup()" style="padding:12px 32px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Vazirmatn,Tahoma,sans-serif">\u0645\u062a\u0648\u062c\u0647 \u0634\u062f\u0645</button>';
-  document.body.appendChild(p);setTimeout(function(){closeEmailPopup();},6000);
+  p.innerHTML='<div style="font-size:48px;margin-bottom:12px">&#128233;</div><div style="font-size:16px;font-weight:700;margin-bottom:8px">\u0627\u06cc\u0645\u06cc\u0644 \u0627\u0631\u0633\u0627\u0644 \u0634\u062f</div><div style="font-size:13px;color:var(--text2);margin-bottom:6px">QR \u0628\u0647</div><div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:16px;word-break:break-all">'+email+'</div><div style="font-size:12px;color:var(--text3);margin-bottom:20px">\u0627\u0631\u0633\u0627\u0644 \u0634\u062f \u2014 QR \u0631\u0627 \u0627\u0633\u06a9\u0646 \u06a9\u0646\u06cc\u062f</div><button onclick="closeEmailPopup();openScanDirect();" style="padding:12px 24px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;font-weight:700;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Vazirmatn,Tahoma,sans-serif;margin-left:8px">\ud83d\udcf7 \u0627\u0633\u06a9\u0646 QR</button><button onclick="closeEmailPopup()" style="padding:12px 24px;background:var(--bg3);color:var(--text);font-weight:700;border:1px solid var(--border);border-radius:12px;font-size:14px;cursor:pointer;font-family:Vazirmatn,Tahoma,sans-serif">\u0628\u0633\u062a\u0646</button>';
+  document.body.appendChild(p);
 }
 function showNoGPSPopup(){
   var p=document.createElement('div');p.id='email-popup';
