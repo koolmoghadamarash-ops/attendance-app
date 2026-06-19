@@ -940,7 +940,7 @@ body::before{
       <video id="qr-video" autoplay playsinline style="display:none"></video>
       <canvas id="qr-canvas" style="display:none"></canvas>
     </div>
-    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
+    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="alert('دکمه دوربین کلیک شد');startCamera();">📷 باز کردن دوربین</button>
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
@@ -1212,6 +1212,7 @@ function stopQRScan(){
 }
 
 function startCamera(){
+  alert('startCamera اجرا شد');
   var video=document.getElementById('qr-video');
   var sb=document.getElementById('qr-start-btn');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
