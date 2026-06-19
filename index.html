@@ -770,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۰</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۱</button>
       </div>
     </div>
 
@@ -933,7 +933,7 @@ body::before{
     <div class="modal-handle"></div>
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <video id="qr-video" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;display:none"></video>
+    <video id="qr-video" autoplay playsinline muted style="width:100%;height:300px;object-fit:cover;border-radius:12px;background:#000;display:none"></video>
     <canvas id="qr-canvas" style="display:none"></canvas>
     <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
     <div id="qr-scan-result" class="qr-result"></div>
@@ -1223,6 +1223,8 @@ function startCamera(){
     scanStream=stream;
     video.srcObject=stream;
     video.style.display='block';
+    video.style.height='300px';
+    video.style.width='100%';
     video.play();
     setTimeout(function(){
       alert('دوربین: videoWidth='+video.videoWidth+' x '+video.videoHeight+'\ndisplay='+getComputedStyle(video).display+'\nvisibility='+getComputedStyle(video).visibility+'\nopacity='+getComputedStyle(video).opacity+'\nheight='+getComputedStyle(video).height);
