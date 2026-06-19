@@ -1193,9 +1193,11 @@ function stopQRScan(){
 }
 
 function startCamera(){
+  alert('startCamera صدا زده شد');
   var video=document.getElementById('qr-video');
   var sb=document.getElementById('qr-start-btn');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    alert('mediaDevices پشتیبانی نمیشود! protocol: '+location.protocol);
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
   if(sb)sb.style.display='none';
@@ -1205,6 +1207,7 @@ function startCamera(){
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
+    alert('خطای دوربین: '+e.name+' - '+e.message);
     showToast('دسترسی به دوربین رد شد','error');
     if(sb)sb.style.display='block';
   });
