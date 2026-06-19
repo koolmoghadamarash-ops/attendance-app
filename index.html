@@ -1173,6 +1173,7 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
+  alert('نسخه جدید - دکمه اسکن کار میکند');
   var u=state.currentUser;
   if(!u){showToast('ابتدا وارد شوید','error');return;}
   var today=todayStr();
@@ -1572,7 +1573,7 @@ function exportExcel(){
 }
 
 // ════ UTILS ════
-function todayStr(){return new Date().toLocaleDateString('fa-IR');}
+function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
   var old=document.querySelector('.toast');if(old)old.remove();
