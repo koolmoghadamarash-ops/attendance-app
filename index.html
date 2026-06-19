@@ -542,6 +542,8 @@ body{font-family:'Vazirmatn','Tahoma',sans-serif;background:var(--bg);color:var(
 .badge-blue{background:rgba(0,212,255,0.15);color:var(--accent);border:1px solid rgba(0,212,255,0.3)}
 .badge-purple{background:rgba(167,139,250,0.15);color:var(--purple);border:1px solid rgba(167,139,250,0.3)}
 .action-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.action-btns3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px}
+.action-btns3 .btn{padding:12px 4px;font-size:13px}
 .today-log{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:16px;box-shadow:var(--shadow)}
 .log-item{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px}
 .log-item:last-child{border-bottom:none}
@@ -763,11 +765,11 @@ body::before{
     <div class="status-card">
       <div class="status-header"><span class="status-title">وضعیت حضور</span><span class="badge" id="emp-status-badge">نامشخص</span></div>
       <p style="font-size:13px;color:var(--text2);margin-bottom:10px">ابتدا GPS بررسی می‌شود — در صورت عدم دریافت، QR به ایمیل ارسال می‌شود:</p>
-      <div class="action-btns">
-        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
-        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; ثبت خروج</button>
+      <div class="action-btns3">
+        <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
+        <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن</button>
       </div>
-      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="openScanDirect()">&#128247; اسکن QR Code</button>
     </div>
 
     <div class="today-log">
@@ -1172,8 +1174,8 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
-  // بپرس ورود یا خروج
-  var u=state.currentUser;if(!u)return;
+  var u=state.currentUser;
+  if(!u){showToast('ابتدا وارد شوید','error');return;}
   var today=todayStr();
   var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
   var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
