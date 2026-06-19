@@ -1190,6 +1190,7 @@ function openScanDirect(){
 }
 
 function openQRScan(type){
+  var ep=document.getElementById('email-popup');if(ep)ep.remove();
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
