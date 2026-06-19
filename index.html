@@ -770,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۱</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۲</button>
       </div>
     </div>
 
@@ -1222,13 +1222,20 @@ function startCamera(){
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.srcObject=stream;
+    video.setAttribute('playsinline','');
+    video.muted=true;
     video.style.display='block';
-    video.style.height='300px';
     video.style.width='100%';
+    video.style.height='300px';
+    video.style.objectFit='cover';
+    // ترفند iOS: بعد از آماده شدن متادیتا، پخش کن و رندر را مجبور کن
+    video.onloadedmetadata=function(){
+      video.play();
+      // تکان دادن برای رندر روی iOS
+      video.style.transform='translateZ(0)';
+      setTimeout(function(){video.style.transform='none';},50);
+    };
     video.play();
-    setTimeout(function(){
-      alert('دوربین: videoWidth='+video.videoWidth+' x '+video.videoHeight+'\ndisplay='+getComputedStyle(video).display+'\nvisibility='+getComputedStyle(video).visibility+'\nopacity='+getComputedStyle(video).opacity+'\nheight='+getComputedStyle(video).height);
-    },1500);
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
