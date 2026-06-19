@@ -133,10 +133,14 @@ function startCheckin(type){
 }
 function handleGPSFail(type,userLocs,u){
   var loc=userLocs[0];var qrToken=getQRToken(loc.id);var email=u.email||'';
+  // مستقیم مودال اسکن را باز کن
+  openQRScan(type);
+  // در پس‌زمینه ایمیل هم بفرست
   if(email&&email.indexOf('@')>0){
-    showToast('\u0627\u0631\u0633\u0627\u0644 QR \u0628\u0647 '+email+'...','info');
-    sendQRByEmail(email,u.fname+' '+u.lname,loc.name,qrToken).then(function(ok){if(ok)showEmailSentPopup(email);else showNoGPSPopup();});
-  }else{showNoGPSPopup();}
+    sendQRByEmail(email,u.fname+' '+u.lname,loc.name,qrToken).then(function(ok){
+      if(ok)showToast('QR به '+email+' هم ارسال شد','success');
+    });
+  }
 }
 function closeEmailPopup(){var p=document.getElementById('email-popup');if(p)p.remove();}
 function showEmailSentPopup(email){
@@ -765,7 +769,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳</button>
       </div>
     </div>
 
@@ -1595,18 +1599,6 @@ document.getElementById('qr-scan-modal').addEventListener('click',function(e){if
 document.getElementById('login-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
 document.getElementById('city-search-input').addEventListener('keydown',function(e){if(e.key==='Enter')searchCity();});
 
-
-// تست: آیا توابع تعریف شدند؟
-window.addEventListener('load',function(){
-  setTimeout(function(){
-    var msg='تست توابع:\n';
-    msg+='openScanDirect: '+(typeof openScanDirect)+'\n';
-    msg+='startCamera: '+(typeof startCamera)+'\n';
-    msg+='startCheckin: '+(typeof startCheckin)+'\n';
-    msg+='doLogin: '+(typeof doLogin);
-    if(typeof openScanDirect!=='function'){alert(msg);}
-  },1000);
-});
 </script>
 </body>
 </html>
