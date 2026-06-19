@@ -1,33 +1,47 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{font-family:Tahoma;padding:20px;background:#111;color:#0f0;font-size:15px;text-align:center}
-button{padding:16px 24px;background:#00d4ff;color:#000;border:none;border-radius:12px;width:100%;margin:10px 0;font-size:17px;font-weight:bold}
-video{width:100%;border-radius:12px;margin-top:12px;background:#000}
-div{margin:8px 0;padding:10px;background:#222;border-radius:8px;word-break:break-all;text-align:right}</style>
+<style>body{font-family:Tahoma;padding:16px;background:#0a1628;color:#fff;text-align:center}
+button{padding:14px 20px;background:#00d4ff;color:#000;border:none;border-radius:12px;width:100%;margin:8px 0;font-size:16px;font-weight:bold}
+video{width:100%;border-radius:12px;background:#000;margin-top:10px}
+#log{font-size:12px;text-align:right;margin-top:10px}
+#log div{padding:6px;background:#162540;border-radius:6px;margin:3px 0}</style>
 </head><body>
-<h3>تست مستقیم دوربین</h3>
-<div id="info"></div>
-<button onclick="test()">باز کردن دوربین</button>
-<video id="v" autoplay playsinline></video>
+<h3>تست اسکن QR</h3>
+<button onclick="start()">📷 باز کردن دوربین</button>
+<video id="v" autoplay playsinline muted></video>
+<div id="result" style="margin-top:10px;font-size:18px;font-weight:bold;color:#00e676"></div>
+<div id="log"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script>
-var I=document.getElementById('info');
-function log(m,c){I.innerHTML='<div style="color:'+(c||'#0f0')+'">'+m+'</div>'+I.innerHTML;}
-log('پروتکل: '+location.protocol, location.protocol==='https:'?'#0f0':'#f00');
-log('mediaDevices: '+(navigator.mediaDevices?'هست':'نیست'),navigator.mediaDevices?'#0f0':'#f00');
+var L=document.getElementById('log');var stream=null,interval=null;
+function log(m){L.innerHTML='<div>'+m+'</div>'+L.innerHTML;}
+log('پروتکل: '+location.protocol);
 
-function test(){
-  log('دکمه زده شد، در حال درخواست دوربین...','#ff0');
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    log('getUserMedia پشتیبانی نمیشود!','#f00');return;
+function start(){
+  log('درخواست دوربین...');
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(s){
+    stream=s;
+    var v=document.getElementById('v');
+    v.srcObject=s;
+    v.play();
+    log('✅ دوربین وصل شد - videoWidth: '+v.videoWidth);
+    setTimeout(function(){log('بعد ۱ ثانیه videoWidth: '+v.videoWidth+' x '+v.videoHeight);},1000);
+    interval=setInterval(scan,400);
+  }).catch(function(e){log('❌ خطا: '+e.name+' '+e.message);});
+}
+function scan(){
+  var v=document.getElementById('v');
+  if(v.readyState!==v.HAVE_ENOUGH_DATA)return;
+  var c=document.getElementById('cv')||document.createElement('canvas');
+  c.id='cv';c.style.display='none';
+  c.width=v.videoWidth;c.height=v.videoHeight;
+  var ctx=c.getContext('2d');
+  ctx.drawImage(v,0,0,c.width,c.height);
+  var img=ctx.getImageData(0,0,c.width,c.height);
+  if(typeof jsQR!=='undefined'){
+    var code=jsQR(img.data,img.width,img.height);
+    if(code){document.getElementById('result').textContent='QR: '+code.data;log('🎯 QR خوانده شد!');}
   }
-  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
-  .then(function(stream){
-    log('دوربین باز شد! ✅','#0f0');
-    document.getElementById('v').srcObject=stream;
-  })
-  .catch(function(e){
-    log('خطا: '+e.name+' - '+e.message,'#f00');
-  });
 }
 </script></body></html>
