@@ -767,6 +767,7 @@ body::before{
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ثبت ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; ثبت خروج</button>
       </div>
+      <button class="btn btn-primary" style="width:100%;margin-top:10px" onclick="openScanDirect()">&#128247; اسکن QR Code</button>
     </div>
 
     <div class="today-log">
@@ -1170,6 +1171,17 @@ function renderTodayLogs(){
 }
 
 // ════ QR SCANNER ════
+function openScanDirect(){
+  // بپرس ورود یا خروج
+  var u=state.currentUser;if(!u)return;
+  var today=todayStr();
+  var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
+  var nextType=(!last||last.type==='out')?'in':'out';
+  state.checkinType=nextType;
+  openQRScan(nextType);
+}
+
 function openQRScan(type){
   state.checkinType=type;
   document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
@@ -1193,11 +1205,9 @@ function stopQRScan(){
 }
 
 function startCamera(){
-  alert('startCamera صدا زده شد');
   var video=document.getElementById('qr-video');
   var sb=document.getElementById('qr-start-btn');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
-    alert('mediaDevices پشتیبانی نمیشود! protocol: '+location.protocol);
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
   if(sb)sb.style.display='none';
@@ -1207,7 +1217,6 @@ function startCamera(){
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
-    alert('خطای دوربین: '+e.name+' - '+e.message);
     showToast('دسترسی به دوربین رد شد','error');
     if(sb)sb.style.display='block';
   });
