@@ -612,7 +612,7 @@ body{font-family:'Vazirmatn','Tahoma',sans-serif;background:var(--bg);color:var(
 input[type=range]{accent-color:var(--accent);width:100%}
 .excel-btn{background:linear-gradient(135deg,#1d6f42,#21a366);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-family:'Vazirmatn','Tahoma',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;width:100%;justify-content:center;margin-bottom:10px}
 /* QR Scanner video */
-#qr-video{width:100%;height:240px;object-fit:cover;border-radius:12px}
+
 .scan-overlay{position:relative;min-height:240px;background:#000;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .scan-frame{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:180px;height:180px;border:3px solid var(--accent);border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,0.5);pointer-events:none}
 
@@ -769,7 +769,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۵</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۶</button>
       </div>
     </div>
 
@@ -932,10 +932,8 @@ body::before{
     <div class="modal-handle"></div>
     <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
     <p style="font-size:13px;color:var(--text2);margin-bottom:16px">دوربین را روی QR code شعبه بگیرید</p>
-    <div class="scan-overlay">
-      <video id="qr-video" autoplay playsinline muted webkit-playsinline style="display:none;width:100%;border-radius:12px"></video>
-      <canvas id="qr-canvas" style="display:none"></canvas>
-    </div>
+    <video id="qr-video" autoplay playsinline muted style="width:100%;border-radius:12px;background:#000;display:none"></video>
+    <canvas id="qr-canvas" style="display:none"></canvas>
     <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="startCamera()">📷 باز کردن دوربین</button>
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
@@ -1220,20 +1218,10 @@ function startCamera(){
   }
   if(sb)sb.style.display='none';
   document.getElementById('qr-scan-result').style.display='none';
-  var constraints={video:{facingMode:{ideal:'environment'}},audio:false};
-  navigator.mediaDevices.getUserMedia(constraints).then(function(stream){
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
-    video.setAttribute('playsinline','');
-    video.setAttribute('muted','');
-    video.muted=true;
     video.srcObject=stream;
     video.style.display='block';
-    video.style.width='100%';
-    video.style.height='240px';
-    var pp=video.play();
-    if(pp&&pp.then){pp.then(function(){}).catch(function(err){
-      showToast('خطا در پخش دوربین','error');
-    });}
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
@@ -1241,7 +1229,6 @@ function startCamera(){
     if(sb)sb.style.display='block';
   });
 }
-
 function scanFrame(){
   var video=document.getElementById('qr-video');
   if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
