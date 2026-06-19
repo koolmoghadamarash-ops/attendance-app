@@ -1,27 +1,33 @@
 <!DOCTYPE html>
 <html><head><meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<style>body{font-family:monospace;padding:20px;background:#111;color:#0f0;font-size:13px}
-button{padding:12px;background:#00d4ff;color:#000;border:none;border-radius:8px;width:100%;margin:6px 0}
-div{margin:4px 0;padding:8px;background:#222;border-radius:4px;word-break:break-all}</style>
+<style>body{font-family:Tahoma;padding:20px;background:#111;color:#0f0;font-size:15px;text-align:center}
+button{padding:16px 24px;background:#00d4ff;color:#000;border:none;border-radius:12px;width:100%;margin:10px 0;font-size:17px;font-weight:bold}
+video{width:100%;border-radius:12px;margin-top:12px;background:#000}
+div{margin:8px 0;padding:10px;background:#222;border-radius:8px;word-break:break-all;text-align:right}</style>
 </head><body>
-<h3>تست ثبت لاگ</h3>
-<button onclick="addLog()">ثبت یک لاگ تستی</button>
-<button onclick="getLogs()">خواندن لاگ‌ها</button>
-<div id="log"></div>
+<h3>تست مستقیم دوربین</h3>
+<div id="info"></div>
+<button onclick="test()">باز کردن دوربین</button>
+<video id="v" autoplay playsinline></video>
 <script>
-var API='https://bold-tereshkova-gqbaxsgi.liara.run/api.php';
-var L=document.getElementById('log');
-function log(m,c){L.innerHTML='<div style="color:'+(c||"#0f0")+'">'+m+'</div>'+L.innerHTML;}
+var I=document.getElementById('info');
+function log(m,c){I.innerHTML='<div style="color:'+(c||'#0f0')+'">'+m+'</div>'+I.innerHTML;}
+log('پروتکل: '+location.protocol, location.protocol==='https:'?'#0f0':'#f00');
+log('mediaDevices: '+(navigator.mediaDevices?'هست':'نیست'),navigator.mediaDevices?'#0f0':'#f00');
 
-function addLog(){
-  var row={id:'log_'+Date.now(),user_id:'1111',user_name:'تست',location_id:'loc_1',location_name:'شعبه تست',type:'in',date:'2026-06-18',time:'10:30',timestamp:new Date().toISOString(),lat:35.7,lng:51.4};
-  log('ارسال: timestamp='+row.timestamp,'#ff0');
-  fetch(API+'?table=logs',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(row)})
-  .then(function(r){return r.text().then(function(t){log('Status '+r.status+': '+t,r.ok?'#0f0':'#f00');});})
-  .catch(function(e){log('خطا: '+e.message,'#f00');});
-}
-function getLogs(){
-  fetch(API+'?table=logs').then(function(r){return r.text();}).then(function(t){log('لاگ‌ها: '+t,'#0ff');});
+function test(){
+  log('دکمه زده شد، در حال درخواست دوربین...','#ff0');
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
+    log('getUserMedia پشتیبانی نمیشود!','#f00');return;
+  }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false})
+  .then(function(stream){
+    log('دوربین باز شد! ✅','#0f0');
+    document.getElementById('v').srcObject=stream;
+  })
+  .catch(function(e){
+    log('خطا: '+e.name+' - '+e.message,'#f00');
+  });
 }
 </script></body></html>
