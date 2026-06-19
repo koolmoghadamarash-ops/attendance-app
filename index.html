@@ -1173,8 +1173,10 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
+  alert('1: openScanDirect شروع');
   var u=state.currentUser;
-  if(!u){showToast('ابتدا وارد شوید','error');return;}
+  if(!u){alert('کاربر نیست!');showToast('ابتدا وارد شوید','error');return;}
+  alert('2: کاربر هست: '+u.fname);
   var today=todayStr();
   var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
   var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
@@ -1184,12 +1186,18 @@ function openScanDirect(){
 }
 
 function openQRScan(type){
+  alert('3: openQRScan شروع، type='+type);
   state.checkinType=type;
-  document.getElementById('qr-scan-title').textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
+  var titleEl=document.getElementById('qr-scan-title');
+  if(!titleEl){alert('qr-scan-title غایب!');return;}
+  titleEl.textContent=type==='in'?'📷 اسکن ورود':'📷 اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
   var video=document.getElementById('qr-video');if(video)video.style.display='none';
   var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
-  document.getElementById('qr-scan-modal').classList.add('open');
+  var m=document.getElementById('qr-scan-modal');
+  if(!m){alert('qr-scan-modal غایب!');return;}
+  m.classList.add('open');
+  alert('4: مودال باز شد');
 }
 
 function closeQRScan(){
