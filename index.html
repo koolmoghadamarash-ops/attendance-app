@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="alert('openScanDirect = '+(typeof openScanDirect)+' | openQRScan = '+(typeof openQRScan)+' | startCamera = '+(typeof startCamera))">&#128247; اسکن نسخه۲۲</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۳</button>
       </div>
     </div>
 
@@ -1182,15 +1182,17 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
-  // اول مودال را باز کن - مهم‌ترین کار
   var modal=document.getElementById('qr-scan-modal');
   if(modal){
-    modal.classList.add('open');
-    modal.style.cssText='display:flex;position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:rgba(0,0,0,0.88);align-items:center;justify-content:center;padding:16px';
+    // مودال را به انتهای body منتقل کن تا از هر container فرار کند
+    document.body.appendChild(modal);
+    modal.className='modal-overlay open';
+    modal.style.cssText='display:flex !important;position:fixed;top:0;left:0;width:100%;height:100%;z-index:2147483647;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;padding:16px;margin:0';
     var inner=modal.getElementsByClassName('modal')[0];
-    if(inner){inner.style.animation='none';inner.style.transform='none';inner.style.maxHeight='88vh';}
+    if(inner){
+      inner.style.cssText='background:#1a2d4a;border-radius:20px;padding:24px;width:100%;max-width:440px;animation:none;transform:none;max-height:88vh;overflow-y:auto;position:relative';
+    }
   }
-  // بقیه کارها با محافظت
   try{
     var u=state.currentUser;
     if(u){
@@ -1205,8 +1207,7 @@ function openScanDirect(){
     var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='block';
     var vid=document.getElementById('qr-video');if(vid)vid.style.display='none';
     var prev=document.getElementById('qr-preview');if(prev)prev.style.display='none';
-    var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
-  }catch(err){/* مودال باز است، خطا را نادیده بگیر */}
+  }catch(err){}
 }
 
 function openQRScan(type){
