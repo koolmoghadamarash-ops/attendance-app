@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۸</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۰</button>
       </div>
     </div>
 
@@ -839,7 +839,7 @@ body::before{
     
 
     <!-- Tab Locations -->
-    <div id="tab-locations" class="tab-content active" style="display:none">
+    <div id="tab-locations" class="tab-content active" style="display:block">
       <div class="form-card">
         <div class="section-title">➕ افزودن مکان جدید</div>
         <div class="field"><label>نام مکان / شعبه</label><input type="text" id="loc-name" placeholder="مثلاً: شعبه مرکزی"></div>
@@ -924,6 +924,7 @@ body::before{
     <canvas id="qr-canvas" style="display:none"></canvas>
     <!-- کادر راهنما -->
     <div id="qr-frame-guide" style="position:relative;width:100%;height:240px;border-radius:14px;background:linear-gradient(135deg,#0f2238,#1a3252);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden">
+      <video id="qr-video" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:none;position:absolute;top:0;left:0;background:#000"></video>
       <img id="qr-preview" style="width:100%;height:100%;object-fit:contain;display:none;position:absolute;top:0;left:0;background:#000">
       <div id="qr-frame-corners" style="position:absolute;width:170px;height:170px">
         <span style="position:absolute;top:0;left:0;width:36px;height:36px;border-top:4px solid var(--accent);border-left:4px solid var(--accent);border-radius:6px 0 0 0"></span>
@@ -934,7 +935,8 @@ body::before{
       <div id="qr-frame-icon" style="font-size:46px;opacity:0.5">📷</div>
     </div>
     <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleQRPhoto(event)">
-    <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:6px" onclick="openNativeCamera()">📷 گرفتن عکس از QR کد</button>
+    <button class="btn btn-primary" id="qr-live-btn" style="width:100%;margin-top:6px" onclick="startCamera()">🎥 دوربین زنده</button>
+    <button class="btn btn-ghost" id="qr-start-btn" style="width:100%;margin-top:8px" onclick="openNativeCamera()">📷 یا گرفتن عکس</button>
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
@@ -1099,7 +1101,15 @@ function showScreen(n){
   var qm=document.getElementById('qr-scan-modal');if(qm)qm.classList.remove('open');
   document.querySelectorAll('.screen').forEach(function(s){return s.classList.remove('active');});
   document.getElementById('screen-'+n).classList.add('active');
-  if(n==='admin') setTimeout(function(){initAddMap();renderQRLocSelect();},400);
+  if(n==='admin') setTimeout(function(){
+    initAddMap();renderQRLocSelect();
+    // فعال کردن تب مکان‌ها
+    document.querySelectorAll('.tab-content').forEach(function(c){c.style.display='none';});
+    var tl=document.getElementById('tab-locations');if(tl)tl.style.display='block';
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+    var firstTab=document.querySelector('.tabs .tab');if(firstTab)firstTab.classList.add('active');
+    renderLocationsList();
+  },400);
 }
 
 // ════ CLOCK ════
@@ -1255,14 +1265,26 @@ function handleQRPhoto(e){
       if(preview){preview.src=ev.target.result;preview.style.display='block';}
       var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
       var co=document.getElementById('qr-frame-corners');if(co)co.style.display='none';
-      try{
-        var imgData=ctx.getImageData(0,0,w,h);
-        if(typeof jsQR!=='undefined'){
-          var code=jsQR(imgData.data,imgData.width,imgData.height);
-          if(code&&code.data){processQRCode(code.data);}
-          else{showToast('QR کد در عکس پیدا نشد، دوباره و واضح‌تر عکس بگیرید','error');}
-        }else{showToast('کتابخانه QR هنوز بارگذاری نشده','error');}
-      }catch(err){showToast('خطا در خواندن عکس','error');}
+      // اول BarcodeDetector داخلی، بعد jsQR
+      if('BarcodeDetector' in window){
+        try{
+          var det=new BarcodeDetector({formats:['qr_code']});
+          det.detect(canvas).then(function(codes){
+            if(codes&&codes.length>0){processQRCode(codes[0].rawValue);}
+            else{tryJsQR();}
+          }).catch(function(){tryJsQR();});
+        }catch(e){tryJsQR();}
+      }else{tryJsQR();}
+      function tryJsQR(){
+        try{
+          var imgData=ctx.getImageData(0,0,w,h);
+          if(typeof jsQR!=='undefined'){
+            var code=jsQR(imgData.data,imgData.width,imgData.height);
+            if(code&&code.data){processQRCode(code.data);}
+            else{showToast('QR در عکس پیدا نشد، واضح‌تر و نزدیک‌تر عکس بگیرید','error');}
+          }else{showToast('در حال بارگذاری... چند لحظه صبر کنید و دوباره امتحان کنید','error');}
+        }catch(err){showToast('خطا در خواندن عکس','error');}
+      }
     };
     img.src=ev.target.result;
   };
@@ -1271,24 +1293,29 @@ function handleQRPhoto(e){
 
 function startCamera(){
   var video=document.getElementById('qr-video');
-  var sb=document.getElementById('qr-start-btn');
+  if(!video){showToast('خطای دوربین','error');return;}
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
-  if(sb)sb.style.display='none';
-  document.getElementById('qr-scan-result').style.display='none';
+  var sb=document.getElementById('qr-start-btn');
+  var lb=document.getElementById('qr-live-btn');
+  var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
+  var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.srcObject=stream;
+    video.style.display='block';
     var p=video.play();
     if(p&&p.catch)p.catch(function(){});
+    if(lb)lb.textContent='🎥 در حال اسکن... QR را داخل کادر بگیرید';
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
     showToast('خطای دوربین: '+e.name,'error');
-    if(sb)sb.style.display='block';
+    if(ic)ic.style.display='block';
   });
 }
+
 function scanFrame(){
   var video=document.getElementById('qr-video');
   if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
@@ -1650,9 +1677,22 @@ function showToast(msg,type){
 }
 
 // Load jsQR fallback
-var s=document.createElement('script');
-s.src='https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js';
-document.head.appendChild(s);
+(function(){
+  var cdns=[
+    'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js',
+    'https://unpkg.com/jsqr@1.4.0/dist/jsQR.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js'
+  ];
+  var i=0;
+  function tryLoad(){
+    if(i>=cdns.length)return;
+    var s=document.createElement('script');
+    s.src=cdns[i];
+    s.onerror=function(){i++;tryLoad();};
+    document.head.appendChild(s);
+  }
+  tryLoad();
+})();
 
 ['edit-loc-modal','edit-per-modal'].forEach(function(id){
   document.getElementById(id).addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');});
