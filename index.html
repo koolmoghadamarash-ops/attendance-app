@@ -108,6 +108,7 @@ function doChangePass(){
 function startCheckin(type){
   state.checkinType=type;
   var u=state.currentUser;if(!u)return;
+  
   var today=todayStr();
   var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
   var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
@@ -188,6 +189,7 @@ function adminTab(tab,el){
   });
 }
 function renderAdminStats(){
+  
   var today=todayStr();var uids=[];
   state.logs.forEach(function(l){if(l.date===today&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
   var todayCount=state.logs.filter(function(l){return l.date===today;}).length;
@@ -338,6 +340,7 @@ function getWorkHoursForLoc(locId){var wh=state.workHours||{};return wh[locId]||
 
 // ════ STATS MODAL ════
 function showStatsModal(type){
+  
   var today=todayStr();var title='',html='';
   if(type==='locations'){
     title='&#127970; \u0644\u06cc\u0633\u062a \u0634\u0639\u0628\u0647\u200c\u0647\u0627';
@@ -770,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۵</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۶</button>
       </div>
     </div>
 
@@ -1144,6 +1147,7 @@ function initEmployee(){
 }
 
 function updateEmpStatus(){
+  
   var today=todayStr();
   var logs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
   var last=logs[logs.length-1];
@@ -1165,6 +1169,7 @@ function calcTodayDuration(logs){
 }
 
 function renderTodayLogs(){
+  
   var today=todayStr();
   var logs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
   document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
@@ -1183,18 +1188,16 @@ function openScanDirect(){
   var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
   var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
   state.checkinType=(!last||last.type==='out')?'in':'out';
-  // پاک کردن پاپ‌آپ ایمیل اگر باز است
   var ep=document.getElementById('email-popup');if(ep)ep.remove();
-  // باز کردن مودال و روشن کردن مستقیم دوربین
   document.getElementById('qr-scan-title').textContent=state.checkinType==='in'?'اسکن ورود':'اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
-  // نمایش دکمه‌ها، عدم اجرای خودکار دوربین
   var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
   var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='block';
   var vid=document.getElementById('qr-video');if(vid)vid.style.display='none';
   var prev=document.getElementById('qr-preview');if(prev)prev.style.display='none';
   document.getElementById('qr-scan-modal').classList.add('open');
 }
+
 function openQRScan(type){
   var ep=document.getElementById('email-popup');if(ep)ep.remove();
   state.checkinType=type;
@@ -1460,6 +1463,7 @@ function renderLocCheckboxes(divId,selectedIds){
 function renderPersonnelList(){
   var list=document.getElementById('personnel-list');
   if(!state.personnel.length){list.innerHTML='<div class="empty-state"><div class="icon">👥</div>هیچ پرسنلی ثبت نشده</div>';return;}
+  
   var today=todayStr();
   list.innerHTML=state.personnel.map(function(p){
     var logs=state.logs.filter(function(l){return l.userId===p.nationalId&&l.date===today;});
