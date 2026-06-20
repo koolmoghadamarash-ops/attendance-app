@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۳</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۴</button>
       </div>
     </div>
 
@@ -941,7 +941,7 @@ body::before{
     <img id="qr-preview" style="width:100%;border-radius:10px;display:none;margin-bottom:8px">
     <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleQRPhoto(event)">
     <button class="btn btn-primary" id="qr-start-btn" style="width:100%;margin-top:12px" onclick="openNativeCamera()">📷 گرفتن عکس از QR کد</button>
-    <button class="btn btn-ghost" id="qr-live-btn" style="width:100%;margin-top:8px" onclick="startCamera()">یا دوربین زنده</button>
+    
     <div id="qr-scan-result" class="qr-result"></div>
     <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
   </div>
@@ -1220,8 +1220,11 @@ function openQRScan(type){
 }
 
 function closeQRScan(){
-  document.getElementById('qr-scan-modal').classList.remove('open');
   stopQRScan();
+  var modal=document.getElementById('qr-scan-modal');
+  if(modal){modal.classList.remove('open');modal.style.display='none';}
+  var prev=document.getElementById('qr-preview');if(prev){prev.style.display='none';prev.src='';}
+  var fi=document.getElementById('qr-file-input');if(fi)fi.value='';
 }
 
 function stopQRScan(){
