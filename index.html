@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۷</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۸</button>
       </div>
     </div>
 
@@ -1197,15 +1197,18 @@ function openScanDirect(){
   var vid=document.getElementById('qr-video');if(vid)vid.style.display='none';
   var prev=document.getElementById('qr-preview');if(prev)prev.style.display='none';
   var modal=document.getElementById('qr-scan-modal');
-  alert('modal element: '+(modal?'پیدا شد':'پیدا نشد!'));
   if(modal){
     modal.classList.add('open');
     modal.style.display='flex';
     modal.style.zIndex='99999';
-    modal.style.position='fixed';
-    modal.style.top='0';modal.style.left='0';modal.style.right='0';modal.style.bottom='0';
-    var cs=window.getComputedStyle(modal);
-    alert('display='+cs.display+' visibility='+cs.visibility+' opacity='+cs.opacity+' zIndex='+cs.zIndex);
+    modal.style.alignItems='center';
+    // مودال داخلی را مجبور به نمایش کن
+    var inner=modal.querySelector('.modal');
+    if(inner){
+      inner.style.animation='none';
+      inner.style.transform='none';
+      inner.style.maxHeight='85vh';
+    }
   }
 }
 
