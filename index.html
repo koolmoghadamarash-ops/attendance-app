@@ -770,7 +770,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۴</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۵</button>
       </div>
     </div>
 
@@ -1188,8 +1188,12 @@ function openScanDirect(){
   // باز کردن مودال و روشن کردن مستقیم دوربین
   document.getElementById('qr-scan-title').textContent=state.checkinType==='in'?'اسکن ورود':'اسکن خروج';
   document.getElementById('qr-scan-result').style.display='none';
+  // نمایش دکمه‌ها، عدم اجرای خودکار دوربین
+  var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
+  var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='block';
+  var vid=document.getElementById('qr-video');if(vid)vid.style.display='none';
+  var prev=document.getElementById('qr-preview');if(prev)prev.style.display='none';
   document.getElementById('qr-scan-modal').classList.add('open');
-  startCamera();
 }
 function openQRScan(type){
   var ep=document.getElementById('email-popup');if(ep)ep.remove();
@@ -1619,7 +1623,7 @@ function exportExcel(){
   URL.revokeObjectURL(url);showToast('فایل اکسل دانلود شد ✅','success');
 }
 
-// ════ UTILS ═══
+// ════ UTILS ════
 function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function toPersianNum(n){return String(n).replace(/\\d/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'[d];});}
 function showToast(msg,type){
