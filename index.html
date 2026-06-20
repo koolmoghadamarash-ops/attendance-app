@@ -1182,20 +1182,26 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
+  alert('A: داخل تابع');
   var u=state.currentUser;
+  alert('B: u='+(u?'هست':'نیست'));
   if(!u){showToast('ابتدا وارد شوید','error');return;}
+  alert('C: todayStr صدا زده میشود');
   var today=todayStr();
+  alert('D: today='+today);
   var todayLogs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
+  alert('E: todayLogs='+todayLogs.length);
   var last=todayLogs.length?todayLogs[todayLogs.length-1]:null;
   state.checkinType=(!last||last.type==='out')?'in':'out';
+  alert('F: checkinType='+state.checkinType);
   var ep=document.getElementById('email-popup');if(ep)ep.remove();
-  document.getElementById('qr-scan-title').textContent=state.checkinType==='in'?'اسکن ورود':'اسکن خروج';
-  document.getElementById('qr-scan-result').style.display='none';
-  var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
-  var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='block';
-  var vid=document.getElementById('qr-video');if(vid)vid.style.display='none';
-  var prev=document.getElementById('qr-preview');if(prev)prev.style.display='none';
-  document.getElementById('qr-scan-modal').classList.add('open');
+  var t=document.getElementById('qr-scan-title');
+  alert('G: title='+(t?'هست':'غایب'));
+  if(t)t.textContent='اسکن';
+  var modal=document.getElementById('qr-scan-modal');
+  alert('H: modal='+(modal?'هست':'غایب'));
+  if(modal)modal.classList.add('open');
+  alert('I: تمام شد');
 }
 
 function openQRScan(type){
