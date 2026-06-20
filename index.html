@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۷</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۲۸</button>
       </div>
     </div>
 
@@ -1226,8 +1226,7 @@ function stopQRScan(){
   if(scanStream){scanStream.getTracks().forEach(function(t){return t.stop();});scanStream=null;}
   if(scanInterval){clearInterval(scanInterval);scanInterval=null;}
   var video=document.getElementById('qr-video');
-  video.style.display='none';
-  video.srcObject=null;
+  if(video){video.style.display='none';video.srcObject=null;}
 }
 
 function openNativeCamera(){
@@ -1374,6 +1373,7 @@ function retryQRScan(){
 // ════ QR GENERATOR ════
 function renderQRLocSelect(){
   var sel=document.getElementById('qr-loc-select');
+  if(!sel)return;
   sel.innerHTML='<option value="">-- شعبه را انتخاب کنید --</option>'+
     state.locations.map(function(l){return ('<option value="'+(l.id)+'">'+(l.name)+'</option>');}).join('');
 }
