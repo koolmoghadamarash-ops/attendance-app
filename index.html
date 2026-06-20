@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۱۷</button>
+        <button class="btn btn-primary" onclick="alert('کلیک شد');openScanDirect();">&#128247; اسکن نسخه۱۷</button>
       </div>
     </div>
 
@@ -1182,6 +1182,7 @@ function renderTodayLogs(){
 
 // ════ QR SCANNER ════
 function openScanDirect(){
+  alert('تابع اجرا شد');
   var u=state.currentUser;
   if(!u){showToast('ابتدا وارد شوید','error');return;}
   var today=todayStr();
