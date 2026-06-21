@@ -194,6 +194,8 @@ function checkMyLocation(){
     var distTxt=bestDist<1000?(toPersianNum(Math.round(bestDist))+' متر'):(toPersianNum((bestDist/1000).toFixed(1))+' کیلومتر');
     var html='';
     html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">شعبه مجاز</span><span style="font-weight:600;font-size:13px">🏢 '+best.name+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:12px">مختصات شعبه</span><span style="font-weight:600;font-size:12px;direction:ltr;font-family:monospace">'+parseFloat(best.lat).toFixed(5)+', '+parseFloat(best.lng).toFixed(5)+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:12px">موقعیت فعلی شما</span><span style="font-weight:600;font-size:12px;direction:ltr;font-family:monospace;color:var(--accent)">'+lat.toFixed(5)+', '+lng.toFixed(5)+'</span></div>';
     html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">محدوده مجاز</span><span style="font-weight:600;font-size:13px">'+toPersianNum(radius)+' متر</span></div>';
     html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">فاصله شما تا شعبه</span><span style="font-weight:700;font-size:14px;color:'+(inRange?'var(--green)':'var(--red)')+'">'+distTxt+'</span></div>';
     html+='<div style="text-align:center;margin-top:12px;padding:12px;border-radius:12px;background:'+(inRange?'rgba(0,230,118,0.12)':'rgba(255,68,68,0.12)')+';border:1px solid '+(inRange?'rgba(0,230,118,0.3)':'rgba(255,68,68,0.3)')+'">'+
@@ -801,7 +803,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۴</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۵</p>
   </div>
 </div>
 
@@ -832,10 +834,9 @@ body::before{
     <div class="status-card">
       <div class="status-header">
         <span class="status-title">📍 موقعیت مکانی</span>
-        <button onclick="checkMyLocation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--accent);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:600;cursor:pointer">🔄 بررسی</button>
       </div>
       <div id="location-info" style="margin-top:10px">
-        <div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">برای بررسی موقعیت، دکمه «بررسی» را بزنید</div>
+        <div style="text-align:center;padding:16px;color:var(--accent);font-size:13px">⏳ در حال دریافت موقعیت...</div>
       </div>
     </div>
 
@@ -1206,6 +1207,7 @@ function initEmployee(){
     }).filter(Boolean).join(' - ');
     document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
     updateEmpStatus();renderTodayLogs();checkInboxDot();
+    setTimeout(function(){try{checkMyLocation();}catch(e){}},500);
   });
 }
 
