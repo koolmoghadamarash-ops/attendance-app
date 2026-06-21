@@ -763,7 +763,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۷</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۸</p>
   </div>
 </div>
 
@@ -1195,6 +1195,7 @@ function renderTodayLogs(){
 }
 
 function openScanDirect(){
+  window._qrProcessing=false;
   var modal=document.getElementById('qr-scan-modal');
   if(modal){
     // مودال را به انتهای body منتقل کن تا از هر container فرار کند
@@ -1235,6 +1236,7 @@ function openQRScan(type){
 }
 
 function closeQRScan(){
+  window._qrProcessing=false;
   stopQRScan();
   var modal=document.getElementById('qr-scan-modal');
   if(modal){modal.classList.remove('open');modal.style.cssText='display:none !important';}
@@ -1247,9 +1249,9 @@ function stopQRScan(){
   if(scanStream){scanStream.getTracks().forEach(function(t){t.stop();});scanStream=null;}
   var video=document.getElementById('qr-video');
   if(video){video.style.display='none';video.srcObject=null;}
+  // پاک کردن عناصر تمام‌صفحه قدیمی اگر مانده
   var cb=document.getElementById('qr-fullscreen-close');if(cb)cb.style.display='none';
   var fg=document.getElementById('qr-fullscreen-guide');if(fg)fg.style.display='none';
-  // عناصر مخفی‌شده را برگردان
   var hidden=document.querySelectorAll('[data-hidden-by-scan]');
   for(var _h=0;_h<hidden.length;_h++){hidden[_h].style.visibility='';hidden[_h].removeAttribute('data-hidden-by-scan');}
 }
@@ -1312,79 +1314,54 @@ function startCamera(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
+  var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
+  var co=document.getElementById('qr-frame-corners');if(co)co.style.display='none';
   var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
+  var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='none';
+  var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='none';
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.setAttribute('playsinline','');
     video.muted=true;
     video.srcObject=stream;
-    // مودال را مخفی کن
-    var modal=document.getElementById('qr-scan-modal');
-    if(modal)modal.style.cssText='display:none !important';
-    // ویدیو را به body بچسبان
-    document.body.appendChild(video);
-    // همه عناصر دیگر body را موقتاً مخفی کن
-    var bodyKids=document.body.children;
-    for(var _k=0;_k<bodyKids.length;_k++){
-      var kid=bodyKids[_k];
-      if(kid.id!=='qr-video'&&kid.id!=='qr-fullscreen-close'&&kid.id!=='qr-fullscreen-guide'&&kid.tagName!=='SCRIPT'){
-        kid.setAttribute('data-hidden-by-scan','1');
-        kid.style.visibility='hidden';
-      }
-    }
-    var vw=window.innerWidth;
-    var vh=window.innerHeight;
-    video.style.cssText='position:fixed;top:0;left:0;width:'+vw+'px;height:'+vh+'px;object-fit:cover;background:#000;display:block;z-index:2147483646';
-    // دکمه بستن شناور
-    var closeBtn=document.getElementById('qr-fullscreen-close');
-    if(!closeBtn){
-      closeBtn=document.createElement('button');
-      closeBtn.id='qr-fullscreen-close';
-      closeBtn.textContent='✕ بستن';
-      closeBtn.style.cssText='position:fixed;top:20px;left:20px;z-index:2147483647;background:rgba(220,40,40,0.95);color:#fff;border:2px solid #fff;border-radius:30px;padding:14px 28px;font-size:17px;font-weight:bold;cursor:pointer';
-      closeBtn.addEventListener('click',function(ev){ev.preventDefault();ev.stopPropagation();closeQRScan();});
-      closeBtn.addEventListener('touchend',function(ev){ev.preventDefault();ev.stopPropagation();closeQRScan();});
-      document.body.appendChild(closeBtn);
-    }
-    closeBtn.style.display='block';
-    // کادر راهنمای وسط صفحه
-    var guide=document.getElementById('qr-fullscreen-guide');
-    if(!guide){
-      guide=document.createElement('div');
-      guide.id='qr-fullscreen-guide';
-      guide.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;border:4px solid #00d4ff;border-radius:20px;z-index:2147483647;pointer-events:none;box-shadow:0 0 20px rgba(0,212,255,0.8)';
-      document.body.appendChild(guide);
-    }
-    guide.style.display='block';
-    var pp=video.play();
-    if(pp&&pp.catch)pp.catch(function(){});
+    // ویدیو داخل مودال با عرض ثابت پنجره
+    var vw=Math.min(window.innerWidth-72,380);
+    var guide=document.getElementById('qr-frame-guide');
+    if(guide)guide.style.cssText='position:relative;width:'+vw+'px;height:'+vw+'px;margin:0 auto 14px;border-radius:14px;overflow:hidden;background:#000';
+    video.style.cssText='width:'+vw+'px;height:'+vw+'px;object-fit:cover;border-radius:14px;background:#000;display:block';
+    // کادر گوشه‌ها روی ویدیو
+    if(co){co.style.display='block';}
+    var p=video.play();
+    if(p&&p.catch)p.catch(function(){});
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
     showToast('خطای دوربین: '+e.name,'error');
+    if(lb)lb.style.display='block';
   });
 }
 
 function scanFrame(){
+  var modal=document.getElementById('qr-scan-modal');
+  if(!modal||modal.style.display==='none'){return;}
+  if(window._qrProcessing){return;}
   var video=document.getElementById('qr-video');
-  if(video.readyState!==video.HAVE_ENOUGH_DATA)return;
+  if(!video||video.readyState!==video.HAVE_ENOUGH_DATA)return;
   var canvas=document.getElementById('qr-canvas');
   canvas.width=video.videoWidth;
   canvas.height=video.videoHeight;
   var ctx=canvas.getContext('2d');
   ctx.drawImage(video,0,0,canvas.width,canvas.height);
-  var imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
-  // Use BarcodeDetector if available
   if('BarcodeDetector' in window){
     var detector=new BarcodeDetector({formats:['qr_code']});
     detector.detect(canvas).then(function(codes){
-      if(codes.length>0) processQRCode(codes[0].rawValue);
+      if(codes.length>0){window._qrProcessing=true;processQRCode(codes[0].rawValue);}
     }).catch(function(){});
   } else {
-    // Fallback: jsQR
     if(typeof jsQR!=='undefined'){
+      var imageData=ctx.getImageData(0,0,canvas.width,canvas.height);
       var code=jsQR(imageData.data,imageData.width,imageData.height);
-      if(code) processQRCode(code.data);
+      if(code){window._qrProcessing=true;processQRCode(code.data);}
     }
   }
 }
@@ -1456,6 +1433,7 @@ function showResult(msg,type){
   }
 }
 function retryQRScan(){
+  window._qrProcessing=false;
   document.getElementById('qr-scan-result').style.display='none';
   var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='block';
 }
