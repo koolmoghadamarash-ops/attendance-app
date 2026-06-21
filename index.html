@@ -785,7 +785,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۳</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴</button>
       </div>
     </div>
 
@@ -1236,7 +1236,7 @@ function openQRScan(type){
 function closeQRScan(){
   stopQRScan();
   var modal=document.getElementById('qr-scan-modal');
-  if(modal){modal.classList.remove('open');modal.style.display='none';}
+  if(modal){modal.classList.remove('open');modal.style.cssText='display:none !important';}
   var prev=document.getElementById('qr-preview');if(prev){prev.style.display='none';prev.src='';}
   var fi=document.getElementById('qr-file-input');if(fi)fi.value='';
 }
@@ -1306,19 +1306,20 @@ function startCamera(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
-  var sb=document.getElementById('qr-start-btn');
-  var lb=document.getElementById('qr-live-btn');
   var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
   var co=document.getElementById('qr-frame-corners');if(co)co.style.display='none';
-  var guide=document.getElementById('qr-frame-guide');if(guide){guide.style.height='auto';guide.style.background='transparent';}
+  var guide=document.getElementById('qr-frame-guide');if(guide)guide.style.cssText='position:relative;width:100%;display:block;margin-bottom:14px';
   var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.srcObject=stream;
-    video.style.display='block';
+    // استایل کامل و قطعی روی ویدیو - مثل camfix
+    video.setAttribute('playsinline','');
+    video.muted=true;
+    video.style.cssText='width:100%;height:260px;object-fit:cover;border-radius:14px;background:#000;display:block';
     var p=video.play();
     if(p&&p.catch)p.catch(function(){});
-    if(lb)lb.textContent='🎥 در حال اسکن... QR را مقابل دوربین بگیرید';
+    var lb=document.getElementById('qr-live-btn');if(lb)lb.textContent='🎥 QR را مقابل دوربین بگیرید';
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
   }).catch(function(e){
@@ -2012,7 +2013,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۳</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴</button>
       </div>
     </div>
 
