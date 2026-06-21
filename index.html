@@ -785,7 +785,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴ت</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۵</button>
       </div>
     </div>
 
@@ -1313,10 +1313,14 @@ function startCamera(){
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
     scanStream=stream;
     video.srcObject=stream;
-    // استایل کامل و قطعی روی ویدیو - مثل camfix
     video.setAttribute('playsinline','');
     video.muted=true;
-    video.style.cssText='width:100%;height:260px;object-fit:cover;border-radius:14px;background:#000;display:block';
+    // عرض بر اساس پنجره - مستقل از والد
+    var vw=Math.min(window.innerWidth-72,400);
+    // والد را هم عرض بده
+    var guide=document.getElementById('qr-frame-guide');
+    if(guide)guide.style.cssText='width:'+vw+'px;height:260px;margin:0 auto 14px;position:relative;display:block;background:#000;border-radius:14px;overflow:hidden';
+    video.style.cssText='width:'+vw+'px;height:260px;object-fit:cover;border-radius:14px;background:#000;display:block';
     var p=video.play();
     if(p&&p.catch)p.catch(function(){});
     setTimeout(function(){
@@ -2018,7 +2022,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴ت</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۵</button>
       </div>
     </div>
 
