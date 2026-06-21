@@ -785,7 +785,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۲</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۲ت</button>
       </div>
     </div>
 
@@ -1301,8 +1301,10 @@ function handleQRPhoto(e){
 }
 
 function startCamera(){
+  alert('S1: startCamera شروع');
   var video=document.getElementById('qr-video');
-  if(!video){showToast('خطای دوربین','error');return;}
+  if(!video){alert('S-ERR: ویدیو نیست');showToast('خطای دوربین','error');return;}
+  alert('S2: ویدیو پیدا شد');
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia){
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
@@ -1310,7 +1312,9 @@ function startCamera(){
   var lb=document.getElementById('qr-live-btn');
   var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
   var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
+  alert('S3: درخواست دوربین');
   navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'},audio:false}).then(function(stream){
+    alert('S4: استریم آمد!');
     scanStream=stream;
     video.srcObject=stream;
     video.style.display='block';
@@ -2010,7 +2014,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۲</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۲ت</button>
       </div>
     </div>
 
