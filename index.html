@@ -763,7 +763,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۸</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۹</p>
   </div>
 </div>
 
@@ -1315,7 +1315,6 @@ function startCamera(){
     showToast('دوربین پشتیبانی نمیشود','error');return;
   }
   var ic=document.getElementById('qr-frame-icon');if(ic)ic.style.display='none';
-  var co=document.getElementById('qr-frame-corners');if(co)co.style.display='none';
   var res=document.getElementById('qr-scan-result');if(res)res.style.display='none';
   var lb=document.getElementById('qr-live-btn');if(lb)lb.style.display='none';
   var sb=document.getElementById('qr-start-btn');if(sb)sb.style.display='none';
@@ -1324,13 +1323,14 @@ function startCamera(){
     video.setAttribute('playsinline','');
     video.muted=true;
     video.srcObject=stream;
-    // ویدیو داخل مودال با عرض ثابت پنجره
-    var vw=Math.min(window.innerWidth-72,380);
+    var vw=Math.min(window.innerWidth-72,360);
+    // کادر مربعی با عرض ثابت
     var guide=document.getElementById('qr-frame-guide');
-    if(guide)guide.style.cssText='position:relative;width:'+vw+'px;height:'+vw+'px;margin:0 auto 14px;border-radius:14px;overflow:hidden;background:#000';
-    video.style.cssText='width:'+vw+'px;height:'+vw+'px;object-fit:cover;border-radius:14px;background:#000;display:block';
-    // کادر گوشه‌ها روی ویدیو
-    if(co){co.style.display='block';}
+    if(guide)guide.style.cssText='position:relative;width:'+vw+'px;height:'+vw+'px;margin:0 auto 14px;border-radius:14px;overflow:hidden;background:#000;display:block';
+    video.style.cssText='width:'+vw+'px;height:'+vw+'px;object-fit:cover;border-radius:14px;background:#000;display:block;position:absolute;top:0;left:0';
+    // کادر گوشه‌ها وسط، روی ویدیو
+    var co=document.getElementById('qr-frame-corners');
+    if(co)co.style.cssText='position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:'+Math.round(vw*0.6)+'px;height:'+Math.round(vw*0.6)+'px;z-index:5';
     var p=video.play();
     if(p&&p.catch)p.catch(function(){});
     if(scanInterval)clearInterval(scanInterval);
