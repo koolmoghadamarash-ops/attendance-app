@@ -170,6 +170,42 @@ function showNoGPSPopup(){
   p.innerHTML='<div style="font-size:48px;margin-bottom:12px">&#128247;</div><div style="font-size:16px;font-weight:700;margin-bottom:8px">GPS \u062f\u0631\u06cc\u0627\u0641\u062a \u0646\u0634\u062f</div><div style="font-size:13px;color:var(--text2);margin-bottom:20px">QR Code \u0634\u0639\u0628\u0647 \u0631\u0627 \u0627\u0633\u06a9\u0646 \u06a9\u0646\u06cc\u062f</div><button onclick="closeEmailPopup()" style="padding:12px 32px;background:var(--orange);color:#000;font-weight:700;border:none;border-radius:12px;font-size:14px;cursor:pointer;font-family:Vazirmatn,Tahoma,sans-serif">\u0627\u0633\u06a9\u0646 \u0645\u06cc\u200c\u06a9\u0646\u0645</button>';
   document.body.appendChild(p);setTimeout(function(){closeEmailPopup();},5000);
 }
+function checkMyLocation(){
+  var box=document.getElementById('location-info');
+  var u=state.currentUser;
+  if(!u){return;}
+  var userLocs=(u.locations||[]).map(function(id){return state.locations.find(function(l){return l.id===id;});}).filter(Boolean);
+  if(!userLocs.length){box.innerHTML='<div style="text-align:center;padding:12px;color:var(--orange);font-size:13px">شعبه‌ای برای شما تعریف نشده</div>';return;}
+  if(!navigator.geolocation){box.innerHTML='<div style="text-align:center;padding:12px;color:var(--red);font-size:13px">GPS پشتیبانی نمی‌شود</div>';return;}
+  box.innerHTML='<div style="text-align:center;padding:12px;color:var(--accent);font-size:13px">⏳ در حال دریافت موقعیت...</div>';
+  navigator.geolocation.getCurrentPosition(function(pos){
+    var lat=pos.coords.latitude,lng=pos.coords.longitude;
+    // نزدیک‌ترین شعبه مجاز
+    var best=null,bestDist=Infinity;
+    userLocs.forEach(function(loc){
+      if(loc.lat&&loc.lng){
+        var d=calcDistance(lat,lng,parseFloat(loc.lat),parseFloat(loc.lng));
+        if(d<bestDist){bestDist=d;best=loc;}
+      }
+    });
+    if(!best){box.innerHTML='<div style="text-align:center;padding:12px;color:var(--orange);font-size:13px">مختصات شعبه ثبت نشده</div>';return;}
+    var radius=best.radius||500;
+    var inRange=bestDist<=radius;
+    var distTxt=bestDist<1000?(toPersianNum(Math.round(bestDist))+' متر'):(toPersianNum((bestDist/1000).toFixed(1))+' کیلومتر');
+    var html='';
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">شعبه مجاز</span><span style="font-weight:600;font-size:13px">🏢 '+best.name+'</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">محدوده مجاز</span><span style="font-weight:600;font-size:13px">'+toPersianNum(radius)+' متر</span></div>';
+    html+='<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><span style="color:var(--text2);font-size:13px">فاصله شما تا شعبه</span><span style="font-weight:700;font-size:14px;color:'+(inRange?'var(--green)':'var(--red)')+'">'+distTxt+'</span></div>';
+    html+='<div style="text-align:center;margin-top:12px;padding:12px;border-radius:12px;background:'+(inRange?'rgba(0,230,118,0.12)':'rgba(255,68,68,0.12)')+';border:1px solid '+(inRange?'rgba(0,230,118,0.3)':'rgba(255,68,68,0.3)')+'">'+
+      '<div style="font-size:15px;font-weight:700;color:'+(inRange?'var(--green)':'var(--red)')+'">'+(inRange?'✅ داخل محدوده مجاز':'❌ خارج از محدوده مجاز')+'</div>'+
+      (inRange?'<div style="font-size:12px;color:var(--text2);margin-top:4px">می‌توانید با GPS ثبت کنید</div>':'<div style="font-size:12px;color:var(--text2);margin-top:4px">برای ثبت باید QR اسکن کنید</div>')+
+    '</div>';
+    box.innerHTML=html;
+  },function(e){
+    box.innerHTML='<div style="text-align:center;padding:12px;color:var(--red);font-size:13px">❌ خطای GPS: '+(e.code===1?'دسترسی رد شد':'دریافت نشد')+'</div>';
+  },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
+}
+
 function calcDistance(lat1,lng1,lat2,lng2){var R=6371000;var dLat=(lat2-lat1)*Math.PI/180;var dLng=(lng2-lng1)*Math.PI/180;var a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));}
 function registerLog(locId,locName,lat,lng,method){
   var u=state.currentUser;var now=new Date();
@@ -765,7 +801,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۳</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۴</p>
   </div>
 </div>
 
@@ -788,7 +824,18 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن</button>
+      </div>
+    </div>
+
+    <!-- LOCATION CARD -->
+    <div class="status-card">
+      <div class="status-header">
+        <span class="status-title">📍 موقعیت مکانی</span>
+        <button onclick="checkMyLocation()" style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--accent);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:600;cursor:pointer">🔄 بررسی</button>
+      </div>
+      <div id="location-info" style="margin-top:10px">
+        <div style="text-align:center;padding:16px;color:var(--text3);font-size:13px">برای بررسی موقعیت، دکمه «بررسی» را بزنید</div>
       </div>
     </div>
 
