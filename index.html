@@ -830,7 +830,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۶</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۷</p>
   </div>
 </div>
 
@@ -986,6 +986,7 @@ body::before{
         </div>
         <div id="monthly-report-result"></div>
       </div>
+    </div>
 
     <!-- Tab Reports -->
     <div id="tab-reports" class="tab-content" style="display:none">
@@ -1002,59 +1003,8 @@ body::before{
       <div id="reports-summary" style="margin-bottom:12px"></div>
       <div id="reports-list"></div>
     </div>
-  </div>
-</div>
 
-<!-- QR SCAN MODAL -->
-<div class="modal-overlay" id="qr-scan-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
-    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">QR ارسال‌شده به ایمیل خود را داخل کادر بگیرید و عکس بگیرید</p>
-    <canvas id="qr-canvas" style="display:none"></canvas>
-    <!-- کادر راهنما -->
-    <div id="qr-frame-guide" style="position:relative;width:100%;height:240px;border-radius:14px;background:linear-gradient(135deg,#0f2238,#1a3252);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden">
-      <video id="qr-video" autoplay playsinline muted style="width:100%;height:240px;object-fit:cover;display:none;border-radius:14px;background:#000"></video>
-      <img id="qr-preview" style="width:100%;height:240px;object-fit:contain;display:none;border-radius:14px;background:#000">
-      <div id="qr-frame-corners" style="position:absolute;width:170px;height:170px">
-        <span style="position:absolute;top:0;left:0;width:36px;height:36px;border-top:4px solid var(--accent);border-left:4px solid var(--accent);border-radius:6px 0 0 0"></span>
-        <span style="position:absolute;top:0;right:0;width:36px;height:36px;border-top:4px solid var(--accent);border-right:4px solid var(--accent);border-radius:0 6px 0 0"></span>
-        <span style="position:absolute;bottom:0;left:0;width:36px;height:36px;border-bottom:4px solid var(--accent);border-left:4px solid var(--accent);border-radius:0 0 0 6px"></span>
-        <span style="position:absolute;bottom:0;right:0;width:36px;height:36px;border-bottom:4px solid var(--accent);border-right:4px solid var(--accent);border-radius:0 0 6px 0"></span>
-      </div>
-      <div id="qr-frame-icon" style="font-size:46px;opacity:0.5">📷</div>
-    </div>
-    <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleQRPhoto(event)">
-    <button class="btn btn-primary" id="qr-live-btn" style="width:100%;margin-top:6px" onclick="startCamera()">🎥 دوربین زنده</button>
-    <button class="btn btn-ghost" id="qr-start-btn" style="width:100%;margin-top:8px" onclick="openNativeCamera()">📷 یا گرفتن عکس</button>
-    <div id="qr-scan-result" class="qr-result"></div>
-    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT LOCATION MODAL -->
-<div class="modal-overlay" id="edit-loc-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش مکان</div>
-    <input type="hidden" id="edit-loc-id">
-    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
-    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
-    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
-    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
-  </div>
-</div>
-
-<!-- EDIT PERSONNEL MODAL -->
-<div class="modal-overlay" id="edit-per-modal">
-  <div class="modal">
-    <div class="modal-handle"></div>
-    <div class="modal-title">✏️ ویرایش پرسنل</div>
-    <input type="hidden" id="edit-per-id">
-    <div class="form-grid">
-      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
-      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
-    <!-- Tab Messages -->
+<!-- Tab Messages -->
     <div id="tab-messages" class="tab-content" style="display:none">
       <div style="background:var(--card);border-radius:16px;padding:16px;margin-bottom:16px;border:1px solid var(--border)">
         <div style="font-size:15px;font-weight:700;margin-bottom:14px">&#128233; ارسال پیام</div>
@@ -1111,6 +1061,59 @@ body::before{
       </div>
       <div id="leaves-list"></div>
     </div>
+    </div>
+  </div>
+</div>
+
+<!-- QR SCAN MODAL -->
+<div class="modal-overlay" id="qr-scan-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="qr-scan-title">اسکن QR Code</div>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:14px">QR ارسال‌شده به ایمیل خود را داخل کادر بگیرید و عکس بگیرید</p>
+    <canvas id="qr-canvas" style="display:none"></canvas>
+    <!-- کادر راهنما -->
+    <div id="qr-frame-guide" style="position:relative;width:100%;height:240px;border-radius:14px;background:linear-gradient(135deg,#0f2238,#1a3252);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden">
+      <video id="qr-video" autoplay playsinline muted style="width:100%;height:240px;object-fit:cover;display:none;border-radius:14px;background:#000"></video>
+      <img id="qr-preview" style="width:100%;height:240px;object-fit:contain;display:none;border-radius:14px;background:#000">
+      <div id="qr-frame-corners" style="position:absolute;width:170px;height:170px">
+        <span style="position:absolute;top:0;left:0;width:36px;height:36px;border-top:4px solid var(--accent);border-left:4px solid var(--accent);border-radius:6px 0 0 0"></span>
+        <span style="position:absolute;top:0;right:0;width:36px;height:36px;border-top:4px solid var(--accent);border-right:4px solid var(--accent);border-radius:0 6px 0 0"></span>
+        <span style="position:absolute;bottom:0;left:0;width:36px;height:36px;border-bottom:4px solid var(--accent);border-left:4px solid var(--accent);border-radius:0 0 0 6px"></span>
+        <span style="position:absolute;bottom:0;right:0;width:36px;height:36px;border-bottom:4px solid var(--accent);border-right:4px solid var(--accent);border-radius:0 0 6px 0"></span>
+      </div>
+      <div id="qr-frame-icon" style="font-size:46px;opacity:0.5">📷</div>
+    </div>
+    <input type="file" id="qr-file-input" accept="image/*" capture="environment" style="display:none" onchange="handleQRPhoto(event)">
+    <button class="btn btn-primary" id="qr-live-btn" style="width:100%;margin-top:6px" onclick="startCamera()">🎥 دوربین زنده</button>
+    <button class="btn btn-ghost" id="qr-start-btn" style="width:100%;margin-top:8px" onclick="openNativeCamera()">📷 یا گرفتن عکس</button>
+    <div id="qr-scan-result" class="qr-result"></div>
+    <button class="btn btn-ghost" style="margin-top:12px" onclick="closeQRScan()">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT LOCATION MODAL -->
+<div class="modal-overlay" id="edit-loc-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش مکان</div>
+    <input type="hidden" id="edit-loc-id">
+    <div class="field"><label>نام مکان</label><input type="text" id="edit-loc-name"></div>
+    <div class="field"><label>آدرس</label><input type="text" id="edit-loc-addr"></div>
+    <button class="btn btn-primary" onclick="saveEditLocation()">💾 ذخیره</button>
+    <button class="btn btn-ghost" style="margin-top:8px" onclick="document.getElementById('edit-loc-modal').classList.remove('open')">انصراف</button>
+  </div>
+</div>
+
+<!-- EDIT PERSONNEL MODAL -->
+<div class="modal-overlay" id="edit-per-modal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ ویرایش پرسنل</div>
+    <input type="hidden" id="edit-per-id">
+    <div class="form-grid">
+      <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
+      <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
     </div>
     <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
     <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
