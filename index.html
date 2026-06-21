@@ -785,7 +785,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴ت</button>
       </div>
     </div>
 
@@ -1319,6 +1319,11 @@ function startCamera(){
     video.style.cssText='width:100%;height:260px;object-fit:cover;border-radius:14px;background:#000;display:block';
     var p=video.play();
     if(p&&p.catch)p.catch(function(){});
+    setTimeout(function(){
+      var cs=window.getComputedStyle(video);
+      var r=video.getBoundingClientRect();
+      alert('ویدیو:\nvideoW='+video.videoWidth+'x'+video.videoHeight+'\ndisplay='+cs.display+'\nopacity='+cs.opacity+'\nvisib='+cs.visibility+'\nعرض واقعی='+Math.round(r.width)+' ارتفاع واقعی='+Math.round(r.height)+'\ntop='+Math.round(r.top)+' left='+Math.round(r.left)+'\nzIndex='+cs.zIndex);
+    },1200);
     var lb=document.getElementById('qr-live-btn');if(lb)lb.textContent='🎥 QR را مقابل دوربین بگیرید';
     if(scanInterval)clearInterval(scanInterval);
     scanInterval=setInterval(scanFrame,300);
@@ -2013,7 +2018,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۴ت</button>
       </div>
     </div>
 
