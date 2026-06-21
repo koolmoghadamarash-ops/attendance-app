@@ -46,11 +46,12 @@ function dbDel(t,id){
 }
 
 function loadDB(){
-  return Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages')]).then(function(res){
+  return Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages'),dbGet('workhours')]).then(function(res){
     state.locations=(res[0]||[]).map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};});
     state.personnel=(res[1]||[]).map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};});
     state.logs=(res[2]||[]).map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng,qrToken:l.qr_token};});
     state.messages=(res[3]||[]).map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};});
+    var wh={};(res[4]||[]).forEach(function(r){wh[r.loc_id]={start:r.start_time,end:r.end_time,late:parseInt(r.late)||15,days:r.days||'6'};});state.workHours=wh;
   });
 }
 
@@ -361,11 +362,20 @@ function doTracking(){
 // ════ WORK HOURS ════
 function initWorkHoursTab(){
   var sel=document.getElementById('wh-loc-select');if(!sel)return;
-  sel.innerHTML='<option value="">\u0627\u0646\u062a\u062e\u0627\u0628 \u0634\u0639\u0628\u0647</option><option value="default">&#127970; \u067e\u06cc\u0634\u0641\u0631\u0636 \u0647\u0645\u0647 \u0634\u0639\u0628\u0647\u200c\u0647\u0627</option>';
-  state.locations.forEach(function(l){sel.innerHTML+='<option value="'+l.id+'">&#127970; '+l.name+'</option>';});
-  var sv=localStorage.getItem('hg_workhours');state.workHours=sv?JSON.parse(sv):{};
-  renderWHList();
+  sel.innerHTML='<option value="">انتخاب شعبه</option><option value="default">🏢 پیشفرض همه شعبه‌ها</option>';
+  state.locations.forEach(function(l){sel.innerHTML+='<option value="'+l.id+'">🏢 '+l.name+'</option>';});
+  // بارگذاری از دیتابیس
+  dbGet('workhours').then(function(rows){
+    var wh={};
+    (rows||[]).forEach(function(r){
+      var key=r.loc_id;
+      wh[key]={start:r.start_time,end:r.end_time,late:parseInt(r.late)||15,days:r.days||'6'};
+    });
+    state.workHours=wh;
+    renderWHList();
+  });
 }
+
 function renderWHList(){
   var list=document.getElementById('wh-locations-list');if(!list)return;
   var wh=state.workHours||{};var keys=Object.keys(wh);
@@ -381,13 +391,30 @@ function renderWHList(){
 }
 function saveWorkHours(){
   var locId=document.getElementById('wh-loc-select').value,start=document.getElementById('wh-start').value,end=document.getElementById('wh-end').value,late=document.getElementById('wh-late').value||'15',days=document.getElementById('wh-days').value;
-  if(!locId){showToast('\u0634\u0639\u0628\u0647 \u0631\u0627 \u0627\u0646\u062a\u062e\u0627\u0628 \u06a9\u0646\u06cc\u062f','error');return;}
-  if(!start||!end){showToast('\u0633\u0627\u0639\u062a \u0627\u0644\u0632\u0627\u0645\u06cc \u0627\u0633\u062a','error');return;}
-  var wh=state.workHours||{};wh[locId]={start:start,end:end,late:parseInt(late),days:days};
-  state.workHours=wh;localStorage.setItem('hg_workhours',JSON.stringify(wh));
-  renderWHList();showToast('\u0633\u0627\u0639\u062a \u06a9\u0627\u0631\u06cc \u0630\u062e\u06cc\u0631\u0647 \u0634\u062f','success');
+  if(!locId){showToast('شعبه را انتخاب کنید','error');return;}
+  if(!start||!end){showToast('ساعت الزامی است','error');return;}
+  var wh=state.workHours||{};
+  wh[locId]={start:start,end:end,late:parseInt(late),days:days};
+  state.workHours=wh;
+  // ذخیره در دیتابیس
+  var rowId='wh_'+locId;
+  dbGet('workhours').then(function(existing){
+    var found=existing.filter(function(x){return x.id===rowId;})[0];
+    if(found){
+      dbEdit('workhours',rowId,{loc_id:locId,start_time:start,end_time:end,late:String(late),days:days});
+    }else{
+      dbAdd('workhours',{id:rowId,loc_id:locId,start_time:start,end_time:end,late:String(late),days:days});
+    }
+    renderWHList();showToast('ساعت کاری ذخیره شد','success');
+  });
 }
-function deleteWorkHours(k){var wh=state.workHours||{};delete wh[k];state.workHours=wh;localStorage.setItem('hg_workhours',JSON.stringify(wh));renderWHList();showToast('\u062d\u0630\u0641 \u0634\u062f','success');}
+
+function deleteWorkHours(k){
+  var wh=state.workHours||{};delete wh[k];state.workHours=wh;
+  dbDel('workhours','wh_'+k);
+  renderWHList();showToast('حذف شد','success');
+}
+
 function getWorkHoursForLoc(locId){var wh=state.workHours||{};return wh[locId]||wh['default']||{start:'08:00',end:'17:00',late:15,days:'6'};}
 
 // ════ STATS MODAL ════
@@ -803,7 +830,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۵</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۶</p>
   </div>
 </div>
 
