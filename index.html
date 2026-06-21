@@ -830,7 +830,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۷</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۸</p>
   </div>
 </div>
 
@@ -1265,11 +1265,11 @@ function calcTodayDuration(logs){
 
 function renderTodayLogs(){
   var today=todayStr();
-  var logs=state.logs.filter(function(l){return l.userId===state.currentUser.nationalId&&l.date===today;});
+  var u=state.currentUser;
+  var logs=state.logs.filter(function(l){return l.userId===u.nationalId&&l.date===today;});
   logs.sort(function(a,b){return (a.timestamp||'').localeCompare(b.timestamp||'');});
   document.getElementById('today-count').textContent=toPersianNum(logs.length)+' رکورد';
-  var summary=document.getElementById('today-summary');
-  summary.innerHTML='';
+  document.getElementById('today-summary').innerHTML='';
   var list=document.getElementById('today-logs-list');
   if(!logs.length){list.innerHTML='<div class="empty-state"><div class="icon">📋</div>هنوز ثبتی امروز وجود ندارد</div>';return;}
   // جفت کردن ورود و خروج
@@ -1294,7 +1294,6 @@ function renderTodayLogs(){
       '</tr>';
       i+=exit?2:1;
     }else{
-      // خروج بدون ورود
       rows+='<tr style="border-bottom:1px solid var(--border)">'+
         '<td style="padding:9px 6px;text-align:center;color:var(--text3)">—</td>'+
         '<td style="padding:9px 6px;text-align:center;color:var(--red);font-weight:600">'+entry.time+'</td>'+
@@ -1305,18 +1304,39 @@ function renderTodayLogs(){
   }
   var th=Math.floor(totalMin/60),tm=Math.floor(totalMin%60);
   var totalTxt=(th>0?toPersianNum(th)+' ساعت و '+toPersianNum(tm)+' دقیقه':toPersianNum(tm)+' دقیقه');
-  list.innerHTML='<table style="width:100%;border-collapse:collapse;font-size:13px">'+
+  // محاسبه تأخیر و کسرکار بر اساس ساعت کاری شعبه
+  var locId=(u.locations||[])[0]||'';
+  var wh=getWorkHoursForLoc(locId);
+  var firstIn=null;
+  for(var fi=0;fi<logs.length;fi++){if(logs[fi].type==='in'){firstIn=logs[fi].time;break;}}
+  function toMin(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+  var startMin=toMin(wh.start), endMin=toMin(wh.end), lateAllow=wh.late||15;
+  var requiredMin=endMin-startMin;
+  // تأخیر
+  var lateMin=0;
+  if(firstIn){var inMin=toMin(firstIn);if(inMin>startMin+lateAllow)lateMin=inMin-startMin;}
+  // کسرکار
+  var shortMin=0;
+  if(totalMin<requiredMin)shortMin=requiredMin-totalMin;
+  function fmtMin(x){var h=Math.floor(x/60),m=Math.floor(x%60);return h>0?(toPersianNum(h)+':'+(m<10?'۰':'')+toPersianNum(m)):(toPersianNum(m)+' دقیقه');}
+  // ساخت جدول
+  var html='<table style="width:100%;border-collapse:collapse;font-size:13px">'+
     '<thead><tr style="background:var(--bg3)">'+
       '<th style="padding:10px 6px;text-align:center;color:var(--green)">🟢 ورود</th>'+
       '<th style="padding:10px 6px;text-align:center;color:var(--red)">🔴 خروج</th>'+
       '<th style="padding:10px 6px;text-align:center;color:var(--accent)">⏱ کارکرد</th>'+
-    '</tr></thead>'+
-    '<tbody>'+rows+'</tbody>'+
+    '</tr></thead><tbody>'+rows+'</tbody>'+
     '<tfoot><tr style="background:rgba(0,212,255,0.08);border-top:2px solid var(--accent)">'+
       '<td colspan="2" style="padding:11px 6px;text-align:center;font-weight:700">جمع کل کارکرد</td>'+
       '<td style="padding:11px 6px;text-align:center;color:var(--accent);font-weight:800">'+totalTxt+'</td>'+
-    '</tr></tfoot>'+
-  '</table>';
+    '</tr></tfoot></table>';
+  // کارت وضعیت تأخیر/کسرکار
+  html+='<div style="margin-top:14px;padding:12px;background:var(--bg3);border-radius:12px;border:1px solid var(--border)">'+
+    '<div style="font-size:12px;color:var(--text2);margin-bottom:8px">ساعت کاری شعبه: '+toPersianNum(wh.start)+' تا '+toPersianNum(wh.end)+'</div>'+
+    '<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--text2)">⏰ تأخیر</span><span style="font-weight:700;font-size:13px;color:'+(lateMin>0?'var(--red)':'var(--green)')+'">'+(lateMin>0?fmtMin(lateMin):'بدون تأخیر')+'</span></div>'+
+    '<div style="display:flex;justify-content:space-between;padding:6px 0"><span style="font-size:13px;color:var(--text2)">📉 کسرکار</span><span style="font-weight:700;font-size:13px;color:'+(shortMin>0?'var(--orange)':'var(--green)')+'">'+(shortMin>0?fmtMin(shortMin):'بدون کسرکار')+'</span></div>'+
+  '</div>';
+  list.innerHTML=html;
 }
 
 function openScanDirect(){
