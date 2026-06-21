@@ -763,7 +763,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۳</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۵</p>
   </div>
 </div>
 
@@ -1249,6 +1249,9 @@ function stopQRScan(){
   if(video){video.style.display='none';video.srcObject=null;}
   var cb=document.getElementById('qr-fullscreen-close');if(cb)cb.style.display='none';
   var fg=document.getElementById('qr-fullscreen-guide');if(fg)fg.style.display='none';
+  // عناصر مخفی‌شده را برگردان
+  var hidden=document.querySelectorAll('[data-hidden-by-scan]');
+  for(var _h=0;_h<hidden.length;_h++){hidden[_h].style.visibility='';hidden[_h].removeAttribute('data-hidden-by-scan');}
 }
 
 function openNativeCamera(){
@@ -1315,11 +1318,20 @@ function startCamera(){
     video.setAttribute('playsinline','');
     video.muted=true;
     video.srcObject=stream;
-    // مودال را مخفی کن تا ویدیو دیده شود
+    // مودال را مخفی کن
     var modal=document.getElementById('qr-scan-modal');
     if(modal)modal.style.cssText='display:none !important';
-    // ویدیو را مستقیم به body بچسبان به صورت تمام‌صفحه
+    // ویدیو را به body بچسبان
     document.body.appendChild(video);
+    // همه عناصر دیگر body را موقتاً مخفی کن
+    var bodyKids=document.body.children;
+    for(var _k=0;_k<bodyKids.length;_k++){
+      var kid=bodyKids[_k];
+      if(kid.id!=='qr-video'&&kid.id!=='qr-fullscreen-close'&&kid.id!=='qr-fullscreen-guide'&&kid.tagName!=='SCRIPT'){
+        kid.setAttribute('data-hidden-by-scan','1');
+        kid.style.visibility='hidden';
+      }
+    }
     var vw=window.innerWidth;
     var vh=window.innerHeight;
     video.style.cssText='position:fixed;top:0;left:0;width:'+vw+'px;height:'+vh+'px;object-fit:cover;background:#000;display:block;z-index:2147483646';
@@ -1339,7 +1351,7 @@ function startCamera(){
     if(!guide){
       guide=document.createElement('div');
       guide.id='qr-fullscreen-guide';
-      guide.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;border:3px solid #00d4ff;border-radius:20px;z-index:2147483647;box-shadow:0 0 0 9999px rgba(0,0,0,0.4);pointer-events:none';
+      guide.style.cssText='position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:220px;height:220px;border:4px solid #00d4ff;border-radius:20px;z-index:2147483647;pointer-events:none;box-shadow:0 0 20px rgba(0,212,255,0.8)';
       document.body.appendChild(guide);
     }
     guide.style.display='block';
@@ -2015,7 +2027,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۳</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۵</p>
   </div>
 </div>
 
