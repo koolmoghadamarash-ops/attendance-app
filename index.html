@@ -773,7 +773,7 @@ body::before{
       <div class="action-btns3">
         <button class="btn btn-green" id="btn-checkin-in" onclick="startCheckin('in')">&#128205; ورود</button>
         <button class="btn btn-red" id="btn-checkin-out" onclick="startCheckin('out')">&#128205; خروج</button>
-        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۱</button>
+        <button class="btn btn-primary" onclick="openScanDirect()">&#128247; اسکن نسخه۳۲</button>
       </div>
     </div>
 
@@ -1057,12 +1057,21 @@ function savePersonnel(){}
 function saveLogs(){}
 
 // ════ QR TOKEN ════
-function getQRToken(locId,userId){
+function getQRToken(locId,userId,offsetSlots){
   // توکن اختصاصی هر کاربر - هر ۱۵ دقیقه عوض می‌شود
   var now=new Date();
+  if(offsetSlots){now=new Date(now.getTime()-(offsetSlots*15*60*1000));}
   var slot=Math.floor(now.getMinutes()/15);
   var key=((now.getFullYear())+'-'+(now.getMonth())+'-'+(now.getDate())+'-'+(now.getHours())+'-'+slot);
   return btoa(('HG:'+(locId)+':'+(userId||'')+':'+(key))).replace(/=/g,'');
+}
+
+function matchQRToken(locId,userId,data){
+  // بازه فعلی و دو بازه قبلی را چک کن (تا ۴۵ دقیقه اعتبار)
+  for(var off=0;off<=2;off++){
+    if(data===getQRToken(locId,userId,off))return true;
+  }
+  return false;
 }
 
 function getNextHourSeconds(){
@@ -1345,8 +1354,7 @@ function processQRCode(data){
   var valid=false, locName='', locId='';
   var myId=state.currentUser.nationalId;
   for(var _lo=0;_lo<state.locations.length;_lo++){var loc=state.locations[_lo];
-    var expected=getQRToken(loc.id,myId);
-    if(data===expected){
+    if(matchQRToken(loc.id,myId,data)){
       if(state.currentUser.locations.includes(loc.id)){
         valid=true; locName=loc.name; locId=loc.id;
       } else {
