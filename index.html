@@ -273,7 +273,7 @@ function renderWeekChart(){
   var el=document.getElementById('admin-chart');
   if(!el)return;
   // Build last 7 days
-  var days=[];var labels=['\u0634\u0646\u0628\u0647','\u06cc\u06a9','\u062f\u0648','\u0633\u0647','\u0686\u0647\u0627\u0631','\u067e\u0646\u062c','\u062c\u0645\u0639\u0647'];
+  var days=[];var dayMap={6:'شنبه',0:'یک',1:'دو',2:'سه',3:'چهار',4:'پنج',5:'جمعه'};
   var counts=[];var dayLabels=[];
   var i;
   for(i=6;i>=0;i--){
@@ -282,7 +282,7 @@ function renderWeekChart(){
     var uids=[];
     state.logs.forEach(function(l){if(l.date===ds&&l.type==='in'&&uids.indexOf(l.userId)<0)uids.push(l.userId);});
     counts.push(uids.length);
-    dayLabels.push(labels[d.getDay()===6?6:d.getDay()]);
+    dayLabels.push(dayMap[d.getDay()]);
   }
   var max=Math.max.apply(null,counts);if(max<1)max=1;
   var bars='';
@@ -830,7 +830,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۸ت</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۱ت</p>
   </div>
 </div>
 
