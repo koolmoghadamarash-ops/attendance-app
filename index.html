@@ -830,7 +830,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۸</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۱۸ت</p>
   </div>
 </div>
 
@@ -1307,6 +1307,7 @@ function renderTodayLogs(){
   // محاسبه تأخیر و کسرکار بر اساس ساعت کاری شعبه
   var locId=(u.locations||[])[0]||'';
   var wh=getWorkHoursForLoc(locId);
+  alert('locId='+locId+'\nساعت شعبه: '+wh.start+' تا '+wh.end+'\nتأخیر مجاز: '+wh.late+'\nworkHours keys: '+JSON.stringify(Object.keys(state.workHours||{})));
   var firstIn=null;
   for(var fi=0;fi<logs.length;fi++){if(logs[fi].type==='in'){firstIn=logs[fi].time;break;}}
   function toMin(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
