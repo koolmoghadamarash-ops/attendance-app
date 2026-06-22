@@ -622,12 +622,17 @@ function initMeetingsTab(){
   // رییس جلسه
   var chair=document.getElementById('mt-chair');
   if(chair){chair.innerHTML='<option value="">انتخاب رییس جلسه</option>'+state.personnel.map(function(p){return '<option value="'+p.nationalId+'">'+p.fname+' '+p.lname+(p.post?' ('+p.post+')':'')+'</option>';}).join('');}
-  // گروه سمت
+  // گروه سمت - همه سمت‌های تعریف‌شده با تفکیک شعبه‌ای/ستادی
   var pg=document.getElementById('mt-postgroup');
   if(pg){
-    var allPosts=[];
-    state.personnel.forEach(function(p){if(p.post&&allPosts.indexOf(p.post)<0)allPosts.push(p.post);});
-    pg.innerHTML='<option value="">انتخاب گروه سمت</option>'+allPosts.map(function(po){return '<option value="'+po+'">'+po+'</option>';}).join('');
+    var html='<option value="">انتخاب گروه سمت</option>';
+    html+='<optgroup label="🏢 شعبه‌ای">';
+    POST_OPTIONS.branch.forEach(function(po){html+='<option value="'+po+'">'+po+'</option>';});
+    html+='</optgroup>';
+    html+='<optgroup label="🏛 ستادی">';
+    POST_OPTIONS.staff.forEach(function(po){html+='<option value="'+po+'">'+po+'</option>';});
+    html+='</optgroup>';
+    pg.innerHTML=html;
   }
   // فرد دستی
   var per=document.getElementById('mt-person');
@@ -638,13 +643,14 @@ function initMeetingsTab(){
 
 function addPostGroupToMeeting(){
   var post=document.getElementById('mt-postgroup').value;
-  if(!post)return;
+  if(!post){showToast('یک گروه سمت انتخاب کنید','error');return;}
   var added=0;
   state.personnel.forEach(function(p){
     if(p.post===post&&meetingParticipants.indexOf(p.nationalId)<0){meetingParticipants.push(p.nationalId);added++;}
   });
   renderMeetingParticipants();
-  showToast(toPersianNum(added)+' نفر از گروه «'+post+'» اضافه شد','success');
+  if(added>0){showToast(toPersianNum(added)+' نفر از گروه «'+post+'» اضافه شد','success');}
+  else{showToast('هیچ پرسنلی با سمت «'+post+'» وجود ندارد','info');}
 }
 
 function addPersonToMeeting(){
@@ -1007,7 +1013,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۴ت</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۵ت</p>
   </div>
 </div>
 
