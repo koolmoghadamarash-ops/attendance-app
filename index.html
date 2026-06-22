@@ -1307,18 +1307,19 @@ function renderTodayLogs(){
   // محاسبه تأخیر و کسرکار بر اساس ساعت کاری شعبه
   var locId=(u.locations||[])[0]||'';
   var wh=getWorkHoursForLoc(locId);
-  alert('locId='+locId+'\nساعت شعبه: '+wh.start+' تا '+wh.end+'\nتأخیر مجاز: '+wh.late+'\nworkHours keys: '+JSON.stringify(Object.keys(state.workHours||{})));
   var firstIn=null;
   for(var fi=0;fi<logs.length;fi++){if(logs[fi].type==='in'){firstIn=logs[fi].time;break;}}
-  function toMin(t){if(!t)return 0;var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
+  function toMin(t){if(!t)return 0;t=String(t).replace(/[۰-۹]/g,function(d){return '۰۱۲۳۴۵۶۷۸۹'.indexOf(d);});var p=t.split(':');return parseInt(p[0])*60+parseInt(p[1]);}
   var startMin=toMin(wh.start), endMin=toMin(wh.end), lateAllow=wh.late||15;
   var requiredMin=endMin-startMin;
   // تأخیر
   var lateMin=0;
   if(firstIn){var inMin=toMin(firstIn);if(inMin>startMin+lateAllow)lateMin=inMin-startMin;}
-  // کسرکار
+  // کسرکار - فقط اگر کاربر خروج زده باشد (روز کاری تمام شده)
+  var lastLog=logs[logs.length-1];
+  var stillWorking=(lastLog&&lastLog.type==='in');
   var shortMin=0;
-  if(totalMin<requiredMin)shortMin=requiredMin-totalMin;
+  if(!stillWorking&&totalMin<requiredMin)shortMin=requiredMin-totalMin;
   function fmtMin(x){var h=Math.floor(x/60),m=Math.floor(x%60);return h>0?(toPersianNum(h)+':'+(m<10?'۰':'')+toPersianNum(m)):(toPersianNum(m)+' دقیقه');}
   // ساخت جدول
   var html='<table style="width:100%;border-collapse:collapse;font-size:13px">'+
