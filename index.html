@@ -48,7 +48,7 @@ function dbDel(t,id){
 function loadDB(){
   return Promise.all([dbGet('locations'),dbGet('personnel'),dbGet('logs'),dbGet('messages'),dbGet('workhours')]).then(function(res){
     state.locations=(res[0]||[]).map(function(l){return {id:l.id,name:l.name,address:l.address||'',lat:l.lat,lng:l.lng,radius:l.radius||500};});
-    state.personnel=(res[1]||[]).map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[]};});
+    state.personnel=(res[1]||[]).map(function(p){return {id:p.id,fname:p.fname,lname:p.lname,nationalId:p.national_id,password:p.password,email:p.email||'',locations:p.locations||[],postCat:p.post_cat||'',post:p.post||''};});
     state.logs=(res[2]||[]).map(function(l){return {id:l.id,userId:l.user_id,userName:l.user_name,locationId:l.location_id,locationName:l.location_name,type:l.type,date:l.date,time:l.time,timestamp:l.timestamp,lat:l.lat,lng:l.lng,qrToken:l.qr_token};});
     state.messages=(res[3]||[]).map(function(m){return {id:m.id,target:m.target,text:m.text,date:m.date,time:m.time,readBy:m.read_by||[]};});
     var wh={};(res[4]||[]).forEach(function(r){wh[r.loc_id]={start:r.start_time,end:r.end_time,late:parseInt(r.late)||15,days:r.days||'6'};});state.workHours=wh;
@@ -826,11 +826,11 @@ body::before{
       <h1>حضور و غیاب هوشمند</h1>
       <p>سیستم ثبت ورود و خروج</p>
     </div>
-    <div class="field"><label>نام کاربری (کد ملی)</label><input type="text" id="login-user" placeholder="کد ملی یا نام کاربری" autocomplete="username"></div>
+    <div class="field"><label>کد پرسنلی</label><input type="text" id="login-user" placeholder="کد پرسنلی" autocomplete="username"></div>
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۱ت</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۲ت</p>
   </div>
 </div>
 
@@ -970,7 +970,9 @@ body::before{
             <div class="field"><label>نام</label><input type="text" id="per-fname" placeholder="نام"></div>
             <div class="field"><label>نام خانوادگی</label><input type="text" id="per-lname" placeholder="نام خانوادگی"></div>
           </div>
-          <div class="field"><label>کد ملی</label><input type="text" id="per-id" placeholder="1234567890" maxlength="10" inputmode="numeric"></div>
+          <div class="field"><label>کد پرسنلی <span style="color:var(--red)">*</span></label><input type="text" id="per-id" placeholder="مثلاً 10025" inputmode="numeric"></div>
+          <div class="field"><label>نوع سمت</label><select id="per-postcat" onchange="updatePostOptions()" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">انتخاب کنید</option><option value="branch">شعبه‌ای</option><option value="staff">ستادی</option></select></div>
+          <div class="field"><label>سمت</label><select id="per-post" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">ابتدا نوع سمت را انتخاب کنید</option></select></div>
           <div class="field"><label>رمز عبور</label><input type="password" id="per-pass" placeholder="رمز ورود" value="1234"></div>
           <div class="field"><label>ایمیل سازمانی <span style="color:var(--red)">*</span></label><input type="email" id="per-email" placeholder="example@bank.ir"></div>
           <div class="field"><label>شعبه‌های مجاز</label><div id="loc-checkboxes" class="checkbox-group"></div></div>
@@ -1115,7 +1117,9 @@ body::before{
       <div class="field"><label>نام</label><input type="text" id="edit-per-fname"></div>
       <div class="field"><label>نام خانوادگی</label><input type="text" id="edit-per-lname"></div>
     </div>
-    <div class="field"><label>کد ملی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
+    <div class="field"><label>کد پرسنلی</label><input type="text" id="edit-per-nid" inputmode="numeric"></div>
+    <div class="field"><label>نوع سمت</label><select id="edit-per-postcat" onchange="updateEditPostOptions()" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">انتخاب کنید</option><option value="branch">شعبه‌ای</option><option value="staff">ستادی</option></select></div>
+    <div class="field"><label>سمت</label><select id="edit-per-post" style="width:100%;padding:11px;background:var(--bg3);border:1.5px solid var(--border);border-radius:12px;color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px"><option value="">ابتدا نوع سمت را انتخاب کنید</option></select></div>
     <div class="field"><label>رمز عبور جدید (خالی = بدون تغییر)</label><input type="password" id="edit-per-pass"></div>
     <div class="field"><label>شعبه‌های مجاز</label><div id="edit-loc-checkboxes" style="display:grid;gap:8px;margin-top:8px"></div></div>
     <button class="btn btn-primary" onclick="saveEditPersonnel()">💾 ذخیره</button>
@@ -1698,8 +1702,27 @@ function renderPersonnelList(){
     var last=logs[logs.length-1];
     var statusBadge=!last?'<span class="badge badge-orange">غایب</span>':last.type==='in'?'<span class="badge badge-green">حاضر</span>':'<span class="badge badge-red">خروج</span>';
     var locs=(p.locations||[]).map(function(id){return (function(){var _f=state.locations.find(function(l){return l.id===id;});return _f?_f.name:undefined;})();}).filter(Boolean).join('، ');
-    return ('<div class="card">\n      <div class="card-header">\n        <div style="display:flex;align-items:center;gap:10px">\n          <div class="report-avatar">'+((p.fname||'?').charAt(0))+'</div>\n          <div><div class="card-title">'+(p.fname)+' '+(p.lname)+'</div><div class="card-sub">'+(p.nationalId)+'</div></div>\n        </div>\n        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">\n          '+(statusBadge)+'\n          <div style="display:flex;gap:6px">\n            <button class="btn btn-ghost btn-xs" onclick="openEditPersonnel(\''+(p.id)+'\')">✏️</button>\n            <button class="btn btn-ghost btn-xs" onclick="deletePersonnel(\''+(p.id)+'\')">🗑</button>\n          </div>\n        </div>\n      </div>\n      '+(logs.length>0?'<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">'+calcTodayDuration(logs)+'</span></div>':'')+'\n      <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">'+(locs||'—')+'</span></div>\n    </div>');
+    return ('<div class="card">\n      <div class="card-header">\n        <div style="display:flex;align-items:center;gap:10px">\n          <div class="report-avatar">'+((p.fname||'?').charAt(0))+'</div>\n          <div><div class="card-title">'+(p.fname)+' '+(p.lname)+'</div><div class="card-sub">کد: '+(p.nationalId)+(p.post?' | '+p.post:'')+'</div></div>\n        </div>\n        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">\n          '+(statusBadge)+'\n          <div style="display:flex;gap:6px">\n            <button class="btn btn-ghost btn-xs" onclick="openEditPersonnel(\''+(p.id)+'\')">✏️</button>\n            <button class="btn btn-ghost btn-xs" onclick="deletePersonnel(\''+(p.id)+'\')">🗑</button>\n          </div>\n        </div>\n      </div>\n      '+(logs.length>0?'<div class="info-row"><span class="info-label">حضور امروز</span><span class="duration-badge">'+calcTodayDuration(logs)+'</span></div>':'')+'\n      <div class="info-row"><span class="info-label">شعبه‌های مجاز</span><span class="info-val" style="font-size:12px">'+(locs||'—')+'</span></div>\n    </div>');
   }).join('');
+}
+
+var POST_OPTIONS={
+  branch:['رییس شعبه','معاون شعبه','مسئول مالی شعبه','مسئول اعتبارات شعبه','کاربر','خدماتی'],
+  staff:['مدیر عامل','هیات مدیره','معاون','مدیر امور','رییس اداره','معاون اداره','رییس دایره','کارشناس','متصدی امور اداری','خدماتی']
+};
+function updatePostOptions(){
+  var cat=document.getElementById('per-postcat').value;
+  var sel=document.getElementById('per-post');
+  if(!cat){sel.innerHTML='<option value="">ابتدا نوع سمت را انتخاب کنید</option>';return;}
+  var opts=POST_OPTIONS[cat]||[];
+  sel.innerHTML='<option value="">انتخاب سمت</option>'+opts.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
+}
+function updateEditPostOptions(){
+  var cat=document.getElementById('edit-per-postcat').value;
+  var sel=document.getElementById('edit-per-post');
+  if(!cat){sel.innerHTML='<option value="">ابتدا نوع سمت را انتخاب کنید</option>';return;}
+  var opts=POST_OPTIONS[cat]||[];
+  sel.innerHTML='<option value="">انتخاب سمت</option>'+opts.map(function(o){return '<option value="'+o+'">'+o+'</option>';}).join('');
 }
 
 function addPersonnel(){
@@ -1707,22 +1730,26 @@ function addPersonnel(){
   var lname=document.getElementById('per-lname').value.trim();
   var nid=document.getElementById('per-id').value.trim();
   var pass=document.getElementById('per-pass').value.trim();
+  var postcat=document.getElementById('per-postcat').value;
+  var post=document.getElementById('per-post').value;
   var eEl=document.getElementById('per-email');
   var email=eEl?eEl.value.trim():'';
   var checked=Array.from(document.querySelectorAll('#loc-checkboxes input:checked')).map(function(c){return c.value;});
-  if(!fname||!lname||!nid||!pass){showToast('همه فیلدها الزامی است','error');return;}
+  if(!fname||!lname||!nid||!pass){showToast('نام، نام خانوادگی، کد پرسنلی و رمز الزامی است','error');return;}
+  if(!post){showToast('سمت را انتخاب کنید','error');return;}
   if(!email||email.indexOf('@')<0){showToast('ایمیل سازمانی معتبر وارد کنید','error');return;}
   if(!checked.length){showToast('حداقل یک شعبه را انتخاب کنید','error');return;}
   var exists=state.personnel.find(function(p){return p.nationalId===nid;});
-  if(exists){showToast('این کد ملی قبلاً ثبت شده است','error');return;}
-  var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked};
-  var row={id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked};
+  if(exists){showToast('این کد پرسنلی قبلاً ثبت شده است','error');return;}
+  var np={id:'p_'+Date.now(),fname:fname,lname:lname,nationalId:nid,password:pass,email:email,locations:checked,postCat:postcat,post:post};
+  var row={id:np.id,fname:fname,lname:lname,national_id:nid,password:pass,locations:checked,post_cat:postcat,post:post};
   if(email)row.email=email;
   state.personnel.push(np);
   dbAdd('personnel',row);
   renderPersonnelList();renderAdminStats();
   document.getElementById('per-fname').value='';document.getElementById('per-lname').value='';
   document.getElementById('per-id').value='';document.getElementById('per-pass').value='1234';
+  document.getElementById('per-postcat').value='';document.getElementById('per-post').innerHTML='<option value="">ابتدا نوع سمت را انتخاب کنید</option>';
   if(eEl)eEl.value='';
   showToast('پرسنل ذخیره شد','success');
 }
@@ -1734,6 +1761,10 @@ function openEditPersonnel(id){
   document.getElementById('edit-per-lname').value=p.lname;
   document.getElementById('edit-per-nid').value=p.nationalId;
   document.getElementById('edit-per-pass').value='';
+  // بارگذاری سمت
+  document.getElementById('edit-per-postcat').value=p.postCat||'';
+  updateEditPostOptions();
+  document.getElementById('edit-per-post').value=p.post||'';
   renderLocCheckboxes('edit-loc-checkboxes',p.locations);
   document.getElementById('edit-per-modal').classList.add('open');
 }
@@ -1745,13 +1776,15 @@ function saveEditPersonnel(){
   var nid=document.getElementById('edit-per-nid').value.trim();
   var pass=document.getElementById('edit-per-pass').value.trim();
   var locs=Array.prototype.slice.call(document.querySelectorAll('#edit-loc-checkboxes input:checked')).map(function(c){return c.value;});
-  if(!fname||!lname||!nid){showToast('نام و کد ملی الزامی است','error');return;}
-  if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد ملی برای پرسنل دیگری ثبت شده','error');return;}
+  var postcat=document.getElementById('edit-per-postcat').value;
+  var post=document.getElementById('edit-per-post').value;
+  if(!fname||!lname||!nid){showToast('نام و کد پرسنلی الزامی است','error');return;}
+  if(state.personnel.find(function(p){return p.nationalId===nid&&p.id!==id;})){showToast('این کد پرسنلی برای پرسنل دیگری ثبت شده','error');return;}
   var idx=state.personnel.findIndex(function(p){return p.id===id;});if(idx<0)return;
-  state.personnel[idx]=Object.assign({},state.personnel[idx],{fname:fname,lname:lname,nationalId:nid,locations:locs},(pass?{password:pass}:{}));
+  state.personnel[idx]=Object.assign({},state.personnel[idx],{fname:fname,lname:lname,nationalId:nid,locations:locs,postCat:postcat,post:post},(pass?{password:pass}:{}));
   var _pid=document.getElementById('edit-per-id').value;
   var _pidx=state.personnel.findIndex(function(p){return p.id===_pid;});
-  if(_pidx>=0){var _p=state.personnel[_pidx];dbEdit('personnel',_pid,{fname:_p.fname,lname:_p.lname,national_id:_p.nationalId,password:_p.password,locations:_p.locations});}
+  if(_pidx>=0){var _p=state.personnel[_pidx];dbEdit('personnel',_pid,{fname:_p.fname,lname:_p.lname,national_id:_p.nationalId,password:_p.password,locations:_p.locations,post_cat:_p.postCat,post:_p.post});}
   renderPersonnelList();
   document.getElementById('edit-per-modal').classList.remove('open');
   showToast('پرسنل ویرایش شد ✅','success');
@@ -1845,9 +1878,9 @@ function exportExcel(){
   if(date)logs=logs.filter(function(l){return l.date===date;});
   if(!logs.length){showToast('هیچ رکوردی وجود ندارد','error');return;}
   var BOM='\﻿';
-  var header='نام پرسنل,کد ملی,نوع,شعبه,تاریخ,ساعت,روش ثبت\
+  var header='نام پرسنل,کد پرسنلی,سمت,نوع,شعبه,تاریخ,ساعت,روش ثبت\
 ';
-  var rows=logs.map(function(l){return ('"'+(l.userName)+'","'+(l.userId)+'","'+(l.type==='in'?'ورود':'خروج')+'","'+(l.locationName)+'","'+(l.date)+'","'+(l.time)+'","'+(l.method||'qr')+'"');}).join('\
+  var rows=logs.map(function(l){var pp=state.personnel.find(function(x){return x.nationalId===l.userId;});var post=pp?pp.post:'';return ('"'+(l.userName)+'","'+(l.userId)+'","'+post+'","'+(l.type==='in'?'ورود':'خروج')+'","'+(l.locationName)+'","'+(l.date)+'","'+(l.time)+'","'+(l.method||'qr')+'"');}).join('\
 ');
   var blob=new Blob([BOM+header+rows],{type:'text/csv;charset=utf-8;'});
   var url=URL.createObjectURL(blob);
