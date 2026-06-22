@@ -514,7 +514,7 @@ function buildMonthReport(pid,month,el,size){
 }
 
 function empTab(tab,el){
-  var tabs=['today','monthly','leaves'];
+  var tabs=['today','monthly','leaves','meetings'];
   tabs.forEach(function(t){
     var btn=document.getElementById('etab-'+t);var cnt=document.getElementById('etab-'+t+'-content');
     if(btn){btn.style.background=t===tab?'var(--accent)':'var(--bg3)';btn.style.color=t===tab?'#000':'var(--text)';btn.style.border=t===tab?'none':'1px solid var(--border)';btn.style.fontWeight=t===tab?'700':'400';}
@@ -522,6 +522,7 @@ function empTab(tab,el){
   });
   if(tab==='monthly')initEmpMonthly();
   if(tab==='leaves')renderEmpLeaves();
+  if(tab==='meetings')renderEmpMeetings();
 }
 function initEmpMonthly(){
   var msel=document.getElementById('emp-report-month');if(!msel)return;
@@ -533,6 +534,77 @@ function loadEmpMonthlyReport(){
   var res=document.getElementById('emp-monthly-result');if(!month||!u)return;
   buildMonthReport(u.nationalId,month,res,'emp');
 }
+function checkLiveMeetings(){
+  var u=state.currentUser;if(!u)return;
+  var live=(state.meetings||[]).filter(function(m){
+    return m.status==='live'&&(m.chair===u.nationalId||(m.participants||[]).indexOf(u.nationalId)>=0);
+  });
+  if(live.length){
+    showToast('🔴 جلسه «'+live[0].title+'» در حال برگزاری است',' success');
+  }
+}
+
+function renderEmpMeetings(){
+  var u=state.currentUser;var list=document.getElementById('emp-meetings-list');if(!list)return;
+  var myMeetings=(state.meetings||[]).filter(function(m){
+    return m.chair===u.nationalId||(m.participants||[]).indexOf(u.nationalId)>=0;
+  });
+  if(!myMeetings.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">جلسه‌ای برای شما ثبت نشده</div>';return;}
+  // مرتب‌سازی بر اساس تاریخ
+  myMeetings.sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
+  list.innerHTML=myMeetings.map(function(mt){
+    var isChair=mt.chair===u.nationalId;
+    var chairP=state.personnel.find(function(x){return x.nationalId===mt.chair;});
+    var chairName=chairP?chairP.fname+' '+chairP.lname:mt.chair;
+    var isLive=mt.status==='live';
+    var roleBadge=isChair?'<span style="background:var(--purple);color:#fff;padding:3px 10px;border-radius:14px;font-size:11px;font-weight:700">👑 رییس جلسه</span>':'<span style="background:var(--accent);color:#000;padding:3px 10px;border-radius:14px;font-size:11px;font-weight:700">شرکت‌کننده</span>';
+    var statusBadge=isLive?'<span style="background:var(--green);color:#000;padding:3px 10px;border-radius:14px;font-size:11px;font-weight:700;animation:livePulse 2s infinite">🔴 در حال برگزاری</span>':'';
+    var actionBtn='';
+    if(isChair&&!isLive){
+      actionBtn='<button onclick="startMeeting(\''+mt.id+'\')" style="width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,var(--green),#00c853);color:#000;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;font-weight:700;cursor:pointer">▶️ شروع جلسه</button>';
+    }else if(isLive){
+      actionBtn='<button onclick="joinMeeting(\''+mt.id+'\')" style="width:100%;margin-top:10px;padding:12px;background:linear-gradient(135deg,var(--accent),#0088cc);color:#000;border:none;border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:14px;font-weight:700;cursor:pointer">🎥 ورود به جلسه</button>';
+      if(isChair)actionBtn+='<button onclick="endMeeting(\''+mt.id+'\')" style="width:100%;margin-top:8px;padding:10px;background:var(--bg3);color:var(--red);border:1px solid var(--red);border-radius:12px;font-family:Vazirmatn,Tahoma,sans-serif;font-size:13px;font-weight:600;cursor:pointer">⏹ پایان جلسه</button>';
+    }else{
+      actionBtn='<div style="text-align:center;margin-top:10px;padding:10px;background:var(--bg3);border-radius:10px;color:var(--text3);font-size:12px">⏳ هنوز شروع نشده — منتظر رییس جلسه</div>';
+    }
+    return '<div class="card" style="margin-bottom:10px">'+
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:8px"><div class="card-title">🎥 '+mt.title+'</div>'+statusBadge+'</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:8px">'+roleBadge+'</div>'+
+      '<div class="info-row"><span class="info-label">رییس جلسه</span><span class="info-val">'+chairName+'</span></div>'+
+      '<div class="info-row"><span class="info-label">تاریخ و ساعت</span><span class="info-val">'+gregToJalali(mt.date)+' - '+toPersianNum(mt.time)+(mt.weekly?' 🔁':'')+'</span></div>'+
+      '<div class="info-row"><span class="info-label">شرکت‌کنندگان</span><span class="info-val">'+toPersianNum((mt.participants||[]).length)+' نفر</span></div>'+
+      actionBtn+
+    '</div>';
+  }).join('');
+}
+
+function startMeeting(id){
+  var mt=(state.meetings||[]).find(function(m){return m.id===id;});if(!mt)return;
+  mt.status='live';
+  dbEdit('meetings',id,{status:'live'});
+  renderEmpMeetings();
+  showToast('جلسه شروع شد ✅','success');
+  // باز کردن لینک Google Meet
+  if(mt.link){window.open(mt.link,'_blank');}
+  else{showToast('لینک جلسه ثبت نشده','error');}
+}
+
+function joinMeeting(id){
+  var mt=(state.meetings||[]).find(function(m){return m.id===id;});if(!mt)return;
+  if(mt.link){window.open(mt.link,'_blank');}
+  else{showToast('لینک جلسه موجود نیست','error');}
+}
+
+function endMeeting(id){
+  if(!confirm('پایان جلسه؟'))return;
+  var mt=(state.meetings||[]).find(function(m){return m.id===id;});if(!mt)return;
+  mt.status='ended';
+  dbEdit('meetings',id,{status:'ended'});
+  renderEmpMeetings();
+  showToast('جلسه پایان یافت','info');
+}
+
 function renderEmpLeaves(){
   var u=state.currentUser;var list=document.getElementById('emp-leaves-list');if(!list)return;
   var my=(state.leaves||[]).filter(function(lv){return lv.userId===u.nationalId;});
@@ -935,7 +1007,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۳ت</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۴ت</p>
   </div>
 </div>
 
@@ -984,6 +1056,7 @@ body::before{
       <button onclick="empTab('today',this)" id="etab-today" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:none;background:var(--accent);color:#000;font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;font-weight:700;cursor:pointer">امروز</button>
       <button onclick="empTab('monthly',this)" id="etab-monthly" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">گزارش ماهانه</button>
       <button onclick="empTab('leaves',this)" id="etab-leaves" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">مرخصی‌های من</button>
+      <button onclick="empTab('meetings',this)" id="etab-meetings" style="white-space:nowrap;padding:8px 14px;border-radius:20px;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:Vazirmatn,Tahoma,sans-serif;font-size:12px;cursor:pointer">🎥 جلسات من</button>
     </div>
     <div id="etab-today-content" style="display:none"></div>
     <div id="etab-monthly-content" style="display:none">
@@ -995,6 +1068,9 @@ body::before{
     </div>
     <div id="etab-leaves-content" style="display:none">
       <div id="emp-leaves-list"><div style="text-align:center;padding:20px;color:var(--text3)">مرخصی ثبت نشده</div></div>
+    </div>
+    <div id="etab-meetings-content" style="display:none">
+      <div id="emp-meetings-list"></div>
     </div>
   </div>
 </div>
@@ -1368,7 +1444,7 @@ function initEmployee(){
       var l=state.locations.find(function(x){return x.id===id;});return l?l.name:null;
     }).filter(Boolean).join(' - ');
     document.getElementById('emp-location-name').textContent=locs||'بدون شعبه';
-    updateEmpStatus();renderTodayLogs();checkInboxDot();
+    updateEmpStatus();renderTodayLogs();checkInboxDot();checkLiveMeetings();
     setTimeout(function(){try{checkMyLocation();}catch(e){}},500);
   });
 }
