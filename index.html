@@ -537,7 +537,9 @@ function loadEmpMonthlyReport(){
 function checkLiveMeetings(){
   var u=state.currentUser;if(!u)return;
   var live=(state.meetings||[]).filter(function(m){
-    return m.status==='live'&&(m.chair===u.nationalId||(m.participants||[]).indexOf(u.nationalId)>=0);
+    var parts=m.participants;if(typeof parts==='string'){try{parts=JSON.parse(parts);}catch(e){parts=[];}}if(!parts)parts=[];
+    var inP=parts.some(function(pid){return String(pid)===String(u.nationalId);});
+    return m.status==='live'&&(String(m.chair)===String(u.nationalId)||inP);
   });
   if(live.length){
     showToast('🔴 جلسه «'+live[0].title+'» در حال برگزاری است',' success');
@@ -547,8 +549,17 @@ function checkLiveMeetings(){
 function renderEmpMeetings(){
   var u=state.currentUser;var list=document.getElementById('emp-meetings-list');if(!list)return;
   var myMeetings=(state.meetings||[]).filter(function(m){
-    return m.chair===u.nationalId||(m.participants||[]).indexOf(u.nationalId)>=0;
+    var parts=m.participants;
+    if(typeof parts==='string'){try{parts=JSON.parse(parts);}catch(e){parts=[];}}
+    if(!parts)parts=[];
+    var inParts=parts.some(function(pid){return String(pid)===String(u.nationalId);});
+    return String(m.chair)===String(u.nationalId)||inParts;
   });
+  if((state.meetings||[]).length>0&&!myMeetings.length){
+    var dbg='کد من: '+u.nationalId+'\n\nجلسات موجود:\n';
+    (state.meetings||[]).forEach(function(m){var pp=m.participants;if(typeof pp==='string')pp=pp.substring(0,60);else pp=JSON.stringify(pp).substring(0,60);dbg+='رییس:'+m.chair+' | شرکت:'+pp+'\n';});
+    alert(dbg);
+  }
   if(!myMeetings.length){list.innerHTML='<div style="text-align:center;padding:20px;color:var(--text3)">جلسه‌ای برای شما ثبت نشده</div>';return;}
   myMeetings.sort(function(a,b){return (a.date+a.time).localeCompare(b.date+b.time);});
   list.innerHTML=myMeetings.map(function(mt){
@@ -1048,7 +1059,7 @@ body::before{
     <div class="field"><label>رمز عبور</label><input type="password" id="login-pass" placeholder="رمز عبور را وارد کنید" autocomplete="current-password"></div>
     <button class="btn btn-primary" onclick="doLogin()">ورود به سیستم</button>
     <p style="text-align:center;margin-top:14px;font-size:12px;color:var(--text3)">ادمین: admin / 1234</p>
-    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۷ت</p>
+    <p style="text-align:center;margin-top:6px;font-size:13px;color:var(--accent);font-weight:700">نسخه ۲۸ت</p>
   </div>
 </div>
 
