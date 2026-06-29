@@ -7,162 +7,138 @@
 <title>⚽ Futsal Coach Pro</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;background:#0a0a1a;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;overflow-x:hidden;}
+body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2e8f0;}
 
-#header{
-  height:48px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 14px;background:#0f172a;border-bottom:1px solid #1e293b;
-  position:sticky;top:0;z-index:50;
-}
-#header h1{font-size:14px;font-weight:800;letter-spacing:1px;color:#fff;}
-.hbtn{background:none;border:none;font-size:22px;cursor:pointer;padding:4px 8px;}
+#hdr{display:flex;align-items:center;justify-content:space-between;
+  height:48px;padding:0 14px;background:#0f172a;border-bottom:1px solid #1e293b;}
+#hdr h1{font-size:14px;font-weight:800;letter-spacing:1px;color:#fff;}
+.hb{background:none;border:none;font-size:22px;cursor:pointer;}
 
-/* زمین - ارتفاع با aspect-ratio تنظیم می‌شه */
-#field-wrap{
-  width:100%;
-  aspect-ratio:100/52;
-  position:relative;
+/* کانواس - عرض ۱۰۰% صفحه، ارتفاع با vw تنظیم می‌شه */
+#board{
+  display:block;
+  width:100vw;
+  height:52vw;
   background:#186033;
-  overflow:hidden;
-  display:block;
-}
-#field-wrap canvas{
-  position:absolute;
-  top:0;left:0;
-  width:100%;height:100%;
-  display:block;
+  touch-action:none;
+  cursor:crosshair;
 }
 
-#controls{
-  background:#0f172a;
-  border-top:1px solid #1e293b;
-  padding:10px 12px;
-  display:flex;flex-direction:column;gap:10px;
-}
-.sec-lbl{font-size:11px;color:#64748b;text-align:right;margin-bottom:4px;}
+#ctrl{background:#0f172a;border-top:1px solid #1e293b;padding:10px 12px;}
+.lbl{font-size:11px;color:#64748b;text-align:right;margin-bottom:4px;}
+.sr{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:8px;}
+.sr::-webkit-scrollbar{display:none;}
+.tb{display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:7px 9px;border-radius:10px;background:#1e293b;
+  border:1.5px solid transparent;min-width:56px;flex-shrink:0;
+  font-size:9px;color:#64748b;cursor:pointer;}
+.tb span{font-size:19px;}
+.tb.on{background:#14532d;border-color:#4ade80;color:#4ade80;}
 
-.scroll-row{
-  display:flex;gap:6px;
-  overflow-x:auto;-webkit-overflow-scrolling:touch;
-  padding-bottom:4px;
-}
-.scroll-row::-webkit-scrollbar{display:none;}
+.row{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:8px;}
+.cd{width:25px;height:25px;border-radius:50%;border:2px solid #334155;cursor:pointer;flex-shrink:0;}
+.cd.on{border:3px solid #fff;transform:scale(1.2);}
+.sp{width:1px;height:22px;background:#334155;}
+.wb{width:34px;height:24px;display:flex;align-items:center;justify-content:center;
+  background:#1e293b;border-radius:6px;cursor:pointer;border:1.5px solid transparent;flex-shrink:0;}
+.wb.on{border-color:#4ade80;}
+.wl{width:18px;background:#fff;border-radius:1px;}
 
-.tbtn{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:8px 10px;border-radius:10px;
-  background:#1e293b;border:1.5px solid transparent;
-  cursor:pointer;min-width:58px;flex-shrink:0;
-  font-size:9px;color:#64748b;
-}
-.tbtn .ic{font-size:20px;}
-.tbtn.on{background:#14532d;border-color:#4ade80;color:#4ade80;}
+.ar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:6px;}
+.ab{padding:7px 13px;background:#1e293b;border:1.5px solid #334155;
+  border-radius:8px;color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;}
+.ab.pl{background:#14532d;border-color:#4ade80;}
+.ab.st{background:#7f1d1d;border-color:#ef4444;}
 
-.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
-.cdot{width:26px;height:26px;border-radius:50%;border:2px solid #334155;cursor:pointer;flex-shrink:0;transition:transform .1s;}
-.cdot.on{border:3px solid #fff;transform:scale(1.25);}
-.sep{width:1px;height:22px;background:#334155;flex-shrink:0;}
-.wbtn{width:36px;height:26px;display:flex;align-items:center;justify-content:center;background:#1e293b;border-radius:6px;cursor:pointer;border:1.5px solid transparent;flex-shrink:0;}
-.wbtn.on{border-color:#4ade80;}
-.wline{width:18px;background:#fff;border-radius:1px;}
+#frow{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px;}
+.fd{width:24px;height:24px;border-radius:50%;background:#1e293b;border:1.5px solid #334155;
+  display:flex;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:#94a3b8;flex-shrink:0;}
+.fd.on{background:#4ade80;color:#0a0a1a;font-weight:700;border-color:#4ade80;}
 
-.arow{display:flex;gap:7px;flex-wrap:wrap;}
-.abtn{padding:8px 14px;background:#1e293b;border:1.5px solid #334155;border-radius:8px;color:#e2e8f0;font-size:13px;font-weight:600;cursor:pointer;}
-.abtn.play{background:#14532d;border-color:#4ade80;}
-.abtn.stop{background:#7f1d1d;border-color:#ef4444;}
-
-#frames{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
-.fdot{width:26px;height:26px;border-radius:50%;background:#1e293b;border:1.5px solid #334155;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;color:#94a3b8;flex-shrink:0;}
-.fdot.on{background:#4ade80;color:#0a0a1a;font-weight:700;border-color:#4ade80;}
-
-#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;align-items:center;justify-content:center;}
+#modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:999;
+  align-items:center;justify-content:center;}
 #modal.show{display:flex;}
-.mcard{background:#1e293b;border-radius:18px;padding:22px;width:85%;max-width:340px;border:1px solid #334155;display:flex;flex-direction:column;gap:14px;}
-.mcard h2{text-align:center;font-size:17px;color:#fff;}
-.mcard input{background:#0a0a1a;border:1px solid #334155;border-radius:10px;padding:12px;color:#fff;font-size:15px;text-align:right;direction:rtl;width:100%;outline:none;}
-.mbtns{display:flex;gap:10px;}
-.mbtns button{flex:1;padding:12px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
+.mc{background:#1e293b;border-radius:18px;padding:22px;width:84%;
+  border:1px solid #334155;display:flex;flex-direction:column;gap:13px;}
+.mc h2{text-align:center;font-size:16px;color:#fff;}
+.mc input{background:#0a0a1a;border:1px solid #334155;border-radius:10px;
+  padding:11px;color:#fff;font-size:15px;text-align:right;direction:rtl;width:100%;outline:none;}
+.mb{display:flex;gap:10px;}
+.mb button{flex:1;padding:11px;border-radius:10px;border:none;font-size:14px;font-weight:700;cursor:pointer;}
 .bc{background:#334155;color:#94a3b8;}
 .bs{background:#166534;color:#fff;}
 
-#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#166534;color:#fff;padding:10px 22px;border-radius:20px;font-size:14px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .25s;z-index:1000;white-space:nowrap;}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);
+  background:#15803d;color:#fff;padding:9px 20px;border-radius:18px;
+  font-size:13px;font-weight:600;opacity:0;pointer-events:none;
+  transition:opacity .25s;z-index:1000;white-space:nowrap;}
 #toast.show{opacity:1;}
 </style>
 </head>
 <body>
 
-<div id="header">
-  <button class="hbtn" onclick="openSave()">💾</button>
+<div id="hdr">
+  <button class="hb" onclick="openSave()">💾</button>
   <h1>⚽ FUTSAL COACH PRO</h1>
-  <button class="hbtn" onclick="exportImg()">📤</button>
+  <button class="hb" onclick="exportImg()">📤</button>
 </div>
 
-<div id="field-wrap">
-  <canvas id="c0"></canvas>
-  <canvas id="c1"></canvas>
-  <canvas id="c2"></canvas>
-</div>
+<canvas id="board"></canvas>
 
-<div id="controls">
-  <div>
-    <div class="sec-lbl">▸ ابزار</div>
-    <div class="scroll-row">
-      <div class="tbtn on" data-t="select" onclick="setTool(this)"><span class="ic">☝️</span>جابجایی</div>
-      <div class="tbtn"    data-t="arrow"  onclick="setTool(this)"><span class="ic">➡️</span>فلش</div>
-      <div class="tbtn"    data-t="line"   onclick="setTool(this)"><span class="ic">📏</span>خط</div>
-      <div class="tbtn"    data-t="pen"    onclick="setTool(this)"><span class="ic">✏️</span>قلم</div>
-      <div class="tbtn"    data-t="zone"   onclick="setTool(this)"><span class="ic">⭕</span>منطقه</div>
-      <div class="tbtn"    onclick="undo()"><span class="ic">↩️</span>بازگشت</div>
-      <div class="tbtn"    onclick="resetAll()"><span class="ic">🔄</span>ریست</div>
-    </div>
+<div id="ctrl">
+  <div class="lbl">▸ ابزار</div>
+  <div class="sr">
+    <div class="tb on" data-t="select" onclick="ST(this)"><span>☝️</span>جابجایی</div>
+    <div class="tb"    data-t="arrow"  onclick="ST(this)"><span>➡️</span>فلش</div>
+    <div class="tb"    data-t="line"   onclick="ST(this)"><span>📏</span>خط</div>
+    <div class="tb"    data-t="pen"    onclick="ST(this)"><span>✏️</span>قلم</div>
+    <div class="tb"    data-t="zone"   onclick="ST(this)"><span>⭕</span>منطقه</div>
+    <div class="tb"    onclick="undo()"><span>↩️</span>بازگشت</div>
+    <div class="tb"    onclick="resetAll()"><span>🔄</span>ریست</div>
   </div>
 
-  <div>
-    <div class="sec-lbl">▸ رنگ و ضخامت</div>
-    <div class="row">
-      <div class="cdot on"  style="background:#fff"    data-c="#ffffff" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#fbbf24" data-c="#fbbf24" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#ef4444" data-c="#ef4444" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#3b82f6" data-c="#3b82f6" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#4ade80" data-c="#4ade80" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#f97316" data-c="#f97316" onclick="setC(this)"></div>
-      <div class="cdot"     style="background:#a78bfa" data-c="#a78bfa" onclick="setC(this)"></div>
-      <div class="sep"></div>
-      <div class="wbtn on" data-w="2" onclick="setW(this)"><div class="wline" style="height:2px"></div></div>
-      <div class="wbtn"    data-w="4" onclick="setW(this)"><div class="wline" style="height:4px"></div></div>
-      <div class="wbtn"    data-w="7" onclick="setW(this)"><div class="wline" style="height:7px"></div></div>
-    </div>
+  <div class="lbl">▸ رنگ و ضخامت</div>
+  <div class="row">
+    <div class="cd on"  style="background:#fff"    data-c="#ffffff" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#fbbf24" data-c="#fbbf24" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#ef4444" data-c="#ef4444" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#3b82f6" data-c="#3b82f6" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#4ade80" data-c="#4ade80" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#f97316" data-c="#f97316" onclick="SC(this)"></div>
+    <div class="cd"     style="background:#a78bfa" data-c="#a78bfa" onclick="SC(this)"></div>
+    <div class="sp"></div>
+    <div class="wb on" data-w="2" onclick="SW(this)"><div class="wl" style="height:2px"></div></div>
+    <div class="wb"    data-w="4" onclick="SW(this)"><div class="wl" style="height:4px"></div></div>
+    <div class="wb"    data-w="7" onclick="SW(this)"><div class="wl" style="height:7px"></div></div>
   </div>
 
-  <div>
-    <div class="sec-lbl">▸ انیمیشن &nbsp;<span id="fcount" style="color:#4ade80;font-weight:700">0</span> فریم</div>
-    <div class="arow">
-      <button class="abtn" onclick="addFrame()">+ فریم</button>
-      <button class="abtn" id="rmBtn" onclick="rmFrame()" style="display:none">- فریم</button>
-      <button class="abtn play" id="playBtn" onclick="togglePlay()">▶ پخش</button>
-      <button class="abtn" id="spBtn" onclick="cycleSpeed()">1x</button>
-    </div>
-    <div id="frames"></div>
+  <div class="lbl">▸ انیمیشن &nbsp;<span id="fc" style="color:#4ade80;font-weight:700">0</span> فریم</div>
+  <div class="ar">
+    <button class="ab" onclick="addFrame()">+ فریم</button>
+    <button class="ab" id="rmB" onclick="rmFrame()" style="display:none">- فریم</button>
+    <button class="ab pl" id="plB" onclick="togglePlay()">▶ پخش</button>
+    <button class="ab" id="spB" onclick="cycleSpeed()">1x</button>
   </div>
+  <div id="frow"></div>
 </div>
 
 <div id="modal">
-  <div class="mcard">
+  <div class="mc">
     <h2>💾 ذخیره تاکتیک</h2>
-    <input id="pname" type="text" value="تاکتیک جدید" placeholder="نام تاکتیک">
-    <div class="mbtns">
-      <button class="bc" onclick="closeModal()">انصراف</button>
+    <input id="pn" type="text" value="تاکتیک جدید" placeholder="نام تاکتیک">
+    <div class="mb">
+      <button class="bc" onclick="closeM()">انصراف</button>
       <button class="bs" onclick="doSave()">ذخیره ✓</button>
     </div>
   </div>
 </div>
-
 <div id="toast"></div>
 
 <script>
-// ════════════════════════
-//  VARS
-// ════════════════════════
+// ══════════════════════════════════════
+var board = document.getElementById('board');
+var ctx   = board.getContext('2d');
+
 var tool='select', color='#ffffff', lw=2;
 var paths=[], curPath=null;
 var keyframes=[], curFrame=0;
@@ -170,76 +146,64 @@ var playing=false, timer=null;
 var speeds=[800,500,250], sIdx=0;
 var players=[];
 var drag=null;
-var FW=0, FH=0;
+var FW=375, FH=195; // مقادیر پیش‌فرض
 
-var c0=document.getElementById('c0');
-var c1=document.getElementById('c1');
-var c2=document.getElementById('c2');
-var x0=c0.getContext('2d');
-var x1=c1.getContext('2d');
-var x2=c2.getContext('2d');
+// ── راه‌اندازی کانواس ──────────────────
+var booted = false;
+function boot(){
+  var newFW = board.getBoundingClientRect().width;
+  if(newFW < 50) newFW = window.innerWidth || screen.width || 375;
+  if(newFW < 50) newFW = 375;
+  FW = newFW;
+  FH = Math.round(FW * 0.52);
 
-// ════════════════════════
-//  INIT CANVAS
-// ════════════════════════
-function initCanvas(){
-  var wrap=document.getElementById('field-wrap');
-  FW=wrap.offsetWidth;
-  FH=wrap.offsetHeight;
+  var PR = Math.min(window.devicePixelRatio || 1, 2);
+  board.width  = Math.round(FW * PR);
+  board.height = Math.round(FH * PR);
+  board.style.width  = FW + 'px';
+  board.style.height = FH + 'px';
+  ctx.setTransform(PR, 0, 0, PR, 0, 0);
 
-  if(FW<10||FH<10){
-    // اگه هنوز صفر بود، دوباره امتحان کن
-    setTimeout(initCanvas,100);
-    return;
-  }
-
-  var PR=Math.min(window.devicePixelRatio||1,2);
-
-  [c0,c1,c2].forEach(function(c,i){
-    c.width  = Math.round(FW*PR);
-    c.height = Math.round(FH*PR);
-    var ctx=c.getContext('2d');
-    ctx.scale(PR,PR);
-  });
-
-  players=buildPlayers();
-  drawField();
-  renderAll();
+  if(!booted){ players = mkPlayers(); booted = true; }
+  redraw();
 }
 
-// ════════════════════════
-//  PLAYERS
-// ════════════════════════
-function buildPlayers(){
-  var cy=FH/2;
-  return[
-    {id:'A1',t:'A',n:1,x:FW*.08,y:cy},
-    {id:'A2',t:'A',n:2,x:FW*.22,y:FH*.22},
-    {id:'A3',t:'A',n:3,x:FW*.22,y:FH*.78},
-    {id:'A4',t:'A',n:4,x:FW*.35,y:FH*.38},
-    {id:'A5',t:'A',n:5,x:FW*.42,y:cy},
-    {id:'B1',t:'B',n:1,x:FW*.92,y:cy},
-    {id:'B2',t:'B',n:2,x:FW*.78,y:FH*.22},
-    {id:'B3',t:'B',n:3,x:FW*.78,y:FH*.78},
-    {id:'B4',t:'B',n:4,x:FW*.65,y:FH*.65},
-    {id:'B5',t:'B',n:5,x:FW*.58,y:cy},
-    {id:'ball',t:'X',n:0,x:FW*.5,y:FH*.5}
+// ── بازیکنان ──────────────────────────
+function mkPlayers(){
+  var cy = FH/2;
+  return [
+    {id:'A1',t:'A',n:1, x:FW*.08, y:cy},
+    {id:'A2',t:'A',n:2, x:FW*.22, y:FH*.22},
+    {id:'A3',t:'A',n:3, x:FW*.22, y:FH*.78},
+    {id:'A4',t:'A',n:4, x:FW*.34, y:FH*.38},
+    {id:'A5',t:'A',n:5, x:FW*.42, y:cy},
+    {id:'B1',t:'B',n:1, x:FW*.92, y:cy},
+    {id:'B2',t:'B',n:2, x:FW*.78, y:FH*.22},
+    {id:'B3',t:'B',n:3, x:FW*.78, y:FH*.78},
+    {id:'B4',t:'B',n:4, x:FW*.66, y:FH*.65},
+    {id:'B5',t:'B',n:5, x:FW*.58, y:cy},
+    {id:'bl',t:'X',n:0, x:FW*.5,  y:FH*.5}
   ];
 }
 
-// ════════════════════════
-//  DRAW FIELD
-// ════════════════════════
-function drawField(){
-  var ctx=x0;
+// ── رسم همه چیز ───────────────────────
+function redraw(){
   ctx.clearRect(0,0,FW,FH);
-  var p=6,fw=FW-p*2,fh=FH-p*2,fx=p,fy=p;
-  var cx=FW/2,cy=FH/2;
+  drawField();
+  paths.forEach(function(p){ drawPath(p); });
+  if(curPath) drawPath(curPath);
+  players.forEach(function(p){ drawPlayer(p); });
+}
 
-  // نوارهای چمن
+// ── زمین ──────────────────────────────
+function drawField(){
+  var pad=6, fw=FW-pad*2, fh=FH-pad*2, fx=pad, fy=pad;
+  var cx=FW/2, cy=FH/2;
+
+  // پس‌زمینه چمن با نوار
   for(var i=0;i<8;i++){
-    ctx.fillStyle=i%2===0?'#1a5c35':'#186033';
-    ctx.fillRect(fx+i*fw/8,fy,fw/8,fh);
+    ctx.fillStyle = i%2===0 ? '#1a5c35' : '#186033';
+    ctx.fillRect(fx+i*fw/8, fy, fw/8, fh);
   }
 
   ctx.strokeStyle='rgba(255,255,255,0.9)';
@@ -247,284 +211,273 @@ function drawField(){
   ctx.strokeRect(fx,fy,fw,fh);
 
   // خط مرکزی
-  line(ctx,cx,fy,cx,fy+fh);
+  ctx.beginPath();ctx.moveTo(cx,fy);ctx.lineTo(cx,fy+fh);ctx.stroke();
 
   // دایره مرکزی
-  var cr=fw*.075;
-  ctx.beginPath();ctx.arc(cx,cy,cr,0,Math.PI*2);
+  ctx.beginPath();ctx.arc(cx,cy,fw*.077,0,Math.PI*2);
   ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill();ctx.stroke();
 
   // نقطه مرکزی
-  dot(ctx,cx,cy,3,'rgba(255,255,255,0.9)');
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  ctx.beginPath();ctx.arc(cx,cy,2.5,0,Math.PI*2);ctx.fill();
 
   // محدوده دروازه‌بان
-  var pd=fw*.15,ph=fh*.5,py=fy+(fh-ph)/2;
-  box(ctx,fx,py,pd,ph);
-  box(ctx,fx+fw-pd,py,pd,ph);
+  var pd=fw*.15, ph=fh*.5, py=fy+(fh-ph)/2;
+  ctx.fillStyle='rgba(255,255,255,0.04)';
+  ctx.fillRect(fx,py,pd,ph); ctx.strokeRect(fx,py,pd,ph);
+  ctx.fillRect(fx+fw-pd,py,pd,ph); ctx.strokeRect(fx+fw-pd,py,pd,ph);
 
-  // محدوده کوچک
+  // محدوده گل
   var gd=fw*.09,gh=fh*.3,gy=fy+(fh-gh)/2;
-  box(ctx,fx,gy,gd,gh);
-  box(ctx,fx+fw-gd,gy,gd,gh);
+  ctx.strokeRect(fx,gy,gd,gh); ctx.strokeRect(fx+fw-gd,gy,gd,gh);
 
   // دروازه
-  var goalH=fh*.22,goalY=fy+(fh-goalH)/2;
+  var goalH=fh*.22, goalY=fy+(fh-goalH)/2;
   ctx.fillStyle='#0a3a1c';
-  ctx.fillRect(fx-8,goalY,8,goalH);ctx.strokeRect(fx-8,goalY,8,goalH);
-  ctx.fillRect(fx+fw,goalY,8,goalH);ctx.strokeRect(fx+fw,goalY,8,goalH);
+  ctx.fillRect(fx-8,goalY,8,goalH); ctx.strokeRect(fx-8,goalY,8,goalH);
+  ctx.fillRect(fx+fw,goalY,8,goalH); ctx.strokeRect(fx+fw,goalY,8,goalH);
 
   // نقاط پنالتی
-  dot(ctx,fx+pd,cy,3,'rgba(255,255,255,0.9)');
-  dot(ctx,fx+fw-pd,cy,3,'rgba(255,255,255,0.9)');
+  ctx.fillStyle='rgba(255,255,255,0.9)';
+  [fx+pd, fx+fw-pd].forEach(function(x){
+    ctx.beginPath();ctx.arc(x,cy,2.5,0,Math.PI*2);ctx.fill();
+  });
 
-  // قوس‌های گوشه
+  // قوس گوشه‌ها
   var ar=fw*.025;
-  arc4(ctx,fx,fy,fx+fw,fy,fx,fy+fh,fx+fw,fy+fh,ar);
-}
-
-function line(ctx,x1,y1,x2,y2){ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();}
-function dot(ctx,x,y,r,c){ctx.fillStyle=c;ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);ctx.fill();}
-function box(ctx,x,y,w,h){ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fillRect(x,y,w,h);ctx.strokeRect(x,y,w,h);}
-function arc4(ctx,x1,y1,x2,y2,x3,y3,x4,y4,r){
-  var a=[[x1,y1,0,Math.PI*.5],[x2,y2,Math.PI*.5,Math.PI],[x3,y3,Math.PI,Math.PI*1.5],[x4,y4,Math.PI*1.5,Math.PI*2]];
-  a.forEach(function(v){ctx.beginPath();ctx.arc(v[0],v[1],r,v[2],v[3]);ctx.stroke();});
-}
-
-// ════════════════════════
-//  RENDER
-// ════════════════════════
-function renderAll(){renderDrawings();renderPlayers();}
-
-function renderPlayers(){
-  var ctx=x2;ctx.clearRect(0,0,FW,FH);
-  players.forEach(function(p){
-    var isBall=p.id==='ball';
-    var r=isBall?11:14;
-    var col=isBall?'#fbbf24':p.t==='A'?'#ef4444':'#3b82f6';
-    ctx.save();
-    ctx.shadowColor=col;ctx.shadowBlur=10;
-    ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
-    ctx.fillStyle=col;ctx.fill();
-    ctx.shadowBlur=0;
-    ctx.strokeStyle='rgba(0,0,0,0.4)';ctx.lineWidth=1.5;ctx.stroke();
-    if(!isBall){
-      ctx.fillStyle='#fff';
-      ctx.font='bold '+(p.n>=10?9:12)+'px system-ui';
-      ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(p.n,p.x,p.y);
-    } else {
-      ctx.font='12px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('⚽',p.x,p.y);
-    }
-    ctx.restore();
+  [[fx,fy,0,Math.PI*.5],[fx+fw,fy,.5*Math.PI,Math.PI],
+   [fx+fw,fy+fh,Math.PI,1.5*Math.PI],[fx,fy+fh,1.5*Math.PI,2*Math.PI]].forEach(function(a){
+    ctx.beginPath();ctx.arc(a[0],a[1],ar,a[2],a[3]);ctx.stroke();
   });
 }
 
-function renderDrawings(){
-  var ctx=x1;ctx.clearRect(0,0,FW,FH);
-  paths.forEach(function(p){drawPath(ctx,p);});
-  if(curPath)drawPath(ctx,curPath);
+// ── رسم بازیکن ────────────────────────
+function drawPlayer(p){
+  var isBall=p.id==='bl';
+  var r=isBall?11:14;
+  var col=isBall?'#fbbf24':p.t==='A'?'#ef4444':'#3b82f6';
+  ctx.save();
+  ctx.shadowColor=col; ctx.shadowBlur=isBall?6:10;
+  ctx.beginPath();ctx.arc(p.x,p.y,r,0,Math.PI*2);
+  ctx.fillStyle=col; ctx.fill();
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(0,0,0,0.35)';ctx.lineWidth=1.5;ctx.stroke();
+  if(!isBall){
+    ctx.fillStyle='#fff';
+    ctx.font='bold '+(p.n>=10?9:12)+'px system-ui';
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(p.n,p.x,p.y);
+  } else {
+    ctx.font='12px serif';ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText('⚽',p.x,p.y);
+  }
+  ctx.restore();
 }
 
-function drawPath(ctx,p){
-  if(!p||!p.pts||p.pts.length<2)return;
+// ── رسم مسیر ──────────────────────────
+function drawPath(p){
+  if(!p||!p.pts||p.pts.length<2) return;
   ctx.save();
-  ctx.strokeStyle=p.c;ctx.fillStyle=p.c;
-  ctx.lineWidth=p.w;ctx.lineCap='round';ctx.lineJoin='round';
-  var s=p.pts[0],e=p.pts[p.pts.length-1];
+  ctx.strokeStyle=p.c; ctx.fillStyle=p.c;
+  ctx.lineWidth=p.w; ctx.lineCap='round'; ctx.lineJoin='round';
+  var s=p.pts[0], e=p.pts[p.pts.length-1];
 
   if(p.type==='pen'){
-    ctx.beginPath();ctx.moveTo(s.x,s.y);
+    ctx.beginPath(); ctx.moveTo(s.x,s.y);
     for(var i=1;i<p.pts.length-1;i++){
-      var mx=(p.pts[i].x+p.pts[i+1].x)/2,my=(p.pts[i].y+p.pts[i+1].y)/2;
+      var mx=(p.pts[i].x+p.pts[i+1].x)/2, my=(p.pts[i].y+p.pts[i+1].y)/2;
       ctx.quadraticCurveTo(p.pts[i].x,p.pts[i].y,mx,my);
     }
-    ctx.lineTo(e.x,e.y);ctx.stroke();
+    ctx.lineTo(e.x,e.y); ctx.stroke();
   } else if(p.type==='line'){
     ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(e.x,e.y);ctx.stroke();
   } else if(p.type==='arrow'){
-    var dx=e.x-s.x,dy=e.y-s.y,len=Math.sqrt(dx*dx+dy*dy);
+    var dx=e.x-s.x, dy=e.y-s.y, len=Math.sqrt(dx*dx+dy*dy);
     if(len<8){ctx.restore();return;}
-    var ux=dx/len,uy=dy/len,aw=9,al=15;
-    ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(e.x-al*.6*ux,e.y-al*.6*uy);ctx.stroke();
+    var ux=dx/len, uy=dy/len, aw=9, al=14;
+    ctx.beginPath();ctx.moveTo(s.x,s.y);
+    ctx.lineTo(e.x-al*.6*ux,e.y-al*.6*uy);ctx.stroke();
     ctx.beginPath();
     ctx.moveTo(e.x,e.y);
     ctx.lineTo(e.x-al*ux+aw*uy,e.y-al*uy-aw*ux);
     ctx.lineTo(e.x-al*ux-aw*uy,e.y-al*uy+aw*ux);
     ctx.closePath();ctx.fill();
   } else if(p.type==='zone'){
-    var xs=p.pts.map(function(pt){return pt.x;}),ys=p.pts.map(function(pt){return pt.y;});
-    var r2=Math.max((Math.max.apply(null,xs)-Math.min.apply(null,xs))/2,(Math.max.apply(null,ys)-Math.min.apply(null,ys))/2,12);
-    var cx2=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2,cy2=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
+    var xs=p.pts.map(function(pt){return pt.x;}), ys=p.pts.map(function(pt){return pt.y;});
+    var r2=Math.max((Math.max.apply(null,xs)-Math.min.apply(null,xs))/2,
+                    (Math.max.apply(null,ys)-Math.min.apply(null,ys))/2, 12);
+    var cx2=(Math.min.apply(null,xs)+Math.max.apply(null,xs))/2;
+    var cy2=(Math.min.apply(null,ys)+Math.max.apply(null,ys))/2;
     ctx.setLineDash([8,5]);
     ctx.beginPath();ctx.arc(cx2,cy2,r2,0,Math.PI*2);
-    ctx.stroke();ctx.globalAlpha=.15;ctx.fill();ctx.globalAlpha=1;ctx.setLineDash([]);
+    ctx.stroke(); ctx.globalAlpha=.15; ctx.fill();
+    ctx.globalAlpha=1; ctx.setLineDash([]);
   }
   ctx.restore();
 }
 
-// ════════════════════════
-//  TOUCH
-// ════════════════════════
-function getPos(e){
-  var r=c2.getBoundingClientRect();
+// ── لمس ───────────────────────────────
+function getXY(e){
+  var r=board.getBoundingClientRect();
   var t=e.touches?e.touches[0]:e;
-  // تبدیل موقعیت لمس به مختصات کانواس
-  var scaleX=FW/r.width, scaleY=FH/r.height;
-  return {x:(t.clientX-r.left)*scaleX, y:(t.clientY-r.top)*scaleY};
+  // تبدیل مختصات لمس به مختصات کانواس
+  var sx=(r.width>0)?FW/r.width:1, sy=(r.height>0)?FH/r.height:1;
+  return { x:(t.clientX-r.left)*sx, y:(t.clientY-r.top)*sy };
 }
 
 function findP(x,y){
   return players.find(function(p){
-    var r=p.id==='ball'?18:22;
-    return Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y))<r;
+    return Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y)) < (p.id==='bl'?18:22);
   });
 }
 
-function clamp(x,y){return{x:Math.max(12,Math.min(FW-12,x)),y:Math.max(12,Math.min(FH-12,y))};}
+function clamp(x,y){
+  return {x:Math.max(12,Math.min(FW-12,x)), y:Math.max(12,Math.min(FH-12,y))};
+}
 
-c2.addEventListener('touchstart',function(e){
+board.addEventListener('touchstart',function(e){
   e.preventDefault();
-  var pos=getPos(e);
+  var pos=getXY(e);
   if(tool==='select'){
     var p=findP(pos.x,pos.y);
-    if(p)drag={player:p,ox:pos.x-p.x,oy:pos.y-p.y};
+    if(p) drag={player:p, ox:pos.x-p.x, oy:pos.y-p.y};
     return;
   }
   curPath={type:tool,pts:[{x:pos.x,y:pos.y}],c:color,w:lw};
 },{passive:false});
 
-c2.addEventListener('touchmove',function(e){
+board.addEventListener('touchmove',function(e){
   e.preventDefault();
-  var pos=getPos(e);
+  var pos=getXY(e);
   if(tool==='select'&&drag){
     var c=clamp(pos.x-drag.ox,pos.y-drag.oy);
-    drag.player.x=c.x;drag.player.y=c.y;
-    renderPlayers();return;
+    drag.player.x=c.x; drag.player.y=c.y;
+    redraw(); return;
   }
   if(curPath){
-    if(tool==='arrow'||tool==='line'){curPath.pts=[curPath.pts[0],{x:pos.x,y:pos.y}];}
-    else{curPath.pts.push({x:pos.x,y:pos.y});}
-    renderDrawings();
+    if(tool==='arrow'||tool==='line')
+      curPath.pts=[curPath.pts[0],{x:pos.x,y:pos.y}];
+    else
+      curPath.pts.push({x:pos.x,y:pos.y});
+    redraw();
   }
 },{passive:false});
 
-c2.addEventListener('touchend',function(e){
+board.addEventListener('touchend',function(e){
   e.preventDefault();
   drag=null;
   if(curPath&&curPath.pts.length>=2){
-    if(tool==='arrow'||tool==='line')curPath.pts=[curPath.pts[0],curPath.pts[curPath.pts.length-1]];
+    if(tool==='arrow'||tool==='line')
+      curPath.pts=[curPath.pts[0],curPath.pts[curPath.pts.length-1]];
     paths.push({type:curPath.type,pts:curPath.pts.slice(),c:curPath.c,w:curPath.w});
   }
-  curPath=null;renderDrawings();
+  curPath=null; redraw();
 },{passive:false});
 
-// ════════════════════════
-//  UI ACTIONS
-// ════════════════════════
-function setTool(el){
+// ── کنترل‌ها ──────────────────────────
+function ST(el){
   tool=el.dataset.t;
-  document.querySelectorAll('.tbtn[data-t]').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.tb[data-t]').forEach(function(b){b.classList.remove('on');});
   el.classList.add('on');
 }
-function setC(el){
+function SC(el){
   color=el.dataset.c;
-  document.querySelectorAll('.cdot').forEach(function(d){d.classList.remove('on');});
+  document.querySelectorAll('.cd').forEach(function(d){d.classList.remove('on');});
   el.classList.add('on');
 }
-function setW(el){
+function SW(el){
   lw=parseInt(el.dataset.w);
-  document.querySelectorAll('.wbtn').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('.wb').forEach(function(b){b.classList.remove('on');});
   el.classList.add('on');
 }
-function undo(){paths.pop();renderDrawings();}
+function undo(){ paths.pop(); redraw(); }
 function resetAll(){
-  if(!confirm('همه چیز پاک شود؟'))return;
-  paths=[];keyframes=[];curFrame=0;
-  stopPlay();players=buildPlayers();
-  updateFrameUI();renderAll();
+  if(!confirm('همه چیز پاک شود؟')) return;
+  paths=[]; keyframes=[]; curFrame=0; stopPlay();
+  players=mkPlayers(); updateFUI(); redraw();
 }
 
-// ════════════════════════
-//  ANIMATION
-// ════════════════════════
+// ── انیمیشن ───────────────────────────
 function addFrame(){
   keyframes.push({players:players.map(function(p){return Object.assign({},p);})});
-  curFrame=keyframes.length-1;
-  updateFrameUI();
+  curFrame=keyframes.length-1; updateFUI();
   toast('فریم '+keyframes.length+' اضافه شد ✓');
 }
-function rmFrame(){keyframes.pop();curFrame=Math.max(0,curFrame-1);updateFrameUI();}
+function rmFrame(){ keyframes.pop(); curFrame=Math.max(0,curFrame-1); updateFUI(); }
 function gotoFrame(i){
-  if(!keyframes[i])return;
-  curFrame=i;players=keyframes[i].players.map(function(p){return Object.assign({},p);});
-  updateFrameUI();renderPlayers();
+  if(!keyframes[i]) return;
+  curFrame=i;
+  players=keyframes[i].players.map(function(p){return Object.assign({},p);});
+  updateFUI(); redraw();
 }
 function togglePlay(){
   if(playing){stopPlay();return;}
   if(keyframes.length<2){toast('حداقل ۲ فریم نیاز است');return;}
   playing=true;
-  document.getElementById('playBtn').textContent='⏹ توقف';
-  document.getElementById('playBtn').className='abtn stop';
+  document.getElementById('plB').textContent='⏹ توقف';
+  document.getElementById('plB').className='ab st';
   var i=0;
-  timer=setInterval(function(){gotoFrame(i);i=(i+1)%keyframes.length;if(i===0)stopPlay();},speeds[sIdx]);
+  timer=setInterval(function(){
+    gotoFrame(i); i=(i+1)%keyframes.length; if(i===0) stopPlay();
+  },speeds[sIdx]);
 }
 function stopPlay(){
-  clearInterval(timer);playing=false;
-  document.getElementById('playBtn').textContent='▶ پخش';
-  document.getElementById('playBtn').className='abtn play';
+  clearInterval(timer); playing=false;
+  document.getElementById('plB').textContent='▶ پخش';
+  document.getElementById('plB').className='ab pl';
 }
 function cycleSpeed(){
   sIdx=(sIdx+1)%3;
-  document.getElementById('spBtn').textContent=['1x','1.5x','2x'][sIdx];
+  document.getElementById('spB').textContent=['1x','1.5x','2x'][sIdx];
 }
-function updateFrameUI(){
-  document.getElementById('fcount').textContent=keyframes.length;
-  document.getElementById('rmBtn').style.display=keyframes.length?'':'none';
-  var row=document.getElementById('frames');row.innerHTML='';
+function updateFUI(){
+  document.getElementById('fc').textContent=keyframes.length;
+  document.getElementById('rmB').style.display=keyframes.length?'':'none';
+  var row=document.getElementById('frow'); row.innerHTML='';
   keyframes.forEach(function(_,i){
     var d=document.createElement('div');
-    d.className='fdot'+(i===curFrame?' on':'');d.textContent=i+1;
-    d.onclick=function(){gotoFrame(i);};row.appendChild(d);
+    d.className='fd'+(i===curFrame?' on':''); d.textContent=i+1;
+    d.onclick=function(){gotoFrame(i);}; row.appendChild(d);
   });
 }
 
-// ════════════════════════
-//  SAVE / EXPORT
-// ════════════════════════
-function openSave(){document.getElementById('modal').classList.add('show');}
-function closeModal(){document.getElementById('modal').classList.remove('show');}
+// ── ذخیره / خروجی ─────────────────────
+function openSave(){ document.getElementById('modal').classList.add('show'); }
+function closeM(){ document.getElementById('modal').classList.remove('show'); }
 function doSave(){
-  var name=document.getElementById('pname').value||'تاکتیک';
-  var all=JSON.parse(localStorage.getItem('fp')||'[]');
+  var name=document.getElementById('pn').value||'تاکتیک';
+  var all=JSON.parse(localStorage.getItem('fp2')||'[]');
   all.unshift({id:Date.now(),name:name,
     players:players.map(function(p){return Object.assign({},p);}),
-    paths:paths.slice(),keyframes:keyframes.slice()});
-  localStorage.setItem('fp',JSON.stringify(all));
-  closeModal();toast('✅ ذخیره شد');
+    paths:paths.slice(), keyframes:keyframes.slice()});
+  localStorage.setItem('fp2',JSON.stringify(all));
+  closeM(); toast('✅ ذخیره شد');
 }
 function exportImg(){
-  var m=document.createElement('canvas');
-  m.width=c0.width;m.height=c0.height;
-  var mc=m.getContext('2d');
-  mc.drawImage(c0,0,0);mc.drawImage(c1,0,0);mc.drawImage(c2,0,0);
   var a=document.createElement('a');
-  a.download='futsal.png';a.href=m.toDataURL('image/png');a.click();
-  toast('📤 خروجی گرفته شد');
+  a.download='futsal-tactic.png';
+  a.href=board.toDataURL('image/png'); a.click();
+  toast('📤 تصویر ذخیره شد');
 }
 function toast(msg){
   var t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
+  t.textContent=msg; t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2200);
 }
 
-// ════════════════════════
-//  START
-// ════════════════════════
-// منتظر می‌مانیم تا layout کامل شود
-window.addEventListener('load',function(){
-  // یه تایمر کوتاه تا مطمئن بشیم ابعاد محاسبه شده
-  setTimeout(initCanvas,50);
+// ── شروع ──────────────────────────────
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}
+window.addEventListener('load', boot);
+setTimeout(boot, 150);
+setTimeout(boot, 600);
+window.addEventListener('resize', function(){
+  boot();
+  players=mkPlayers();
+  redraw();
 });
 </script>
 </body>
