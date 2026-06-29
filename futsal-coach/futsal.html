@@ -669,12 +669,12 @@ function exportGIF(){
             return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
           });
           redraw();
-          gifFrames.push(gc.getImageData(0,0,GW,GH).data.slice());
+          gifFrames.push(gctx.getImageData(0,0,GW,GH).data.slice());
         }
       }
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
       redraw();
-      gifFrames.push(gc.getImageData(0,0,GW,GH).data.slice());
+      gifFrames.push(gctx.getImageData(0,0,GW,GH).data.slice());
       ctx=savedCtx;
       players=savedP; redraw();
 
