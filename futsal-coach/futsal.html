@@ -646,16 +646,14 @@ function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
   toast('در حال ساخت GIF...');
   setTimeout(function(){
+    var savedCtx=ctx;
     try{
       var steps=6, dur=speeds[sIdx];
       var cs=Math.max(3,Math.round(dur/steps/10));
-      // Half resolution for mobile performance
-      var GW=Math.round(FW/2), GH=Math.round(FH/2);
+      // Offscreen canvas at exact logical size — no scaling needed
       var gc=document.createElement('canvas');
-      gc.width=GW; gc.height=GH;
+      gc.width=FW; gc.height=FH;
       var gctx=gc.getContext('2d');
-      gctx.scale(GW/FW, GH/FH);
-      var savedCtx=ctx;
       ctx=gctx;
       var savedP=players.map(function(p){return Object.assign({},p);});
       var gifFrames=[];
@@ -669,22 +667,23 @@ function exportGIF(){
             return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
           });
           redraw();
-          gifFrames.push(gctx.getImageData(0,0,GW,GH).data.slice());
+          gifFrames.push(gctx.getImageData(0,0,FW,FH).data.slice());
         }
       }
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
       redraw();
-      gifFrames.push(gctx.getImageData(0,0,GW,GH).data.slice());
+      gifFrames.push(gctx.getImageData(0,0,FW,FH).data.slice());
       ctx=savedCtx;
       players=savedP; redraw();
 
-      var gif=buildGIF(gifFrames,GW,GH,cs);
+      var gif=buildGIF(gifFrames,FW,FH,cs);
       var chunk=8192,b64='';
       for(var i=0;i<gif.length;i+=chunk)
         b64+=String.fromCharCode.apply(null,gif.slice(i,i+chunk));
       var dataUri='data:image/gif;base64,'+btoa(b64);
       showGIFOverlay(dataUri);
     }catch(err){
+      ctx=savedCtx;
       toast('خطا: '+err.message);
     }
   },60);
