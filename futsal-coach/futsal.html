@@ -641,27 +641,15 @@ function exportImg(){
   toast('📤 تصویر ذخیره شد');
 }
 
-// ── خروجی GIF ─────────────────────────
+// ── خروجی انیمیشن ─────────────────────
 function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
-  toast('در حال ساخت GIF...');
+  toast('در حال آماده‌سازی...');
   setTimeout(function(){
     try{
-      var steps=6, dur=speeds[sIdx];
-      var cs=Math.max(3,Math.round(dur/steps/10));
-      // 1x offscreen canvas — copy from board after each redraw
-      var oc=document.createElement('canvas');
-      oc.width=FW; oc.height=FH;
-      var octx=oc.getContext('2d');
+      var steps=8, dur=speeds[sIdx];
       var savedP=players.map(function(p){return Object.assign({},p);});
-      var gifFrames=[];
-
-      function snap(){
-        // board is FW*PR x FH*PR; scale it down to FW x FH
-        octx.drawImage(board,0,0,board.width,board.height,0,0,FW,FH);
-        gifFrames.push(octx.getImageData(0,0,FW,FH).data.slice());
-      }
-
+      var frames=[];
       for(var k=0;k<keyframes.length-1;k++){
         var fA=keyframes[k],fB=keyframes[k+1];
         for(var s=0;s<steps;s++){
@@ -671,140 +659,66 @@ function exportGIF(){
             if(!pb) return Object.assign({},pa);
             return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
           });
-          redraw(); snap();
+          redraw();
+          frames.push(board.toDataURL('image/png'));
         }
       }
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
-      redraw(); snap();
+      redraw(); frames.push(board.toDataURL('image/png'));
       players=savedP; redraw();
-
-      var gif=buildGIF(gifFrames,FW,FH,cs);
-      var chunk=8192,b64='';
-      for(var i=0;i<gif.length;i+=chunk)
-        b64+=String.fromCharCode.apply(null,gif.slice(i,i+chunk));
-      var dataUri='data:image/gif;base64,'+btoa(b64);
-      showGIFOverlay(dataUri);
+      showAnimOverlay(frames, dur);
     }catch(err){
       toast('خطا: '+err.message);
     }
   },60);
 }
 
-function showGIFOverlay(src){
+function showAnimOverlay(frames, dur){
   var ov=document.getElementById('gifOv');
   if(ov) ov.remove();
   ov=document.createElement('div');
   ov.id='gifOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;';
+
   var hint=document.createElement('div');
-  hint.style.cssText='color:#94a3b8;font-size:12px;text-align:center;';
-  hint.textContent='انگشت را روی تصویر نگه دارید تا ذخیره شود';
+  hint.style.cssText='color:#94a3b8;font-size:11px;text-align:center;line-height:1.6;';
+  hint.innerHTML='▶ انیمیشن در حال پخش<br>برای ذخیره: متوقف کنید سپس انگشت نگه دارید';
+
   var img=document.createElement('img');
-  img.src=src;
-  img.style.cssText='max-width:90vw;max-height:65vh;border-radius:10px;border:2px solid #4ade80;';
-  var btn=document.createElement('button');
-  btn.textContent='بستن ✕';
-  btn.style.cssText='padding:9px 28px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:14px;cursor:pointer;';
-  btn.onclick=function(){ov.remove();};
+  img.src=frames[0];
+  img.style.cssText='max-width:90vw;max-height:60vh;border-radius:10px;border:2px solid #4ade80;display:block;';
+
+  var fi=0, paused=false;
+  var fdelay=Math.max(80,Math.round(dur/frames.length));
+  var timer=setInterval(function(){
+    if(!paused){fi=(fi+1)%frames.length; img.src=frames[fi];}
+  },fdelay);
+
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;gap:10px;';
+
+  var pauseBtn=document.createElement('button');
+  pauseBtn.textContent='⏸ توقف';
+  pauseBtn.style.cssText='padding:8px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #4ade80;border-radius:9px;font-size:13px;cursor:pointer;';
+  pauseBtn.onclick=function(){
+    paused=!paused;
+    pauseBtn.textContent=paused?'▶ ادامه':'⏸ توقف';
+    hint.innerHTML=paused?'برای ذخیره: انگشت را روی تصویر نگه دارید':'▶ انیمیشن در حال پخش<br>برای ذخیره: متوقف کنید سپس انگشت نگه دارید';
+  };
+
+  var closeBtn=document.createElement('button');
+  closeBtn.textContent='بستن ✕';
+  closeBtn.style.cssText='padding:8px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:13px;cursor:pointer;';
+  closeBtn.onclick=function(){clearInterval(timer);ov.remove();};
+
+  row.appendChild(pauseBtn);
+  row.appendChild(closeBtn);
   ov.appendChild(hint);
   ov.appendChild(img);
-  ov.appendChild(btn);
+  ov.appendChild(row);
   document.body.appendChild(ov);
 }
 
-function buildGIF(frames,w,h,delay){
-  var out=[];
-  function w8(b){out.push(b&0xff);}
-  function w16(n){w8(n);w8(n>>8);}
-  function wS(s){for(var i=0;i<s.length;i++)w8(s.charCodeAt(i));}
-
-  // Build 256-color palette from all frames (6-bit per channel quantization)
-  var freq={};
-  frames.forEach(function(d){
-    for(var i=0;i<d.length;i+=4){
-      var k=((d[i]&0xfc)<<16)|((d[i+1]&0xfc)<<8)|(d[i+2]&0xfc);
-      freq[k]=(freq[k]||0)+1;
-    }
-  });
-  var keys=Object.keys(freq).map(Number);
-  keys.sort(function(a,b){return freq[b]-freq[a];});
-  if(keys.length>256) keys=keys.slice(0,256);
-  while(keys.length<256) keys.push(0);
-
-  var pal=[],palMap={};
-  keys.forEach(function(k,i){
-    pal.push([(k>>16)&0xff,(k>>8)&0xff,k&0xff]);
-    palMap[k]=i;
-  });
-
-  function pidx(r,g,b){
-    var k=((r&0xfc)<<16)|((g&0xfc)<<8)|(b&0xfc);
-    if(palMap[k]!==undefined) return palMap[k];
-    var best=0,bestD=1e9;
-    for(var j=0;j<keys.length;j++){
-      var pk=keys[j],dr=((pk>>16)&0xff)-r,dg=((pk>>8)&0xff)-g,db=(pk&0xff)-b;
-      var d=dr*dr+dg*dg+db*db;
-      if(d<bestD){bestD=d;best=j;}
-    }
-    return palMap[k]=best;
-  }
-
-  // GIF header
-  wS('GIF89a'); w16(w); w16(h);
-  w8(0xf7); w8(0); w8(0); // global 256-color table
-  pal.forEach(function(c){w8(c[0]);w8(c[1]);w8(c[2]);});
-
-  // Loop forever
-  w8(0x21);w8(0xff);w8(0x0b);wS('NETSCAPE2.0');w8(3);w8(1);w16(0);w8(0);
-
-  frames.forEach(function(d){
-    // Graphic Control Extension
-    w8(0x21);w8(0xf9);w8(4);w8(0);w16(delay);w8(0);w8(0);
-    // Image descriptor
-    w8(0x2c);w16(0);w16(0);w16(w);w16(h);w8(0);
-    // Pixel index stream
-    var idx=new Uint8Array(w*h);
-    for(var i=0;i<w*h;i++) idx[i]=pidx(d[i*4],d[i*4+1],d[i*4+2]);
-    // LZW compress
-    var lzw=gifLZW(idx,8);
-    w8(8);
-    for(var j=0;j<lzw.length;){
-      var n=Math.min(255,lzw.length-j); w8(n);
-      for(var e=0;e<n;e++) w8(lzw[j++]);
-    }
-    w8(0);
-  });
-  w8(0x3b);
-  return out;
-}
-
-function gifLZW(pixels,minCS){
-  var clr=1<<minCS,eoi=clr+1,cs=minCS+1,next=eoi+1;
-  var out=[],buf=0,nb=0,tbl={};
-  function emit(code){
-    buf|=code<<nb; nb+=cs;
-    while(nb>=8){out.push(buf&0xff);buf>>=8;nb-=8;}
-  }
-  function reset(){tbl={};next=eoi+1;cs=minCS+1;}
-  reset(); emit(clr);
-  var pref=pixels[0];
-  for(var i=1;i<pixels.length;i++){
-    var sym=pixels[i],key=(pref<<8)|sym;
-    if(tbl[key]!==undefined){
-      pref=tbl[key];
-    } else {
-      emit(pref);
-      if(next<=4095){
-        tbl[key]=next++;
-        if(next==(1<<cs)&&cs<12) cs++;
-      } else {emit(clr);reset();}
-      pref=sym;
-    }
-  }
-  emit(pref);emit(eoi);
-  if(nb>0) out.push(buf&0xff);
-  return out;
-}
 function toast(msg){
   var t=document.getElementById('toast');
   t.textContent=msg;t.classList.add('show');
