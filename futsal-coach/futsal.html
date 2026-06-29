@@ -642,44 +642,70 @@ function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
   toast('در حال ساخت GIF...');
   setTimeout(function(){
-    var steps=8, dur=speeds[sIdx];
-    var cs=Math.max(3,Math.round(dur/steps/10)); // centiseconds per GIF frame
-    var gc=document.createElement('canvas');
-    gc.width=FW; gc.height=FH;
-    var savedCtx=ctx;
-    ctx=gc.getContext('2d');
-    var savedP=players.map(function(p){return Object.assign({},p);});
-    var gifFrames=[];
-    for(var k=0;k<keyframes.length-1;k++){
-      var fA=keyframes[k],fB=keyframes[k+1];
-      for(var s=0;s<steps;s++){
-        var t=s/steps, e=t<0.5?2*t*t:-1+(4-2*t)*t;
-        players=fA.players.map(function(pa){
-          var pb=fB.players.find(function(p){return p.id===pa.id;});
-          if(!pb) return Object.assign({},pa);
-          return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
-        });
-        redraw();
-        gifFrames.push(gc.getImageData(0,0,FW,FH).data.slice());
+    try{
+      var steps=6, dur=speeds[sIdx];
+      var cs=Math.max(3,Math.round(dur/steps/10));
+      // Half resolution for mobile performance
+      var GW=Math.round(FW/2), GH=Math.round(FH/2);
+      var gc=document.createElement('canvas');
+      gc.width=GW; gc.height=GH;
+      var gctx=gc.getContext('2d');
+      gctx.scale(GW/FW, GH/FH);
+      var savedCtx=ctx;
+      ctx=gctx;
+      var savedP=players.map(function(p){return Object.assign({},p);});
+      var gifFrames=[];
+      for(var k=0;k<keyframes.length-1;k++){
+        var fA=keyframes[k],fB=keyframes[k+1];
+        for(var s=0;s<steps;s++){
+          var t=s/steps, e=t<0.5?2*t*t:-1+(4-2*t)*t;
+          players=fA.players.map(function(pa){
+            var pb=fB.players.find(function(p){return p.id===pa.id;});
+            if(!pb) return Object.assign({},pa);
+            return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
+          });
+          redraw();
+          gifFrames.push(gc.getImageData(0,0,GW,GH).data.slice());
+        }
       }
-    }
-    players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
-    redraw();
-    gifFrames.push(gc.getImageData(0,0,FW,FH).data.slice());
-    ctx=savedCtx;
-    players=savedP; redraw();
+      players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
+      redraw();
+      gifFrames.push(gc.getImageData(0,0,GW,GH).data.slice());
+      ctx=savedCtx;
+      players=savedP; redraw();
 
-    var gif=buildGIF(gifFrames,FW,FH,cs);
-    // base64 for compatibility in iframes
-    var chunk=8192,b64='';
-    for(var i=0;i<gif.length;i+=chunk)
-      b64+=String.fromCharCode.apply(null,gif.slice(i,i+chunk));
-    var a=document.createElement('a');
-    a.download='futsal-tactic.gif';
-    a.href='data:image/gif;base64,'+btoa(b64);
-    a.click();
-    toast('✅ GIF آماده شد!');
+      var gif=buildGIF(gifFrames,GW,GH,cs);
+      var chunk=8192,b64='';
+      for(var i=0;i<gif.length;i+=chunk)
+        b64+=String.fromCharCode.apply(null,gif.slice(i,i+chunk));
+      var dataUri='data:image/gif;base64,'+btoa(b64);
+      showGIFOverlay(dataUri);
+    }catch(err){
+      toast('خطا: '+err.message);
+    }
   },60);
+}
+
+function showGIFOverlay(src){
+  var ov=document.getElementById('gifOv');
+  if(ov) ov.remove();
+  ov=document.createElement('div');
+  ov.id='gifOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;';
+  var hint=document.createElement('div');
+  hint.style.cssText='color:#94a3b8;font-size:12px;text-align:center;';
+  hint.textContent='انگشت را روی تصویر نگه دارید تا ذخیره شود';
+  var img=document.createElement('img');
+  img.src=src;
+  img.style.cssText='max-width:90vw;max-height:65vh;border-radius:10px;border:2px solid #4ade80;';
+  var btn=document.createElement('button');
+  btn.textContent='بستن ✕';
+  btn.style.cssText='padding:9px 28px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:14px;cursor:pointer;';
+  btn.onclick=function(){ov.remove();};
+  ov.appendChild(hint);
+  ov.appendChild(img);
+  ov.appendChild(btn);
+  document.body.appendChild(ov);
 }
 
 function buildGIF(frames,w,h,delay){
