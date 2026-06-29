@@ -1,0 +1,11 @@
+{
+  "name": "Futsal Coach Pro",
+  "short_name": "Futsal",
+  "description": "مربی تاکتیک فوتسال",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0f172a",
+  "start_url": "./futsal.html",
+  "scope": "./"
+}
