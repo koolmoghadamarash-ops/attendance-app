@@ -177,7 +177,7 @@ var ctx   = board.getContext('2d');
 var tool='select', color='#ffffff', lw=2;
 var paths=[], curPath=null;
 var keyframes=[], curFrame=0;
-var playing=false, animReq=null;
+var playing=false, animReq=null, animId=0;
 var speeds=[900,550,280], sIdx=0;
 var animFrom=0, animTo=1, animStart=null;
 var players=[];
@@ -524,18 +524,20 @@ function gotoFrame(i){
 function togglePlay(){
   if(playing){stopPlay();return;}
   if(keyframes.length<2){toast('حداقل ۲ فریم نیاز است');return;}
+  if(animReq){cancelAnimationFrame(animReq);animReq=null;}
+  animId++;
+  var myId=animId;
   playing=true;
   document.getElementById('plB').textContent='⏹ توقف';
   document.getElementById('plB').className='ab st';
   animFrom=0; animTo=1; animStart=null;
-  animReq=requestAnimationFrame(animStep);
+  animReq=requestAnimationFrame(function(ts){animStep(ts,myId);});
 }
-function animStep(ts){
-  if(!playing) return;
+function animStep(ts,myId){
+  if(!playing||myId!==animId) return;
   if(!animStart) animStart=ts;
   var dur=speeds[sIdx];
   var t=Math.min((ts-animStart)/dur, 1);
-  // ease-in-out
   var e=t<0.5 ? 2*t*t : -1+(4-2*t)*t;
   var fA=keyframes[animFrom], fB=keyframes[animTo];
   players=fA.players.map(function(pa){
@@ -545,7 +547,7 @@ function animStep(ts){
   });
   redraw();
   if(t<1){
-    animReq=requestAnimationFrame(animStep);
+    animReq=requestAnimationFrame(function(ts2){animStep(ts2,myId);});
   } else {
     animFrom=animTo; animTo++;
     if(animTo>=keyframes.length){
@@ -553,13 +555,15 @@ function animStep(ts){
       gotoFrame(keyframes.length-1);
     } else {
       animStart=null;
-      animReq=requestAnimationFrame(animStep);
+      animReq=requestAnimationFrame(function(ts2){animStep(ts2,myId);});
     }
   }
 }
 function stopPlay(){
+  animId++;
   if(animReq){cancelAnimationFrame(animReq);animReq=null;}
   playing=false;
+  animStart=null;
   document.getElementById('plB').textContent='▶ پخش';
   document.getElementById('plB').className='ab pl';
 }
