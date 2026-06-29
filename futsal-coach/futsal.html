@@ -198,6 +198,19 @@ body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2
       <button class="pa"   onclick="addPlayer('X')">+ توپ ⚽</button>
     </div>
 
+    <!-- تجهیزات تمرینی -->
+    <div class="lbl">▸ تجهیزات</div>
+    <div class="tg">
+      <div class="tb" data-t="eq_cone"    onclick="ST(this)"><span>🔶</span>مخروط</div>
+      <div class="tb" data-t="eq_disc"    onclick="ST(this)"><span>🟡</span>دیسک</div>
+      <div class="tb" data-t="eq_pole"    onclick="ST(this)"><span>🚩</span>نیزه</div>
+      <div class="tb" data-t="eq_ladder"  onclick="ST(this)"><span>🪜</span>نردبان</div>
+      <div class="tb" data-t="eq_hurdle"  onclick="ST(this)"><span>🏃</span>مانع</div>
+      <div class="tb" data-t="eq_minigoal" onclick="ST(this)"><span>🥅</span>دروازه</div>
+      <div class="tb" data-t="eq_ring"    onclick="ST(this)"><span>⭕</span>حلقه</div>
+      <div class="tb" data-t="eq_flag"    onclick="ST(this)"><span>🚩</span>پرچم</div>
+    </div>
+
     <!-- انیمیشن -->
     <div class="lbl">▸ انیمیشن <span id="fc" style="color:#4ade80;font-weight:700">0</span> فریم</div>
     <div class="ar">
@@ -245,7 +258,8 @@ var playing=false, animReq=null, animId=0;
 var speeds=[900,550,280], sIdx=0;
 var animFrom=0, animTo=1, animStart=null;
 var players=[];
-var drag=null;
+var equipment=[];
+var drag=null, dragEq=null;
 var FW=375, FH=195;
 
 // ── راه‌اندازی کانواس ──────────────────
@@ -322,6 +336,7 @@ function redraw(){
   drawField();
   paths.forEach(function(p){drawPath(p);});
   if(curPath) drawPath(curPath);
+  equipment.forEach(function(eq){drawEquipItem(eq);});
   players.forEach(function(p){drawPlayer(p);});
 }
 
@@ -449,6 +464,96 @@ function drawPlayer(p){
   ctx.restore();
 }
 
+// ── رسم تجهیزات تمرینی ─────────────────
+function drawEquipItem(item){
+  ctx.save();
+  ctx.lineCap='round';ctx.lineJoin='round';
+  var x=item.x,y=item.y;
+  // هایلایت در حالت حذف
+  if(tool==='rmplayer'){
+    ctx.shadowColor='#ef4444';ctx.shadowBlur=10;
+  }
+  switch(item.type){
+    case 'eq_cone':
+      // مخروط نارنجی
+      ctx.fillStyle='#f97316';
+      ctx.beginPath();ctx.moveTo(x,y-11);ctx.lineTo(x-7,y+7);ctx.lineTo(x+7,y+7);ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.35)';
+      ctx.beginPath();ctx.moveTo(x-2,y-1);ctx.lineTo(x+2,y-1);ctx.lineTo(x+5,y+5);ctx.lineTo(x-5,y+5);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#c2410c';
+      ctx.beginPath();ctx.ellipse(x,y+7,8,2.5,0,0,Math.PI*2);ctx.fill();
+      break;
+    case 'eq_disc':
+      // دیسک تخت
+      ctx.fillStyle='#eab308';
+      ctx.beginPath();ctx.ellipse(x,y+2,10,3.5,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#fde047';
+      ctx.beginPath();ctx.ellipse(x,y,10,3.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.7;ctx.stroke();
+      break;
+    case 'eq_pole':
+      // نیزه اسلالوم
+      ctx.fillStyle='#475569';
+      ctx.beginPath();ctx.ellipse(x,y+9,5,2,0,0,Math.PI*2);ctx.fill();
+      // میله راه‌راه
+      var bands=[['#ef4444',y+8,y],['#fff',y,y-8],['#ef4444',y-8,y-18]];
+      bands.forEach(function(b){
+        ctx.strokeStyle=b[0];ctx.lineWidth=3.5;
+        ctx.beginPath();ctx.moveTo(x,b[1]);ctx.lineTo(x,b[2]);ctx.stroke();
+      });
+      break;
+    case 'eq_ladder':
+      // نردبان چابکی
+      var lw2=20,lh=48,lsteps=5,lsh=lh/lsteps;
+      var ly=y-lh/2;
+      ctx.strokeStyle='#fbbf24';ctx.lineWidth=1.8;
+      ctx.beginPath();ctx.moveTo(x-lw2/2,ly);ctx.lineTo(x-lw2/2,ly+lh);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x+lw2/2,ly);ctx.lineTo(x+lw2/2,ly+lh);ctx.stroke();
+      for(var i=0;i<=lsteps;i++){
+        var ry=ly+i*lsh;
+        ctx.beginPath();ctx.moveTo(x-lw2/2,ry);ctx.lineTo(x+lw2/2,ry);ctx.stroke();
+      }
+      break;
+    case 'eq_hurdle':
+      // مانع (هردل)
+      ctx.strokeStyle='#ef4444';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(x-12,y-5);ctx.lineTo(x+12,y-5);ctx.stroke();
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(x-9,y-5);ctx.lineTo(x-7,y+7);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x+9,y-5);ctx.lineTo(x+7,y+7);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x-11,y+7);ctx.lineTo(x-3,y+7);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x+11,y+7);ctx.lineTo(x+3,y+7);ctx.stroke();
+      break;
+    case 'eq_minigoal':
+      // دروازه کوچک
+      var gw=22,gh=12;
+      ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=2.2;
+      ctx.beginPath();
+      ctx.moveTo(x-gw/2,y+gh);ctx.lineTo(x-gw/2,y);ctx.lineTo(x+gw/2,y);ctx.lineTo(x+gw/2,y+gh);
+      ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([2,3]);
+      ctx.beginPath();ctx.moveTo(x-gw/2,y);ctx.lineTo(x-gw/2+5,y-7);ctx.lineTo(x+gw/2-5,y-7);ctx.lineTo(x+gw/2,y);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+gh);ctx.stroke();
+      ctx.setLineDash([]);
+      break;
+    case 'eq_ring':
+      // حلقه
+      ctx.strokeStyle='#a78bfa';ctx.lineWidth=3;
+      ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);ctx.stroke();
+      break;
+    case 'eq_flag':
+      // پرچم گوشه
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;
+      ctx.beginPath();ctx.moveTo(x,y+12);ctx.lineTo(x,y-10);ctx.stroke();
+      ctx.fillStyle='#ef4444';
+      ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x+10,y-6);ctx.lineTo(x,y-2);ctx.closePath();ctx.fill();
+      ctx.fillStyle='#475569';
+      ctx.beginPath();ctx.arc(x,y+12,2.5,0,Math.PI*2);ctx.fill();
+      break;
+  }
+  ctx.restore();
+}
+
 // ── رسم مسیر ──────────────────────────
 function drawPath(p){
   if(!p||!p.pts||p.pts.length<2) return;
@@ -502,6 +607,11 @@ function findP(x,y){
     return Math.sqrt((p.x-x)*(p.x-x)+(p.y-y)*(p.y-y))<(p.t==='X'?18:22);
   });
 }
+function findEquip(x,y){
+  return equipment.slice().reverse().find(function(eq){
+    return Math.sqrt((eq.x-x)*(eq.x-x)+(eq.y-y)*(eq.y-y))<14;
+  });
+}
 function clamp(x,y){
   return{x:Math.max(12,Math.min(FW-12,x)),y:Math.max(12,Math.min(FH-12,y))};
 }
@@ -509,14 +619,23 @@ function clamp(x,y){
 board.addEventListener('touchstart',function(e){
   e.preventDefault();
   var pos=getXY(e);
+  // ابزارهای تجهیزات: کلیک = گذاشتن
+  if(tool.indexOf('eq_')===0){
+    equipment.push({id:'eq'+Date.now(),type:tool,x:pos.x,y:pos.y});
+    redraw();return;
+  }
   if(tool==='select'){
     var p=findP(pos.x,pos.y);
-    if(p) drag={player:p,ox:pos.x-p.x,oy:pos.y-p.y};
+    if(p){drag={player:p,ox:pos.x-p.x,oy:pos.y-p.y};return;}
+    var eq=findEquip(pos.x,pos.y);
+    if(eq){dragEq={eq:eq,ox:pos.x-eq.x,oy:pos.y-eq.y};return;}
     return;
   }
   if(tool==='rmplayer'){
     var p2=findP(pos.x,pos.y);
-    if(p2) removePlayer(p2);
+    if(p2){removePlayer(p2);return;}
+    var eq2=findEquip(pos.x,pos.y);
+    if(eq2){equipment=equipment.filter(function(e){return e.id!==eq2.id;});redraw();return;}
     return;
   }
   curPath={type:tool,pts:[{x:pos.x,y:pos.y}],c:color,w:lw};
@@ -530,6 +649,11 @@ board.addEventListener('touchmove',function(e){
     drag.player.x=c.x;drag.player.y=c.y;
     redraw();return;
   }
+  if(tool==='select'&&dragEq){
+    var c2=clamp(pos.x-dragEq.ox,pos.y-dragEq.oy);
+    dragEq.eq.x=c2.x;dragEq.eq.y=c2.y;
+    redraw();return;
+  }
   if(curPath){
     if(tool==='arrow'||tool==='line')
       curPath.pts=[curPath.pts[0],{x:pos.x,y:pos.y}];
@@ -541,7 +665,7 @@ board.addEventListener('touchmove',function(e){
 
 board.addEventListener('touchend',function(e){
   e.preventDefault();
-  drag=null;
+  drag=null;dragEq=null;
   if(curPath&&curPath.pts.length>=2){
     if(tool==='arrow'||tool==='line')
       curPath.pts=[curPath.pts[0],curPath.pts[curPath.pts.length-1]];
@@ -570,7 +694,7 @@ function SW(el){
 function undo(){paths.pop();redraw();}
 function resetAll(){
   if(!confirm('همه چیز پاک شود؟')) return;
-  paths=[];keyframes=[];curFrame=0;stopPlay();
+  paths=[];keyframes=[];curFrame=0;equipment=[];stopPlay();
   players=mkPlayers();updateFUI();redraw();
 }
 
@@ -679,6 +803,7 @@ function loadPlay(p){
   if(p.players) players=p.players.map(function(pl){return Object.assign({},pl);});
   if(p.paths) paths=p.paths.slice();
   if(p.keyframes){keyframes=p.keyframes.slice();curFrame=0;}
+  equipment=p.equipment?p.equipment.map(function(e){return Object.assign({},e);}):[];
   updateFUI(); redraw(); closeM();
   toast('✅ تاکتیک بارگذاری شد');
 }
@@ -694,7 +819,8 @@ function doSave(){
   var all=JSON.parse(localStorage.getItem('fp2')||'[]');
   all.unshift({id:Date.now(),name:name,
     players:players.map(function(p){return Object.assign({},p);}),
-    paths:paths.slice(),keyframes:keyframes.slice()});
+    paths:paths.slice(),keyframes:keyframes.slice(),
+    equipment:equipment.map(function(e){return Object.assign({},e);})});
   localStorage.setItem('fp2',JSON.stringify(all));
   renderPlList();
   toast('✅ ذخیره شد');
