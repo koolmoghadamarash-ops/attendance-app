@@ -259,7 +259,7 @@ var speeds=[900,550,280], sIdx=0;
 var animFrom=0, animTo=1, animStart=null;
 var players=[];
 var equipment=[];
-var drag=null, dragEq=null;
+var drag=null, dragEq=null, rotatingEq=null, selectedEq=null;
 var FW=375, FH=195;
 
 // ── راه‌اندازی کانواس ──────────────────
@@ -430,6 +430,16 @@ function drawField(){
     var dir=p[1]===fy?1:-1;
     ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0],p[1]+dir*td);ctx.stroke();
   });
+
+  // واترمارک
+  ctx.save();
+  ctx.globalAlpha=0.09;
+  ctx.fillStyle='#fff';
+  ctx.font='bold italic '+Math.round(FW*0.058)+'px system-ui';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText('Day Bank',cx,cy);
+  ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 // ── رسم بازیکن ────────────────────────
@@ -464,92 +474,106 @@ function drawPlayer(p){
   ctx.restore();
 }
 
-// ── رسم تجهیزات تمرینی ─────────────────
+// ── تجهیزات تمرینی ─────────────────────
+function getRotHandle(eq){
+  var a=(eq.rot||0)-Math.PI/2;
+  return{x:eq.x+Math.cos(a)*34,y:eq.y+Math.sin(a)*34};
+}
+
 function drawEquipItem(item){
+  var x=item.x,y=item.y,rot=item.rot||0;
   ctx.save();
+  ctx.translate(x,y);
+  ctx.rotate(rot);
   ctx.lineCap='round';ctx.lineJoin='round';
-  var x=item.x,y=item.y;
-  // هایلایت در حالت حذف
-  if(tool==='rmplayer'){
-    ctx.shadowColor='#ef4444';ctx.shadowBlur=10;
-  }
+  if(tool==='rmplayer'){ctx.shadowColor='#ef4444';ctx.shadowBlur=12;}
+
   switch(item.type){
     case 'eq_cone':
-      // مخروط نارنجی
       ctx.fillStyle='#f97316';
-      ctx.beginPath();ctx.moveTo(x,y-11);ctx.lineTo(x-7,y+7);ctx.lineTo(x+7,y+7);ctx.closePath();ctx.fill();
-      ctx.fillStyle='rgba(255,255,255,0.35)';
-      ctx.beginPath();ctx.moveTo(x-2,y-1);ctx.lineTo(x+2,y-1);ctx.lineTo(x+5,y+5);ctx.lineTo(x-5,y+5);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(-11,11);ctx.lineTo(11,11);ctx.closePath();ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,0.32)';
+      ctx.beginPath();ctx.moveTo(-3,0);ctx.lineTo(3,0);ctx.lineTo(6,8);ctx.lineTo(-6,8);ctx.closePath();ctx.fill();
       ctx.fillStyle='#c2410c';
-      ctx.beginPath();ctx.ellipse(x,y+7,8,2.5,0,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.ellipse(0,11,13,4,0,0,Math.PI*2);ctx.fill();
       break;
+
     case 'eq_disc':
-      // دیسک تخت
-      ctx.fillStyle='#eab308';
-      ctx.beginPath();ctx.ellipse(x,y+2,10,3.5,0,0,Math.PI*2);ctx.fill();
+      ctx.fillStyle='#ca8a04';
+      ctx.beginPath();ctx.ellipse(0,4,16,5.5,0,0,Math.PI*2);ctx.fill();
       ctx.fillStyle='#fde047';
-      ctx.beginPath();ctx.ellipse(x,y,10,3.5,0,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(0,0,0,0.25)';ctx.lineWidth=0.7;ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,0,16,5.5,0,0,Math.PI*2);ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=0.8;ctx.stroke();
       break;
+
     case 'eq_pole':
-      // نیزه اسلالوم
       ctx.fillStyle='#475569';
-      ctx.beginPath();ctx.ellipse(x,y+9,5,2,0,0,Math.PI*2);ctx.fill();
-      // میله راه‌راه
-      var bands=[['#ef4444',y+8,y],['#fff',y,y-8],['#ef4444',y-8,y-18]];
-      bands.forEach(function(b){
-        ctx.strokeStyle=b[0];ctx.lineWidth=3.5;
-        ctx.beginPath();ctx.moveTo(x,b[1]);ctx.lineTo(x,b[2]);ctx.stroke();
+      ctx.beginPath();ctx.ellipse(0,14,7,3,0,0,Math.PI*2);ctx.fill();
+      var pb=[['#ef4444',14,4],['#fff',4,-8],['#ef4444',-8,-20],['#fff',-20,-30]];
+      pb.forEach(function(b){
+        ctx.strokeStyle=b[0];ctx.lineWidth=5;
+        ctx.beginPath();ctx.moveTo(0,b[1]);ctx.lineTo(0,b[2]);ctx.stroke();
       });
       break;
+
     case 'eq_ladder':
-      // نردبان چابکی
-      var lw2=20,lh=48,lsteps=5,lsh=lh/lsteps;
-      var ly=y-lh/2;
-      ctx.strokeStyle='#fbbf24';ctx.lineWidth=1.8;
-      ctx.beginPath();ctx.moveTo(x-lw2/2,ly);ctx.lineTo(x-lw2/2,ly+lh);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x+lw2/2,ly);ctx.lineTo(x+lw2/2,ly+lh);ctx.stroke();
+      var lw=26,lsteps=6,lsh=12,lh=lsteps*lsh;
+      ctx.strokeStyle='#fbbf24';ctx.lineWidth=2.2;
+      ctx.beginPath();ctx.moveTo(-lw/2,-lh/2);ctx.lineTo(-lw/2,lh/2);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(lw/2,-lh/2);ctx.lineTo(lw/2,lh/2);ctx.stroke();
       for(var i=0;i<=lsteps;i++){
-        var ry=ly+i*lsh;
-        ctx.beginPath();ctx.moveTo(x-lw2/2,ry);ctx.lineTo(x+lw2/2,ry);ctx.stroke();
+        ctx.beginPath();ctx.moveTo(-lw/2,-lh/2+i*lsh);ctx.lineTo(lw/2,-lh/2+i*lsh);ctx.stroke();
       }
       break;
+
     case 'eq_hurdle':
-      // مانع (هردل)
-      ctx.strokeStyle='#ef4444';ctx.lineWidth=2.5;
-      ctx.beginPath();ctx.moveTo(x-12,y-5);ctx.lineTo(x+12,y-5);ctx.stroke();
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
-      ctx.beginPath();ctx.moveTo(x-9,y-5);ctx.lineTo(x-7,y+7);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x+9,y-5);ctx.lineTo(x+7,y+7);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x-11,y+7);ctx.lineTo(x-3,y+7);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x+11,y+7);ctx.lineTo(x+3,y+7);ctx.stroke();
+      ctx.strokeStyle='#ef4444';ctx.lineWidth=3.5;
+      ctx.beginPath();ctx.moveTo(-18,-7);ctx.lineTo(18,-7);ctx.stroke();
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=2.5;
+      ctx.beginPath();ctx.moveTo(-14,-7);ctx.lineTo(-12,10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(14,-7);ctx.lineTo(12,10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(-16,10);ctx.lineTo(-7,10);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(16,10);ctx.lineTo(7,10);ctx.stroke();
       break;
+
     case 'eq_minigoal':
-      // دروازه کوچک
-      var gw=22,gh=12;
-      ctx.strokeStyle='rgba(255,255,255,0.9)';ctx.lineWidth=2.2;
-      ctx.beginPath();
-      ctx.moveTo(x-gw/2,y+gh);ctx.lineTo(x-gw/2,y);ctx.lineTo(x+gw/2,y);ctx.lineTo(x+gw/2,y+gh);
-      ctx.stroke();
-      ctx.strokeStyle='rgba(255,255,255,0.4)';ctx.lineWidth=1;ctx.setLineDash([2,3]);
-      ctx.beginPath();ctx.moveTo(x-gw/2,y);ctx.lineTo(x-gw/2+5,y-7);ctx.lineTo(x+gw/2-5,y-7);ctx.lineTo(x+gw/2,y);ctx.stroke();
-      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x,y+gh);ctx.stroke();
+      var gw=30,gh=17;
+      ctx.strokeStyle='rgba(255,255,255,0.92)';ctx.lineWidth=2.8;
+      ctx.beginPath();ctx.moveTo(-gw/2,gh);ctx.lineTo(-gw/2,0);ctx.lineTo(gw/2,0);ctx.lineTo(gw/2,gh);ctx.stroke();
+      ctx.strokeStyle='rgba(255,255,255,0.38)';ctx.lineWidth=1.2;ctx.setLineDash([3,3]);
+      ctx.beginPath();ctx.moveTo(-gw/2,0);ctx.lineTo(-gw/2+8,-11);ctx.lineTo(gw/2-8,-11);ctx.lineTo(gw/2,0);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(0,gh);ctx.stroke();
       ctx.setLineDash([]);
       break;
+
     case 'eq_ring':
-      // حلقه
-      ctx.strokeStyle='#a78bfa';ctx.lineWidth=3;
-      ctx.beginPath();ctx.arc(x,y,11,0,Math.PI*2);ctx.stroke();
+      ctx.strokeStyle='#a78bfa';ctx.lineWidth=4;
+      ctx.beginPath();ctx.arc(0,0,15,0,Math.PI*2);ctx.stroke();
       break;
+
     case 'eq_flag':
-      // پرچم گوشه
-      ctx.strokeStyle='#94a3b8';ctx.lineWidth=1.5;
-      ctx.beginPath();ctx.moveTo(x,y+12);ctx.lineTo(x,y-10);ctx.stroke();
+      ctx.strokeStyle='#94a3b8';ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(0,15);ctx.lineTo(0,-16);ctx.stroke();
       ctx.fillStyle='#ef4444';
-      ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x+10,y-6);ctx.lineTo(x,y-2);ctx.closePath();ctx.fill();
+      ctx.beginPath();ctx.moveTo(0,-16);ctx.lineTo(15,-10);ctx.lineTo(0,-3);ctx.closePath();ctx.fill();
       ctx.fillStyle='#475569';
-      ctx.beginPath();ctx.arc(x,y+12,2.5,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(0,15,4,0,Math.PI*2);ctx.fill();
       break;
+  }
+
+  // نشانگر انتخاب + دستگیره چرخش
+  if(selectedEq&&selectedEq.id===item.id&&tool==='select'){
+    ctx.shadowBlur=0;
+    ctx.strokeStyle='rgba(74,222,128,0.75)';
+    ctx.lineWidth=1.5;ctx.setLineDash([4,3]);
+    ctx.beginPath();ctx.arc(0,0,22,0,Math.PI*2);ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.strokeStyle='rgba(74,222,128,0.5)';ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(0,-22);ctx.lineTo(0,-34);ctx.stroke();
+    ctx.shadowColor='#4ade80';ctx.shadowBlur=8;
+    ctx.fillStyle='#4ade80';
+    ctx.beginPath();ctx.arc(0,-34,6,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
   }
   ctx.restore();
 }
@@ -621,21 +645,31 @@ board.addEventListener('touchstart',function(e){
   var pos=getXY(e);
   // ابزارهای تجهیزات: کلیک = گذاشتن
   if(tool.indexOf('eq_')===0){
-    equipment.push({id:'eq'+Date.now(),type:tool,x:pos.x,y:pos.y});
+    equipment.push({id:'eq'+Date.now(),type:tool,x:pos.x,y:pos.y,rot:0});
     redraw();return;
   }
   if(tool==='select'){
+    // ۱. دستگیره چرخش آیتم انتخاب‌شده
+    if(selectedEq){
+      var rh=getRotHandle(selectedEq);
+      var rhd=Math.sqrt((pos.x-rh.x)*(pos.x-rh.x)+(pos.y-rh.y)*(pos.y-rh.y));
+      if(rhd<16){rotatingEq={eq:selectedEq,cx:selectedEq.x,cy:selectedEq.y};return;}
+    }
+    // ۲. بازیکن
     var p=findP(pos.x,pos.y);
-    if(p){drag={player:p,ox:pos.x-p.x,oy:pos.y-p.y};return;}
+    if(p){selectedEq=null;drag={player:p,ox:pos.x-p.x,oy:pos.y-p.y};redraw();return;}
+    // ۳. تجهیزات
     var eq=findEquip(pos.x,pos.y);
-    if(eq){dragEq={eq:eq,ox:pos.x-eq.x,oy:pos.y-eq.y};return;}
+    if(eq){selectedEq=eq;dragEq={eq:eq,ox:pos.x-eq.x,oy:pos.y-eq.y};redraw();return;}
+    // ۴. کلیک روی فضای خالی → انتخاب را لغو کن
+    selectedEq=null;redraw();
     return;
   }
   if(tool==='rmplayer'){
     var p2=findP(pos.x,pos.y);
     if(p2){removePlayer(p2);return;}
     var eq2=findEquip(pos.x,pos.y);
-    if(eq2){equipment=equipment.filter(function(e){return e.id!==eq2.id;});redraw();return;}
+    if(eq2){equipment=equipment.filter(function(e){return e.id!==eq2.id;});selectedEq=null;redraw();return;}
     return;
   }
   curPath={type:tool,pts:[{x:pos.x,y:pos.y}],c:color,w:lw};
@@ -644,6 +678,11 @@ board.addEventListener('touchstart',function(e){
 board.addEventListener('touchmove',function(e){
   e.preventDefault();
   var pos=getXY(e);
+  if(tool==='select'&&rotatingEq){
+    var dx=pos.x-rotatingEq.cx,dy=pos.y-rotatingEq.cy;
+    rotatingEq.eq.rot=Math.atan2(dy,dx)+Math.PI/2;
+    redraw();return;
+  }
   if(tool==='select'&&drag){
     var c=clamp(pos.x-drag.ox,pos.y-drag.oy);
     drag.player.x=c.x;drag.player.y=c.y;
@@ -665,7 +704,7 @@ board.addEventListener('touchmove',function(e){
 
 board.addEventListener('touchend',function(e){
   e.preventDefault();
-  drag=null;dragEq=null;
+  drag=null;dragEq=null;rotatingEq=null;
   if(curPath&&curPath.pts.length>=2){
     if(tool==='arrow'||tool==='line')
       curPath.pts=[curPath.pts[0],curPath.pts[curPath.pts.length-1]];
@@ -677,6 +716,7 @@ board.addEventListener('touchend',function(e){
 // ── کنترل‌ها ──────────────────────────
 function ST(el){
   tool=el.dataset.t;
+  selectedEq=null;
   document.querySelectorAll('.tb[data-t]').forEach(function(b){b.classList.remove('on');});
   el.classList.add('on');
   redraw();
