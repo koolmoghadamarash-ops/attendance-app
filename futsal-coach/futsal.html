@@ -641,7 +641,7 @@ function exportImg(){
   toast('📤 تصویر ذخیره شد');
 }
 
-// ── خروجی انیمیشن (APNG) ──────────────
+// ── خروجی GIF / انیمیشن ────────────────
 function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
   toast('در حال آماده‌سازی...');
@@ -665,19 +665,39 @@ function exportGIF(){
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
       redraw();pngs.push(board.toDataURL('image/png'));
       players=savedP;redraw();
+
       var ov=showAnimOverlay(pngs,dur);
-      setTimeout(function(){
+      var gifDelay=Math.max(3,Math.round(dur/steps/10));
+      var frameMs=Math.round(dur/steps);
+
+      function useAPNG(){
         try{
-          var frameMs=Math.round(dur/steps);
           var apng=buildAPNG(pngs,frameMs,1000);
           if(!apng){toast('خطا در ساخت انیمیشن');return;}
-          var b='';
-          for(var i=0;i<apng.length;i+=8192)
-            b+=String.fromCharCode.apply(null,apng.subarray(i,Math.min(i+8192,apng.length)));
-          ov.setAnim('data:image/png;base64,'+btoa(b),apng);
-          toast('✅ انیمیشن آماده!');
-        }catch(e2){toast('خطا: '+e2.message);}
-      },80);
+          var a=apng;var b='';
+          for(var i=0;i<a.length;i+=8192)
+            b+=String.fromCharCode.apply(null,a.subarray(i,Math.min(i+8192,a.length)));
+          ov.setAnim('data:image/png;base64,'+btoa(b),a,'image/png','animation.png');
+          toast('انیمیشن آماده');
+        }catch(e3){toast('خطا: '+e3.message);}
+      }
+
+      if(window.DecompressionStream){
+        toast('در حال ساخت GIF...');
+        buildGIFAsync(pngs,FW,FH,gifDelay,function(gifArr){
+          if(gifArr&&gifArr.length){
+            var b='';
+            for(var i=0;i<gifArr.length;i+=8192)
+              b+=String.fromCharCode.apply(null,gifArr.subarray(i,Math.min(i+8192,gifArr.length)));
+            ov.setAnim('data:image/gif;base64,'+btoa(b),gifArr,'image/gif','animation.gif');
+            toast('✅ GIF آماده!');
+          }else{
+            useAPNG();
+          }
+        });
+      }else{
+        setTimeout(useAPNG,80);
+      }
     }catch(err){toast('خطا: '+err.message);}
   },60);
 }
@@ -715,18 +735,21 @@ function showAnimOverlay(frames,dur){
   ov.appendChild(hint);ov.appendChild(img);ov.appendChild(row);
   document.body.appendChild(ov);
   return {
-    setAnim:function(uri,apngData){
+    setAnim:function(uri,data,mimeType,filename){
       clearInterval(timer);
       img._gifReady=true;
       img.src=uri;
       saveBtn.disabled=false;
       saveBtn.style.cssText='padding:10px 22px;background:#166534;color:#86efac;border:1px solid #4ade80;border-radius:9px;font-size:14px;cursor:pointer;';
-      saveBtn.textContent='💾 ذخیره در گالری';
+      var isGif=mimeType==='image/gif';
+      saveBtn.textContent=isGif?'💾 ذخیره GIF در گالری':'💾 ذخیره انیمیشن';
       var h=document.getElementById('gifHint');
-      if(h) h.textContent='دکمه «ذخیره» را بزنید یا روی تصویر انگشت نگه دارید';
+      if(h) h.textContent=isGif
+        ?'GIF در گالری متحرک نمایش داده می‌شود — دکمه را بزنید'
+        :'دکمه «ذخیره» را بزنید یا روی تصویر انگشت نگه دارید';
       saveBtn.onclick=function(){
-        var blob=new Blob([apngData],{type:'image/png'});
-        var file=new File([blob],'animation.png',{type:'image/png'});
+        var blob=new Blob([data],{type:mimeType});
+        var file=new File([blob],filename,{type:mimeType});
         if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
           navigator.share({files:[file],title:'انیمیشن فوتسال'}).catch(function(){});
         }else{
@@ -873,6 +896,98 @@ function buildAPNG(pngs,delayNum,delayDen){
   var result=new Uint8Array(total),pos=0;
   parts.forEach(function(p){result.set(p,pos);pos+=p.length;});
   return result;
+}
+function buildGIFAsync(pngs,targetW,targetH,delay,onDone){
+  var frames=[],fi=0;
+  function next(){
+    if(fi>=pngs.length){
+      if(!frames.length){onDone(null);return;}
+      try{var gif=buildGIF(frames,targetW,targetH,delay);onDone(new Uint8Array(gif));}
+      catch(e){onDone(null);}
+      return;
+    }
+    parsePNGpixels(pngs[fi]).then(function(r){
+      var px=(r.w!==targetW||r.h!==targetH)
+        ?downscalePixels(r.pixels,r.w,r.h,targetW,targetH):r.pixels;
+      frames.push(px);fi++;next();
+    }).catch(function(){fi++;next();});
+  }
+  next();
+}
+function parsePNGpixels(dataUrl){
+  return new Promise(function(resolve,reject){
+    var b64=dataUrl.slice(dataUrl.indexOf(',')+1);
+    var bin=atob(b64);var bytes=new Uint8Array(bin.length);
+    for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+    var offset=8,w=0,h=0,bpp=4,idats=[];
+    while(offset+12<=bytes.length){
+      var len=_u32r(bytes,offset);
+      var tag=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
+      offset+=8;
+      if(tag==='IHDR'){w=_u32r(bytes,offset);h=_u32r(bytes,offset+4);bpp=bytes[offset+9]===6?4:3;}
+      else if(tag==='IDAT') idats.push(bytes.slice(offset,offset+len));
+      offset+=len+4;
+    }
+    if(!w||!h){reject(new Error('bad PNG'));return;}
+    var tot=idats.reduce(function(s,c){return s+c.length;},0);
+    var merged=new Uint8Array(tot),pos=0;
+    idats.forEach(function(c){merged.set(c,pos);pos+=c.length;});
+    var ds=new DecompressionStream('deflate');
+    var writer=ds.writable.getWriter();
+    var reader=ds.readable.getReader();
+    writer.write(merged);writer.close();
+    var chunks=[];
+    function rd(){
+      reader.read().then(function(v){
+        if(v.done){
+          var tot2=chunks.reduce(function(a,c){return a+c.length;},0);
+          var raw=new Uint8Array(tot2),p2=0;
+          chunks.forEach(function(c){raw.set(c,p2);p2+=c.length;});
+          resolve({pixels:unfilterPNG(raw,w,h,bpp),w:w,h:h});
+        }else{chunks.push(v.value);rd();}
+      }).catch(reject);
+    }
+    rd();
+  });
+}
+function unfilterPNG(raw,w,h,bpp){
+  var stride=w*bpp,pixels=new Uint8Array(w*h*4);
+  var prev=new Uint8Array(stride),scanPos=0;
+  for(var y=0;y<h;y++){
+    var filter=raw[scanPos++];var row=new Uint8Array(stride);
+    for(var xi=0;xi<stride;xi++){
+      var v=raw[scanPos+xi];
+      var a=xi>=bpp?row[xi-bpp]:0,b=prev[xi],c=xi>=bpp?prev[xi-bpp]:0;
+      if(filter===1)v=(v+a)&255;
+      else if(filter===2)v=(v+b)&255;
+      else if(filter===3)v=(v+((a+b)>>1))&255;
+      else if(filter===4){
+        var p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);
+        v=(v+(pa<=pb&&pa<=pc?a:pb<=pc?b:c))&255;
+      }
+      row[xi]=v;
+    }
+    scanPos+=stride;prev=row;
+    for(var xj=0;xj<w;xj++){
+      var pi=(y*w+xj)*4;
+      if(bpp===4){pixels[pi]=row[xj*4];pixels[pi+1]=row[xj*4+1];pixels[pi+2]=row[xj*4+2];pixels[pi+3]=row[xj*4+3];}
+      else{pixels[pi]=row[xj*3];pixels[pi+1]=row[xj*3+1];pixels[pi+2]=row[xj*3+2];pixels[pi+3]=255;}
+    }
+  }
+  return pixels;
+}
+function downscalePixels(pixels,srcW,srcH,dstW,dstH){
+  var out=new Uint8Array(dstW*dstH*4);
+  var xr=srcW/dstW,yr=srcH/dstH;
+  for(var y=0;y<dstH;y++){
+    var sy=Math.floor(y*yr);
+    for(var x=0;x<dstW;x++){
+      var sx=Math.floor(x*xr);
+      var si=(sy*srcW+sx)*4,di=(y*dstW+x)*4;
+      out[di]=pixels[si];out[di+1]=pixels[si+1];out[di+2]=pixels[si+2];out[di+3]=pixels[si+3];
+    }
+  }
+  return out;
 }
 function toast(msg){
   var t=document.getElementById('toast');
