@@ -646,17 +646,22 @@ function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
   toast('در حال ساخت GIF...');
   setTimeout(function(){
-    var savedCtx=ctx;
     try{
       var steps=6, dur=speeds[sIdx];
       var cs=Math.max(3,Math.round(dur/steps/10));
-      // Offscreen canvas at exact logical size — no scaling needed
-      var gc=document.createElement('canvas');
-      gc.width=FW; gc.height=FH;
-      var gctx=gc.getContext('2d');
-      ctx=gctx;
+      // 1x offscreen canvas — copy from board after each redraw
+      var oc=document.createElement('canvas');
+      oc.width=FW; oc.height=FH;
+      var octx=oc.getContext('2d');
       var savedP=players.map(function(p){return Object.assign({},p);});
       var gifFrames=[];
+
+      function snap(){
+        // board is FW*PR x FH*PR; scale it down to FW x FH
+        octx.drawImage(board,0,0,board.width,board.height,0,0,FW,FH);
+        gifFrames.push(octx.getImageData(0,0,FW,FH).data.slice());
+      }
+
       for(var k=0;k<keyframes.length-1;k++){
         var fA=keyframes[k],fB=keyframes[k+1];
         for(var s=0;s<steps;s++){
@@ -666,14 +671,11 @@ function exportGIF(){
             if(!pb) return Object.assign({},pa);
             return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
           });
-          redraw();
-          gifFrames.push(gctx.getImageData(0,0,FW,FH).data.slice());
+          redraw(); snap();
         }
       }
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
-      redraw();
-      gifFrames.push(gctx.getImageData(0,0,FW,FH).data.slice());
-      ctx=savedCtx;
+      redraw(); snap();
       players=savedP; redraw();
 
       var gif=buildGIF(gifFrames,FW,FH,cs);
@@ -683,7 +685,6 @@ function exportGIF(){
       var dataUri='data:image/gif;base64,'+btoa(b64);
       showGIFOverlay(dataUri);
     }catch(err){
-      ctx=savedCtx;
       toast('خطا: '+err.message);
     }
   },60);
