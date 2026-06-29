@@ -644,9 +644,10 @@ function exportGIF(){
   setTimeout(function(){
     var steps=8, dur=speeds[sIdx];
     var cs=Math.max(3,Math.round(dur/steps/10)); // centiseconds per GIF frame
-    var oc=document.createElement('canvas');
-    oc.width=FW; oc.height=FH;
-    var ox=oc.getContext('2d');
+    var gc=document.createElement('canvas');
+    gc.width=FW; gc.height=FH;
+    var savedCtx=ctx;
+    ctx=gc.getContext('2d');
     var savedP=players.map(function(p){return Object.assign({},p);});
     var gifFrames=[];
     for(var k=0;k<keyframes.length-1;k++){
@@ -659,13 +660,13 @@ function exportGIF(){
           return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
         });
         redraw();
-        ox.drawImage(board,0,0,FW,FH);
-        gifFrames.push(ox.getImageData(0,0,FW,FH).data);
+        gifFrames.push(gc.getImageData(0,0,FW,FH).data.slice());
       }
     }
     players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
-    redraw(); ox.drawImage(board,0,0,FW,FH);
-    gifFrames.push(ox.getImageData(0,0,FW,FH).data);
+    redraw();
+    gifFrames.push(gc.getImageData(0,0,FW,FH).data.slice());
+    ctx=savedCtx;
     players=savedP; redraw();
 
     var gif=buildGIF(gifFrames,FW,FH,cs);
