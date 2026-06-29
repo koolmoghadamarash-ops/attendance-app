@@ -641,53 +641,44 @@ function exportImg(){
   toast('📤 تصویر ذخیره شد');
 }
 
-// ── خروجی GIF ─────────────────────────
+// ── خروجی انیمیشن (APNG) ──────────────
 function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
   toast('در حال آماده‌سازی...');
   setTimeout(function(){
     try{
-      var steps=8, dur=speeds[sIdx];
-      var cs=Math.max(3,Math.round(dur/steps/10));
+      var steps=8,dur=speeds[sIdx];
       var savedP=players.map(function(p){return Object.assign({},p);});
       var pngs=[];
-
-      // Phase 1: capture PNG data URLs from board (known-good canvas)
       for(var k=0;k<keyframes.length-1;k++){
         var fA=keyframes[k],fB=keyframes[k+1];
         for(var s=0;s<steps;s++){
-          var t=s/steps, e=t<0.5?2*t*t:-1+(4-2*t)*t;
+          var t=s/steps,e=t<0.5?2*t*t:-1+(4-2*t)*t;
           players=fA.players.map(function(pa){
             var pb=fB.players.find(function(p){return p.id===pa.id;});
             if(!pb) return Object.assign({},pa);
             return Object.assign({},pa,{x:pa.x+(pb.x-pa.x)*e,y:pa.y+(pb.y-pa.y)*e});
           });
-          redraw(); pngs.push(board.toDataURL('image/png'));
+          redraw();pngs.push(board.toDataURL('image/png'));
         }
       }
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
-      redraw(); pngs.push(board.toDataURL('image/png'));
-      players=savedP; redraw();
-
-      // Phase 2: show slideshow immediately, build GIF async in background
-      var ovImg=showAnimOverlay(pngs,dur);
-      toast('در حال ساخت GIF...');
-
-      // Phase 3: decode PNG binaries directly (no getImageData needed)
-      if(!window.DecompressionStream){
-        toast('انیمیشن آماده — برای GIF از ضبط صفحه استفاده کنید');
-        return;
-      }
-      toast('در حال ساخت GIF...');
-      decodePNGsAndBuildGIF(pngs,FW,FH,cs,function(dataUri){
-        if(ovImg&&ovImg.parentNode){
-          ovImg.src=dataUri; ovImg._gifReady=true;
-          var h=document.getElementById('gifHint');
-          if(h) h.textContent='GIF آماده — انگشت نگه دارید تا ذخیره شود';
-        }
-        toast('✅ GIF آماده!');
-      });
-    }catch(err){ toast('خطا: '+err.message); }
+      redraw();pngs.push(board.toDataURL('image/png'));
+      players=savedP;redraw();
+      var ov=showAnimOverlay(pngs,dur);
+      setTimeout(function(){
+        try{
+          var frameMs=Math.round(dur/steps);
+          var apng=buildAPNG(pngs,frameMs,1000);
+          if(!apng){toast('خطا در ساخت انیمیشن');return;}
+          var b='';
+          for(var i=0;i<apng.length;i+=8192)
+            b+=String.fromCharCode.apply(null,apng.subarray(i,Math.min(i+8192,apng.length)));
+          ov.setAnim('data:image/png;base64,'+btoa(b),apng);
+          toast('✅ انیمیشن آماده!');
+        }catch(e2){toast('خطا: '+e2.message);}
+      },80);
+    }catch(err){toast('خطا: '+err.message);}
   },60);
 }
 
@@ -696,48 +687,54 @@ function showAnimOverlay(frames,dur){
   if(ov) ov.remove();
   ov=document.createElement('div');
   ov.id='gifOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.88);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:16px;';
-
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;';
   var hint=document.createElement('div');
   hint.id='gifHint';
-  hint.style.cssText='color:#94a3b8;font-size:11px;text-align:center;line-height:1.6;';
-  hint.innerHTML='در حال ساخت GIF...';
-
+  hint.style.cssText='color:#94a3b8;font-size:12px;text-align:center;line-height:1.7;max-width:300px;';
+  hint.textContent='در حال ساخت انیمیشن...';
   var img=document.createElement('img');
   img.src=frames[0];
-  img.style.cssText='max-width:90vw;max-height:60vh;border-radius:10px;border:2px solid #4ade80;display:block;';
+  img.style.cssText='max-width:90vw;max-height:55vh;border-radius:10px;border:2px solid #4ade80;display:block;';
   img._gifReady=false;
-
-  var fi=0, paused=false;
+  var fi=0;
   var fdelay=Math.max(80,Math.round(dur/frames.length));
   var timer=setInterval(function(){
-    if(!paused&&!img._gifReady){fi=(fi+1)%frames.length; img.src=frames[fi];}
+    if(!img._gifReady){fi=(fi+1)%frames.length;img.src=frames[fi];}
   },fdelay);
-
   var row=document.createElement('div');
-  row.style.cssText='display:flex;gap:10px;';
-
-  var pauseBtn=document.createElement('button');
-  pauseBtn.textContent='⏸ توقف';
-  pauseBtn.style.cssText='padding:8px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #4ade80;border-radius:9px;font-size:13px;cursor:pointer;';
-  pauseBtn.onclick=function(){
-    if(img._gifReady) return;
-    paused=!paused;
-    pauseBtn.textContent=paused?'▶ ادامه':'⏸ توقف';
-  };
-
+  row.style.cssText='display:flex;gap:10px;flex-wrap:wrap;justify-content:center;';
+  var saveBtn=document.createElement('button');
+  saveBtn.textContent='⏳ در حال ساخت...';
+  saveBtn.disabled=true;
+  saveBtn.style.cssText='padding:10px 22px;background:#0f4c27;color:#6ee7b7;border:1px solid #4ade80;border-radius:9px;font-size:14px;opacity:0.5;';
   var closeBtn=document.createElement('button');
   closeBtn.textContent='بستن ✕';
-  closeBtn.style.cssText='padding:8px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:13px;cursor:pointer;';
+  closeBtn.style.cssText='padding:10px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:14px;cursor:pointer;';
   closeBtn.onclick=function(){clearInterval(timer);ov.remove();};
-
-  row.appendChild(pauseBtn);
-  row.appendChild(closeBtn);
-  ov.appendChild(hint);
-  ov.appendChild(img);
-  ov.appendChild(row);
+  row.appendChild(saveBtn);row.appendChild(closeBtn);
+  ov.appendChild(hint);ov.appendChild(img);ov.appendChild(row);
   document.body.appendChild(ov);
-  return img;
+  return {
+    setAnim:function(uri,apngData){
+      clearInterval(timer);
+      img._gifReady=true;
+      img.src=uri;
+      saveBtn.disabled=false;
+      saveBtn.style.cssText='padding:10px 22px;background:#166534;color:#86efac;border:1px solid #4ade80;border-radius:9px;font-size:14px;cursor:pointer;';
+      saveBtn.textContent='💾 ذخیره در گالری';
+      var h=document.getElementById('gifHint');
+      if(h) h.textContent='دکمه «ذخیره» را بزنید یا روی تصویر انگشت نگه دارید';
+      saveBtn.onclick=function(){
+        var blob=new Blob([apngData],{type:'image/png'});
+        var file=new File([blob],'animation.png',{type:'image/png'});
+        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+          navigator.share({files:[file],title:'انیمیشن فوتسال'}).catch(function(){});
+        }else{
+          toast('روی تصویر انگشت نگه دارید و «ذخیره تصویر» را انتخاب کنید');
+        }
+      };
+    }
+  };
 }
 
 function buildGIF(frames,w,h,delay){
@@ -804,107 +801,78 @@ function gifLZW(pixels,minCS){
   if(nb>0) out.push(buf&0xff);
   return out;
 }
-function decodePNGsAndBuildGIF(pngs,targetW,targetH,delay,onDone){
-  var frames=[],fi=0;
-  function next(){
-    if(fi>=pngs.length){
-      if(!frames.length) return;
-      try{
-        var gif=buildGIF(frames,targetW,targetH,delay);
-        var b='',chunk=8192;
-        for(var i=0;i<gif.length;i+=chunk)
-          b+=String.fromCharCode.apply(null,gif.slice(i,i+chunk));
-        onDone('data:image/gif;base64,'+btoa(b));
-      }catch(err){toast('GIF خطا: '+err.message);}
-      return;
-    }
-    parsePNG(pngs[fi]).then(function(r){
-      var pixels=(r.w!==targetW||r.h!==targetH)
-        ?downscalePixels(r.pixels,r.w,r.h,targetW,targetH)
-        :r.pixels;
-      frames.push(pixels);
-      fi++;next();
-    }).catch(function(){fi++;next();});
-  }
-  next();
+// ── APNG builder (no pixel decoding — reuses compressed PNG chunks directly) ──
+var _crcT=(function(){
+  var t=new Uint32Array(256);
+  for(var i=0;i<256;i++){var c=i;for(var j=0;j<8;j++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);t[i]=c;}
+  return t;
+})();
+function _crc(bufs){
+  var c=0xFFFFFFFF;
+  for(var b=0;b<bufs.length;b++){var d=bufs[b];for(var i=0;i<d.length;i++)c=_crcT[(c^d[i])&0xFF]^(c>>>8);}
+  return (c^0xFFFFFFFF)>>>0;
 }
-function parsePNG(dataUrl){
-  return new Promise(function(resolve,reject){
-    var b64=dataUrl.slice(dataUrl.indexOf(',')+1);
-    var bin=atob(b64);var bytes=new Uint8Array(bin.length);
-    for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
-    var offset=8,w=0,h=0,bpp=4,idat=[];
-    while(offset+12<=bytes.length){
-      var len=(bytes[offset]<<24|bytes[offset+1]<<16|bytes[offset+2]<<8|bytes[offset+3])>>>0;
-      var tag=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
-      offset+=8;
-      var data=bytes.subarray(offset,offset+len);
-      offset+=len+4;
-      if(tag==='IHDR'){
-        w=(data[0]<<24|data[1]<<16|data[2]<<8|data[3])>>>0;
-        h=(data[4]<<24|data[5]<<16|data[6]<<8|data[7])>>>0;
-        bpp=data[9]===6?4:3;
-      }else if(tag==='IDAT'){
-        for(var i=0;i<data.length;i++) idat.push(data[i]);
-      }
-    }
-    if(!w||!h){reject(new Error('bad PNG'));return;}
-    var ds=new DecompressionStream('deflate');
-    var writer=ds.writable.getWriter();
-    var reader=ds.readable.getReader();
-    writer.write(new Uint8Array(idat));writer.close();
-    var chunks=[];
-    function rd(){
-      reader.read().then(function(r){
-        if(r.done){
-          var tot=chunks.reduce(function(a,c){return a+c.length;},0);
-          var raw=new Uint8Array(tot),pos=0;
-          chunks.forEach(function(c){raw.set(c,pos);pos+=c.length;});
-          resolve({pixels:unfilterPNG(raw,w,h,bpp),w:w,h:h});
-        }else{chunks.push(r.value);rd();}
-      }).catch(reject);
-    }
-    rd();
-  });
-}
-function unfilterPNG(raw,w,h,bpp){
-  var stride=w*bpp,pixels=new Uint8Array(w*h*4);
-  var prev=new Uint8Array(stride),scanPos=0;
-  for(var y=0;y<h;y++){
-    var filter=raw[scanPos++];var row=new Uint8Array(stride);
-    for(var x=0;x<stride;x++){
-      var v=raw[scanPos+x];
-      var a=x>=bpp?row[x-bpp]:0,b=prev[x],c=x>=bpp?prev[x-bpp]:0;
-      if(filter===1) v=(v+a)&255;
-      else if(filter===2) v=(v+b)&255;
-      else if(filter===3) v=(v+((a+b)>>1))&255;
-      else if(filter===4){
-        var p=a+b-c,pa=Math.abs(p-a),pb=Math.abs(p-b),pc=Math.abs(p-c);
-        v=(v+(pa<=pb&&pa<=pc?a:pb<=pc?b:c))&255;
-      }
-      row[x]=v;
-    }
-    scanPos+=stride;prev=row;
-    for(var x=0;x<w;x++){
-      var pi=(y*w+x)*4;
-      if(bpp===4){pixels[pi]=row[x*4];pixels[pi+1]=row[x*4+1];pixels[pi+2]=row[x*4+2];pixels[pi+3]=row[x*4+3];}
-      else{pixels[pi]=row[x*3];pixels[pi+1]=row[x*3+1];pixels[pi+2]=row[x*3+2];pixels[pi+3]=255;}
-    }
-  }
-  return pixels;
-}
-function downscalePixels(pixels,srcW,srcH,dstW,dstH){
-  var out=new Uint8Array(dstW*dstH*4);
-  var xr=srcW/dstW,yr=srcH/dstH;
-  for(var y=0;y<dstH;y++){
-    var sy=Math.floor(y*yr);
-    for(var x=0;x<dstW;x++){
-      var sx=Math.floor(x*xr);
-      var si=(sy*srcW+sx)*4,di=(y*dstW+x)*4;
-      out[di]=pixels[si];out[di+1]=pixels[si+1];out[di+2]=pixels[si+2];out[di+3]=pixels[si+3];
-    }
-  }
+function _u32r(a,o){return((a[o]<<24)|(a[o+1]<<16)|(a[o+2]<<8)|a[o+3])>>>0;}
+function _u32w(a,o,v){a[o]=(v>>>24)&0xFF;a[o+1]=(v>>>16)&0xFF;a[o+2]=(v>>>8)&0xFF;a[o+3]=v&0xFF;}
+function _u16w(a,o,v){a[o]=(v>>>8)&0xFF;a[o+1]=v&0xFF;}
+function _chunk(tag,data){
+  var tg=new Uint8Array([tag.charCodeAt(0),tag.charCodeAt(1),tag.charCodeAt(2),tag.charCodeAt(3)]);
+  var out=new Uint8Array(4+4+data.length+4);
+  _u32w(out,0,data.length);out.set(tg,4);out.set(data,8);
+  _u32w(out,8+data.length,_crc([tg,data]));
   return out;
+}
+function parsePNGchunks(dataUrl){
+  var b64=dataUrl.slice(dataUrl.indexOf(',')+1);
+  var bin=atob(b64);var bytes=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i);
+  var offset=8,ihdr=null,idats=[];
+  while(offset+12<=bytes.length){
+    var len=_u32r(bytes,offset);
+    var tag=String.fromCharCode(bytes[offset+4],bytes[offset+5],bytes[offset+6],bytes[offset+7]);
+    offset+=8;
+    if(tag==='IHDR') ihdr=bytes.slice(offset,offset+len);
+    else if(tag==='IDAT') idats.push(bytes.slice(offset,offset+len));
+    offset+=len+4;
+  }
+  if(!ihdr||!idats.length) return null;
+  var tot=idats.reduce(function(s,c){return s+c.length;},0);
+  var merged=new Uint8Array(tot),pos=0;
+  idats.forEach(function(c){merged.set(c,pos);pos+=c.length;});
+  return {ihdr:ihdr,idat:merged};
+}
+function buildAPNG(pngs,delayNum,delayDen){
+  var frames=[];
+  for(var i=0;i<pngs.length;i++){var f=parsePNGchunks(pngs[i]);if(f) frames.push(f);}
+  if(!frames.length) return null;
+  var ihdr0=frames[0].ihdr;
+  var w=_u32r(ihdr0,0),h=_u32r(ihdr0,4);
+  var parts=[];
+  parts.push(new Uint8Array([0x89,0x50,0x4E,0x47,0x0D,0x0A,0x1A,0x0A]));
+  parts.push(_chunk('IHDR',ihdr0));
+  var actl=new Uint8Array(8);_u32w(actl,0,frames.length);
+  parts.push(_chunk('acTL',actl));
+  var seq=0;
+  for(var i=0;i<frames.length;i++){
+    var fctl=new Uint8Array(26);
+    _u32w(fctl,0,seq++);_u32w(fctl,4,w);_u32w(fctl,8,h);
+    _u32w(fctl,12,0);_u32w(fctl,16,0);
+    _u16w(fctl,20,delayNum);_u16w(fctl,22,delayDen);
+    fctl[24]=0;fctl[25]=0;
+    parts.push(_chunk('fcTL',fctl));
+    if(i===0){
+      parts.push(_chunk('IDAT',frames[i].idat));
+    }else{
+      var fdat=new Uint8Array(4+frames[i].idat.length);
+      _u32w(fdat,0,seq++);fdat.set(frames[i].idat,4);
+      parts.push(_chunk('fdAT',fdat));
+    }
+  }
+  parts.push(_chunk('IEND',new Uint8Array(0)));
+  var total=parts.reduce(function(s,p){return s+p.length;},0);
+  var result=new Uint8Array(total),pos=0;
+  parts.forEach(function(p){result.set(p,pos);pos+=p.length;});
+  return result;
 }
 function toast(msg){
   var t=document.getElementById('toast');
