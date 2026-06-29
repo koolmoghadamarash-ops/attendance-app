@@ -4,71 +4,84 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>⚽ Futsal Coach Pro</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2e8f0;}
+body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2e8f0;
+  overflow:hidden;height:100dvh;width:100dvw;}
 
-#hdr{display:flex;align-items:center;justify-content:space-between;
-  height:44px;padding:0 12px;background:#0f172a;border-bottom:1px solid #1e293b;}
-#hdr h1{font-size:13px;font-weight:800;letter-spacing:1px;color:#fff;}
-.hb{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;}
+/* ── Layout اصلی: زمین + نوار کناری ── */
+#app{display:flex;flex-direction:row;height:100dvh;width:100dvw;direction:ltr;}
 
-#board{
-  display:block;
-  width:100vw;
-  height:52vw;
-  background:#071528;
-  touch-action:none;
-  cursor:crosshair;
-}
+/* زمین */
+#cw{flex:1;display:flex;align-items:center;justify-content:center;
+  background:#071528;min-width:0;overflow:hidden;}
 
-#ctrl{background:#0f172a;border-top:1px solid #1e293b;padding:8px 10px;}
-.lbl{font-size:10px;color:#64748b;text-align:right;margin-bottom:4px;}
+#board{display:block;touch-action:none;cursor:crosshair;}
 
-/* ابزارها - wrap به خط بعدی */
-.tg{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:7px;}
+/* نوار کناری */
+#sb{width:142px;min-width:142px;height:100dvh;background:#0f172a;
+  border-left:1px solid #1e293b;direction:rtl;
+  display:flex;flex-direction:column;overflow-y:auto;overflow-x:hidden;
+  padding:8px 7px;gap:6px;-webkit-overflow-scrolling:touch;}
+
+/* عنوان */
+.sb-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding-bottom:6px;border-bottom:1px solid #1e293b;}
+.sb-title{font-size:9px;font-weight:900;letter-spacing:.8px;color:#4ade80;}
+.sb-icons{display:flex;gap:2px;}
+.hb{background:none;border:none;font-size:18px;cursor:pointer;padding:3px;}
+
+/* برچسب بخش */
+.lbl{font-size:9px;color:#475569;font-weight:700;letter-spacing:.3px;}
+
+/* ابزارها: ۲ ستونه */
+.tg{display:grid;grid-template-columns:1fr 1fr;gap:3px;}
 .tb{display:flex;flex-direction:column;align-items:center;gap:1px;
-  padding:5px 6px;border-radius:9px;background:#1e293b;
-  border:1.5px solid transparent;min-width:44px;
-  font-size:8px;color:#64748b;cursor:pointer;flex-shrink:0;}
-.tb span{font-size:17px;line-height:1.1;}
+  padding:5px 2px;border-radius:8px;background:#1e293b;
+  border:1.5px solid transparent;font-size:7px;color:#64748b;cursor:pointer;}
+.tb span{font-size:14px;line-height:1.2;}
 .tb.on{background:#14532d;border-color:#4ade80;color:#4ade80;}
 .tb.del{background:#1e0a0a;}
 .tb.del.on{background:#7f1d1d;border-color:#ef4444;color:#ef4444;}
 
-.row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:7px;}
-.cd{width:22px;height:22px;border-radius:50%;border:2px solid #334155;cursor:pointer;flex-shrink:0;}
-.cd.on{border:3px solid #fff;transform:scale(1.2);}
-.sp{width:1px;height:20px;background:#334155;}
-.wb{width:30px;height:22px;display:flex;align-items:center;justify-content:center;
-  background:#1e293b;border-radius:6px;cursor:pointer;border:1.5px solid transparent;flex-shrink:0;}
+/* رنگ‌ها */
+.row{display:flex;align-items:center;gap:4px;flex-wrap:wrap;}
+.cd{width:17px;height:17px;border-radius:50%;border:2px solid #334155;cursor:pointer;flex-shrink:0;}
+.cd.on{border:2.5px solid #fff;transform:scale(1.18);}
+.wb{width:26px;height:19px;display:flex;align-items:center;justify-content:center;
+  background:#1e293b;border-radius:5px;cursor:pointer;border:1.5px solid transparent;flex-shrink:0;}
 .wb.on{border-color:#4ade80;}
-.wl{width:16px;background:#fff;border-radius:1px;}
+.wl{width:13px;background:#fff;border-radius:1px;}
 
-/* بخش بازیکنان */
-.pr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px;align-items:center;}
-.pa{padding:6px 12px;border-radius:8px;border:1.5px solid #334155;
-  font-size:12px;font-weight:700;cursor:pointer;color:#e2e8f0;background:#1e293b;}
+/* بازیکنان */
+.pr{display:flex;flex-direction:column;gap:3px;}
+.pa{padding:5px 8px;border-radius:7px;border:1.5px solid #334155;
+  font-size:10px;font-weight:700;cursor:pointer;color:#e2e8f0;background:#1e293b;
+  text-align:center;}
 .pa.a{border-color:#ef4444;color:#ef4444;}
 .pa.b{border-color:#3b82f6;color:#3b82f6;}
 
-.ar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:5px;}
-.ab{padding:6px 11px;background:#1e293b;border:1.5px solid #334155;
-  border-radius:8px;color:#e2e8f0;font-size:12px;font-weight:600;cursor:pointer;}
+/* انیمیشن */
+.ar{display:flex;gap:3px;flex-wrap:wrap;}
+.ab{padding:5px 7px;background:#1e293b;border:1.5px solid #334155;
+  border-radius:7px;color:#e2e8f0;font-size:10px;font-weight:600;cursor:pointer;}
 .ab.pl{background:#14532d;border-color:#4ade80;}
 .ab.st{background:#7f1d1d;border-color:#ef4444;}
 
-#frow{display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;}
-.fd{width:22px;height:22px;border-radius:50%;background:#1e293b;border:1.5px solid #334155;
-  display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;color:#94a3b8;flex-shrink:0;}
+#frow{display:flex;gap:3px;flex-wrap:wrap;}
+.fd{width:19px;height:19px;border-radius:50%;background:#1e293b;border:1.5px solid #334155;
+  display:flex;align-items:center;justify-content:center;font-size:7px;cursor:pointer;color:#94a3b8;flex-shrink:0;}
 .fd.on{background:#4ade80;color:#0a0a1a;font-weight:700;border-color:#4ade80;}
 
+/* مودال */
 #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:999;
   align-items:center;justify-content:center;padding:16px;}
 #modal.show{display:flex;}
 .mc{background:#1e293b;border-radius:18px;padding:18px;width:100%;max-width:360px;
-  border:1px solid #334155;display:flex;flex-direction:column;gap:10px;max-height:85vh;overflow:hidden;}
+  border:1px solid #334155;display:flex;flex-direction:column;gap:10px;
+  max-height:85dvh;overflow:hidden;direction:rtl;}
 .mc-hdr{display:flex;justify-content:space-between;align-items:center;}
 .mc-hdr h2{font-size:14px;color:#fff;font-weight:700;}
 .mc-hdr button{background:none;border:none;color:#64748b;font-size:18px;cursor:pointer;padding:2px 6px;}
@@ -94,63 +107,103 @@ body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2
   font-size:12px;font-weight:600;opacity:0;pointer-events:none;
   transition:opacity .25s;z-index:1000;white-space:nowrap;}
 #toast.show{opacity:1;}
+
+/* پیام چرخش در portrait */
+#rotate{display:none;position:fixed;inset:0;background:#071528;z-index:9999;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;
+  text-align:center;padding:30px;}
+#rotate .ri{font-size:52px;animation:spin 2s ease-in-out infinite alternate;}
+@keyframes spin{from{transform:rotate(-15deg);}to{transform:rotate(15deg);}}
+@media (orientation:portrait){#rotate{display:flex;}}
 </style>
 </head>
 <body>
 
-<div id="hdr">
-  <button class="hb" onclick="openSave()">💾</button>
-  <h1>⚽ FUTSAL COACH PRO</h1>
-  <button class="hb" onclick="exportImg()">📤</button>
+<!-- پیام چرخش -->
+<div id="rotate">
+  <div class="ri">📱</div>
+  <div style="color:#4ade80;font-size:20px;font-weight:800">گوشی را بچرخانید</div>
+  <div style="color:#64748b;font-size:13px;line-height:1.6">برای استفاده از<br>Futsal Coach Pro<br>حالت Landscape را انتخاب کنید</div>
 </div>
 
-<canvas id="board"></canvas>
+<!-- اپ اصلی: زمین + نوار کناری -->
+<div id="app">
 
-<div id="ctrl">
-  <div class="lbl">▸ ابزار</div>
-  <div class="tg">
-    <div class="tb on" data-t="select" onclick="ST(this)"><span>☝️</span>جابجایی</div>
-    <div class="tb"    data-t="arrow"  onclick="ST(this)"><span>➡️</span>فلش</div>
-    <div class="tb"    data-t="line"   onclick="ST(this)"><span>📏</span>خط</div>
-    <div class="tb"    data-t="pen"    onclick="ST(this)"><span>✏️</span>قلم</div>
-    <div class="tb"    data-t="zone"   onclick="ST(this)"><span>⭕</span>منطقه</div>
-    <div class="tb del" data-t="rmplayer" onclick="ST(this)"><span>❌</span>حذف</div>
-    <div class="tb"    onclick="undo()"><span>↩️</span>بازگشت</div>
-    <div class="tb"    onclick="resetAll()"><span>🔄</span>ریست</div>
+  <!-- زمین فوتسال -->
+  <div id="cw">
+    <canvas id="board"></canvas>
   </div>
 
-  <div class="lbl">▸ رنگ و ضخامت</div>
-  <div class="row">
-    <div class="cd on"  style="background:#fff"    data-c="#ffffff" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#fbbf24" data-c="#fbbf24" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#ef4444" data-c="#ef4444" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#3b82f6" data-c="#3b82f6" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#4ade80" data-c="#4ade80" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#f97316" data-c="#f97316" onclick="SC(this)"></div>
-    <div class="cd"     style="background:#a78bfa" data-c="#a78bfa" onclick="SC(this)"></div>
-    <div class="sp"></div>
-    <div class="wb on" data-w="2" onclick="SW(this)"><div class="wl" style="height:2px"></div></div>
-    <div class="wb"    data-w="4" onclick="SW(this)"><div class="wl" style="height:4px"></div></div>
-    <div class="wb"    data-w="7" onclick="SW(this)"><div class="wl" style="height:7px"></div></div>
-  </div>
+  <!-- نوار کناری -->
+  <div id="sb">
 
-  <div class="lbl">▸ بازیکنان</div>
-  <div class="pr">
-    <button class="pa a" onclick="addPlayer('A')">+ تیم A 🔴</button>
-    <button class="pa b" onclick="addPlayer('B')">+ تیم B 🔵</button>
-    <button class="pa"   onclick="addPlayer('X')">+ توپ ⚽</button>
-  </div>
+    <!-- عنوان + ذخیره/خروجی -->
+    <div class="sb-hdr">
+      <span class="sb-title">⚽ FUTSAL</span>
+      <div class="sb-icons">
+        <button class="hb" onclick="openSave()" title="تاکتیک‌های من">💾</button>
+        <button class="hb" onclick="exportImg()" title="ذخیره عکس">📤</button>
+      </div>
+    </div>
 
-  <div class="lbl">▸ انیمیشن &nbsp;<span id="fc" style="color:#4ade80;font-weight:700">0</span> فریم</div>
-  <div class="ar">
-    <button class="ab" onclick="addFrame()">+ فریم</button>
-    <button class="ab" id="rmB" onclick="rmFrame()" style="display:none">- فریم</button>
-    <button class="ab pl" id="plB" onclick="togglePlay()">▶ پخش</button>
-    <button class="ab" id="spB" onclick="cycleSpeed()">1x</button>
-    <button class="ab" onclick="exportGIF()" style="border-color:#a78bfa;color:#a78bfa;">ویدیو</button>
-  </div>
-  <div id="frow"></div>
-</div>
+    <!-- ابزارها -->
+    <div class="lbl">▸ ابزار</div>
+    <div class="tg">
+      <div class="tb on" data-t="select"   onclick="ST(this)"><span>☝️</span>جابجایی</div>
+      <div class="tb"    data-t="arrow"    onclick="ST(this)"><span>➡️</span>فلش</div>
+      <div class="tb"    data-t="line"     onclick="ST(this)"><span>📏</span>خط</div>
+      <div class="tb"    data-t="pen"      onclick="ST(this)"><span>✏️</span>قلم</div>
+      <div class="tb"    data-t="zone"     onclick="ST(this)"><span>⭕</span>منطقه</div>
+      <div class="tb del" data-t="rmplayer" onclick="ST(this)"><span>❌</span>حذف</div>
+      <div class="tb"    onclick="undo()">  <span>↩️</span>بازگشت</div>
+      <div class="tb"    onclick="resetAll()"><span>🔄</span>ریست</div>
+    </div>
+
+    <!-- رنگ -->
+    <div class="lbl">▸ رنگ</div>
+    <div class="row">
+      <div class="cd on"  style="background:#fff"    data-c="#ffffff" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#fbbf24" data-c="#fbbf24" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#ef4444" data-c="#ef4444" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#3b82f6" data-c="#3b82f6" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#4ade80" data-c="#4ade80" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#f97316" data-c="#f97316" onclick="SC(this)"></div>
+      <div class="cd"     style="background:#a78bfa" data-c="#a78bfa" onclick="SC(this)"></div>
+    </div>
+
+    <!-- ضخامت -->
+    <div class="lbl">▸ ضخامت</div>
+    <div class="row">
+      <div class="wb on" data-w="2" onclick="SW(this)"><div class="wl" style="height:2px"></div></div>
+      <div class="wb"    data-w="4" onclick="SW(this)"><div class="wl" style="height:4px"></div></div>
+      <div class="wb"    data-w="7" onclick="SW(this)"><div class="wl" style="height:7px"></div></div>
+    </div>
+
+    <!-- بازیکنان -->
+    <div class="lbl">▸ بازیکنان</div>
+    <div class="pr">
+      <button class="pa a" onclick="addPlayer('A')">+ تیم A 🔴</button>
+      <button class="pa b" onclick="addPlayer('B')">+ تیم B 🔵</button>
+      <button class="pa"   onclick="addPlayer('X')">+ توپ ⚽</button>
+    </div>
+
+    <!-- انیمیشن -->
+    <div class="lbl">▸ انیمیشن <span id="fc" style="color:#4ade80;font-weight:700">0</span> فریم</div>
+    <div class="ar">
+      <button class="ab" onclick="addFrame()">+فریم</button>
+      <button class="ab" id="rmB" onclick="rmFrame()" style="display:none">-فریم</button>
+    </div>
+    <div class="ar">
+      <button class="ab pl" id="plB" onclick="togglePlay()">▶ پخش</button>
+      <button class="ab" id="spB" onclick="cycleSpeed()">1x</button>
+    </div>
+    <div class="ar">
+      <button class="ab" onclick="exportGIF()" style="border-color:#a78bfa;color:#a78bfa;width:100%">📹 ویدیو</button>
+    </div>
+    <div id="frow"></div>
+
+  </div><!-- /sb -->
+</div><!-- /app -->
 
 <div id="modal">
   <div class="mc">
@@ -187,11 +240,13 @@ var FW=375, FH=195;
 // ── راه‌اندازی کانواس ──────────────────
 var booted=false;
 function boot(){
-  var newFW=board.getBoundingClientRect().width;
-  if(newFW<50) newFW=window.innerWidth||screen.width||375;
-  if(newFW<50) newFW=375;
-  FW=newFW;
-  FH=Math.round(FW*0.52);
+  var cw=document.getElementById('cw');
+  var availW=cw.clientWidth||Math.max(window.innerWidth-142,200);
+  var availH=cw.clientHeight||window.innerHeight;
+  // نسبت زمین فوتسال ۲:۱ — بزرگ‌ترین اندازه‌ای که در فضا جا می‌شود
+  var fw=availW, fh=Math.round(fw*0.5);
+  if(fh>availH){fh=availH;fw=Math.round(fh/0.5);}
+  FW=fw; FH=fh;
   var PR=Math.min(window.devicePixelRatio||1,2);
   board.width=Math.round(FW*PR);
   board.height=Math.round(FH*PR);
@@ -1037,7 +1092,8 @@ if(document.readyState==='loading'){
 window.addEventListener('load',boot);
 setTimeout(boot,150);
 setTimeout(boot,600);
-window.addEventListener('resize',function(){boot();players=mkPlayers();redraw();});
+window.addEventListener('resize',function(){boot();redraw();});
+window.addEventListener('orientationchange',function(){setTimeout(function(){boot();redraw();},200);});
 </script>
 </body>
 </html>
