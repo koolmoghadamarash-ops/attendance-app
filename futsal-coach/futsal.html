@@ -147,7 +147,7 @@ body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2
     <button class="ab" id="rmB" onclick="rmFrame()" style="display:none">- فریم</button>
     <button class="ab pl" id="plB" onclick="togglePlay()">▶ پخش</button>
     <button class="ab" id="spB" onclick="cycleSpeed()">1x</button>
-    <button class="ab" onclick="exportGIF()" style="border-color:#a78bfa;color:#a78bfa;">GIF</button>
+    <button class="ab" onclick="exportGIF()" style="border-color:#a78bfa;color:#a78bfa;">ویدیو</button>
   </div>
   <div id="frow"></div>
 </div>
@@ -641,13 +641,122 @@ function exportImg(){
   toast('📤 تصویر ذخیره شد');
 }
 
-// ── خروجی GIF / انیمیشن ────────────────
+// ── خروجی ویدیو / انیمیشن ──────────────
 function exportGIF(){
   if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
-  toast('در حال آماده‌سازی...');
+  var canCapture=typeof board.captureStream==='function';
+  var canRecord=typeof MediaRecorder!=='undefined';
+  if(canCapture&&canRecord){
+    _startVideoExport();
+  } else {
+    _exportAPNGFallback();
+  }
+}
+
+function _startVideoExport(){
+  var mimeType='';
+  var candidates=['video/mp4;codecs=avc1','video/mp4','video/webm;codecs=vp8,vorbis','video/webm'];
+  for(var i=0;i<candidates.length;i++){
+    try{if(MediaRecorder.isTypeSupported(candidates[i])){mimeType=candidates[i];break;}}catch(e){}
+  }
+  if(!mimeType){toast('ویدیو پشتیبانی نمیشود');_exportAPNGFallback();return;}
+  var baseMime=mimeType.split(';')[0];
+  var isMP4=baseMime.indexOf('mp4')!==-1;
+  var ext=isMP4?'mp4':'webm';
+  var filename='animation.'+ext;
+  var totalDur=(keyframes.length-1)*speeds[sIdx];
+
+  var stream,recorder;
+  try{
+    stream=board.captureStream(30);
+    recorder=new MediaRecorder(stream,{mimeType:baseMime});
+  }catch(e){
+    toast('خطا در ضبط: '+e.message);
+    _exportAPNGFallback();
+    return;
+  }
+
+  var chunks=[];
+  recorder.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data);};
+  recorder.onstop=function(){
+    try{
+      var blob=new Blob(chunks,{type:baseMime});
+      _showVideoOverlay(blob,baseMime,filename);
+      toast('✅ ویدیو آماده!');
+    }catch(e){toast('خطا: '+e.message);}
+  };
+  recorder.onerror=function(e){toast('خطای ضبط: '+(e.error||e).message||'');};
+
+  stopPlay();
+  gotoFrame(0);
+  toast('در حال ضبط انیمیشن...');
+
+  setTimeout(function(){
+    try{recorder.start();}catch(e){toast('خطا: '+e.message);return;}
+    setTimeout(function(){togglePlay();},80);
+    setTimeout(function(){
+      stopPlay();
+      try{if(recorder.state!=='inactive')recorder.stop();}catch(e){}
+      try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+    }, totalDur+600);
+  },100);
+}
+
+function _showVideoOverlay(blob,mimeType,filename){
+  var ov=document.getElementById('gifOv');
+  if(ov) ov.remove();
+  ov=document.createElement('div');
+  ov.id='gifOv';
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;';
+
+  var hint=document.createElement('div');
+  hint.style.cssText='color:#94a3b8;font-size:12px;text-align:center;line-height:1.7;max-width:300px;';
+  hint.textContent='دکمه «ذخیره» را بزنید تا ویدیو در گالری ذخیره شود';
+
+  var url=URL.createObjectURL(blob);
+  var vid=document.createElement('video');
+  vid.src=url;
+  vid.autoplay=true;
+  vid.loop=true;
+  vid.muted=true;
+  vid.setAttribute('playsinline','');
+  vid.style.cssText='max-width:90vw;max-height:55vh;border-radius:10px;border:2px solid #4ade80;display:block;background:#000;';
+
+  var row=document.createElement('div');
+  row.style.cssText='display:flex;gap:10px;flex-wrap:wrap;justify-content:center;';
+
+  var saveBtn=document.createElement('button');
+  saveBtn.textContent='💾 ذخیره ویدیو در گالری';
+  saveBtn.style.cssText='padding:10px 22px;background:#166534;color:#86efac;border:1px solid #4ade80;border-radius:9px;font-size:14px;cursor:pointer;';
+  saveBtn.onclick=function(){
+    var file=new File([blob],filename,{type:mimeType});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({files:[file],title:'انیمیشن فوتسال'})
+        .then(function(){toast('✅ ذخیره شد');})
+        .catch(function(e){if(e.name!=='AbortError') toast('خطا: '+e.message);});
+    }else{
+      var a=document.createElement('a');
+      a.href=url;a.download=filename;a.click();
+      toast('در حال دانلود...');
+    }
+  };
+
+  var closeBtn=document.createElement('button');
+  closeBtn.textContent='بستن ✕';
+  closeBtn.style.cssText='padding:10px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:14px;cursor:pointer;';
+  closeBtn.onclick=function(){URL.revokeObjectURL(url);ov.remove();};
+
+  row.appendChild(saveBtn);row.appendChild(closeBtn);
+  ov.appendChild(hint);ov.appendChild(vid);ov.appendChild(row);
+  document.body.appendChild(ov);
+}
+
+function _exportAPNGFallback(){
+  if(keyframes.length<2){toast('حداقل ۲ فریم لازم است');return;}
+  toast('در حال ساخت انیمیشن...');
   setTimeout(function(){
     try{
-      var steps=8,dur=speeds[sIdx];
+      var steps=10,dur=speeds[sIdx];
       var savedP=players.map(function(p){return Object.assign({},p);});
       var pngs=[];
       for(var k=0;k<keyframes.length-1;k++){
@@ -665,99 +774,23 @@ function exportGIF(){
       players=keyframes[keyframes.length-1].players.map(function(p){return Object.assign({},p);});
       redraw();pngs.push(board.toDataURL('image/png'));
       players=savedP;redraw();
-
-      var ov=showAnimOverlay(pngs,dur);
-      var gifDelay=Math.max(3,Math.round(dur/steps/10));
       var frameMs=Math.round(dur/steps);
-
-      function useAPNG(){
-        try{
-          var apng=buildAPNG(pngs,frameMs,1000);
-          if(!apng){toast('خطا در ساخت انیمیشن');return;}
-          var a=apng;var b='';
-          for(var i=0;i<a.length;i+=8192)
-            b+=String.fromCharCode.apply(null,a.subarray(i,Math.min(i+8192,a.length)));
-          ov.setAnim('data:image/png;base64,'+btoa(b),a,'image/png','animation.png');
-          toast('انیمیشن آماده');
-        }catch(e3){toast('خطا: '+e3.message);}
-      }
-
-      if(window.DecompressionStream){
-        toast('در حال ساخت GIF...');
-        buildGIFAsync(pngs,FW,FH,gifDelay,function(gifArr){
-          if(gifArr&&gifArr.length){
-            var b='';
-            for(var i=0;i<gifArr.length;i+=8192)
-              b+=String.fromCharCode.apply(null,gifArr.subarray(i,Math.min(i+8192,gifArr.length)));
-            ov.setAnim('data:image/gif;base64,'+btoa(b),gifArr,'image/gif','animation.gif');
-            toast('✅ GIF آماده!');
-          }else{
-            useAPNG();
-          }
-        });
+      var apng=buildAPNG(pngs,frameMs,1000);
+      if(!apng){toast('خطا در ساخت انیمیشن');return;}
+      var b='';
+      for(var i=0;i<apng.length;i+=8192)
+        b+=String.fromCharCode.apply(null,apng.subarray(i,Math.min(i+8192,apng.length)));
+      var uri='data:image/png;base64,'+btoa(b);
+      var blob=new Blob([apng],{type:'image/png'});
+      var file=new File([blob],'animation.png',{type:'image/png'});
+      toast('انیمیشن آماده — در حال اشتراک‌گذاری');
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        navigator.share({files:[file],title:'انیمیشن فوتسال'}).catch(function(){});
       }else{
-        setTimeout(useAPNG,80);
+        var a=document.createElement('a');a.href=uri;a.download='animation.png';a.click();
       }
     }catch(err){toast('خطا: '+err.message);}
   },60);
-}
-
-function showAnimOverlay(frames,dur){
-  var ov=document.getElementById('gifOv');
-  if(ov) ov.remove();
-  ov=document.createElement('div');
-  ov.id='gifOv';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;';
-  var hint=document.createElement('div');
-  hint.id='gifHint';
-  hint.style.cssText='color:#94a3b8;font-size:12px;text-align:center;line-height:1.7;max-width:300px;';
-  hint.textContent='در حال ساخت انیمیشن...';
-  var img=document.createElement('img');
-  img.src=frames[0];
-  img.style.cssText='max-width:90vw;max-height:55vh;border-radius:10px;border:2px solid #4ade80;display:block;';
-  img._gifReady=false;
-  var fi=0;
-  var fdelay=Math.max(80,Math.round(dur/frames.length));
-  var timer=setInterval(function(){
-    if(!img._gifReady){fi=(fi+1)%frames.length;img.src=frames[fi];}
-  },fdelay);
-  var row=document.createElement('div');
-  row.style.cssText='display:flex;gap:10px;flex-wrap:wrap;justify-content:center;';
-  var saveBtn=document.createElement('button');
-  saveBtn.textContent='⏳ در حال ساخت...';
-  saveBtn.disabled=true;
-  saveBtn.style.cssText='padding:10px 22px;background:#0f4c27;color:#6ee7b7;border:1px solid #4ade80;border-radius:9px;font-size:14px;opacity:0.5;';
-  var closeBtn=document.createElement('button');
-  closeBtn.textContent='بستن ✕';
-  closeBtn.style.cssText='padding:10px 18px;background:#1e293b;color:#e2e8f0;border:1px solid #334155;border-radius:9px;font-size:14px;cursor:pointer;';
-  closeBtn.onclick=function(){clearInterval(timer);ov.remove();};
-  row.appendChild(saveBtn);row.appendChild(closeBtn);
-  ov.appendChild(hint);ov.appendChild(img);ov.appendChild(row);
-  document.body.appendChild(ov);
-  return {
-    setAnim:function(uri,data,mimeType,filename){
-      clearInterval(timer);
-      img._gifReady=true;
-      img.src=uri;
-      saveBtn.disabled=false;
-      saveBtn.style.cssText='padding:10px 22px;background:#166534;color:#86efac;border:1px solid #4ade80;border-radius:9px;font-size:14px;cursor:pointer;';
-      var isGif=mimeType==='image/gif';
-      saveBtn.textContent=isGif?'💾 ذخیره GIF در گالری':'💾 ذخیره انیمیشن';
-      var h=document.getElementById('gifHint');
-      if(h) h.textContent=isGif
-        ?'GIF در گالری متحرک نمایش داده می‌شود — دکمه را بزنید'
-        :'دکمه «ذخیره» را بزنید یا روی تصویر انگشت نگه دارید';
-      saveBtn.onclick=function(){
-        var blob=new Blob([data],{type:mimeType});
-        var file=new File([blob],filename,{type:mimeType});
-        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-          navigator.share({files:[file],title:'انیمیشن فوتسال'}).catch(function(){});
-        }else{
-          toast('روی تصویر انگشت نگه دارید و «ذخیره تصویر» را انتخاب کنید');
-        }
-      };
-    }
-  };
 }
 
 function buildGIF(frames,w,h,delay){
