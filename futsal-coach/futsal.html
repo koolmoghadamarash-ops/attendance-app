@@ -18,7 +18,7 @@ body{background:#0a0a1a;font-family:system-ui,-apple-system,sans-serif;color:#e2
   display:block;
   width:100vw;
   height:52vw;
-  background:#186033;
+  background:#071528;
   touch-action:none;
   cursor:crosshair;
 }
@@ -240,40 +240,95 @@ function redraw(){
   players.forEach(function(p){drawPlayer(p);});
 }
 
-// ── زمین ──────────────────────────────
+// ── زمین فوتسال ───────────────────────
 function drawField(){
   var pad=6,fw=FW-pad*2,fh=FH-pad*2,fx=pad,fy=pad;
   var cx=FW/2,cy=FH/2;
-  for(var i=0;i<8;i++){
-    ctx.fillStyle=i%2===0?'#1a5c35':'#186033';
-    ctx.fillRect(fx+i*fw/8,fy,fw/8,fh);
+
+  // پس‌زمینه کل canvas (بیرون زمین)
+  ctx.fillStyle='#071528';
+  ctx.fillRect(0,0,FW,FH);
+
+  // سطح زمین فوتسال - آبی hard court با نوار عمودی
+  for(var i=0;i<6;i++){
+    ctx.fillStyle=i%2===0?'#0e2649':'#112d56';
+    ctx.fillRect(fx+i*fw/6,fy,fw/6+1,fh);
   }
-  ctx.strokeStyle='rgba(255,255,255,0.9)';
-  ctx.lineWidth=2;
+
+  var W=1.8;
+  ctx.strokeStyle='rgba(255,255,255,0.92)';
+  ctx.lineWidth=W;
+
+  // کادر زمین
   ctx.strokeRect(fx,fy,fw,fh);
+
+  // خط مرکزی
   ctx.beginPath();ctx.moveTo(cx,fy);ctx.lineTo(cx,fy+fh);ctx.stroke();
-  ctx.beginPath();ctx.arc(cx,cy,fw*.077,0,Math.PI*2);
-  ctx.fillStyle='rgba(255,255,255,0.04)';ctx.fill();ctx.stroke();
+
+  // دایره مرکزی (r=3m → fw*3/40=fw*0.075)
+  var cr=fw*0.075;
+  ctx.beginPath();ctx.arc(cx,cy,cr,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,0.05)';ctx.fill();ctx.stroke();
+
+  // نقطه مرکز
   ctx.fillStyle='rgba(255,255,255,0.9)';
   ctx.beginPath();ctx.arc(cx,cy,2.5,0,Math.PI*2);ctx.fill();
-  var pd=fw*.15,ph=fh*.5,py=fy+(fh-ph)/2;
-  ctx.fillStyle='rgba(255,255,255,0.04)';
-  ctx.fillRect(fx,py,pd,ph);ctx.strokeRect(fx,py,pd,ph);
-  ctx.fillRect(fx+fw-pd,py,pd,ph);ctx.strokeRect(fx+fw-pd,py,pd,ph);
-  var gd=fw*.09,gh=fh*.3,gy=fy+(fh-gh)/2;
-  ctx.strokeRect(fx,gy,gd,gh);ctx.strokeRect(fx+fw-gd,gy,gd,gh);
-  var goalH=fh*.22,goalY=fy+(fh-goalH)/2;
-  ctx.fillStyle='#0a3a1c';
-  ctx.fillRect(fx-8,goalY,8,goalH);ctx.strokeRect(fx-8,goalY,8,goalH);
-  ctx.fillRect(fx+fw,goalY,8,goalH);ctx.strokeRect(fx+fw,goalY,8,goalH);
+
+  // قوس پنالتی فوتسال: نیمه‌دایره r=6m → fw*6/40=fw*0.15
+  // مرکز = وسط خط دروازه (روی کادر)
+  var ar=fw*0.15;
+  ctx.fillStyle='rgba(255,255,255,0.05)';
+
+  // چپ: قوس باز به سمت داخل (راست)
+  ctx.beginPath();
+  ctx.arc(fx,cy,ar,-Math.PI/2,Math.PI/2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(fx,cy,ar,-Math.PI/2,Math.PI/2);
+  ctx.stroke();
+
+  // راست: قوس باز به سمت داخل (چپ)
+  ctx.beginPath();
+  ctx.arc(fx+fw,cy,ar,Math.PI/2,3*Math.PI/2);
+  ctx.closePath();
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(fx+fw,cy,ar,Math.PI/2,3*Math.PI/2);
+  ctx.stroke();
+
+  // نقطه پنالتی اول (6m=15%)
   ctx.fillStyle='rgba(255,255,255,0.9)';
-  [fx+pd,fx+fw-pd].forEach(function(x){
-    ctx.beginPath();ctx.arc(x,cy,2.5,0,Math.PI*2);ctx.fill();
-  });
-  var ar=fw*.025;
+  ctx.beginPath();ctx.arc(fx+ar,cy,2.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(fx+fw-ar,cy,2.5,0,Math.PI*2);ctx.fill();
+
+  // نقطه پنالتی دوم (10m=25%)
+  ctx.beginPath();ctx.arc(fx+fw*0.25,cy,2.5,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(fx+fw-fw*0.25,cy,2.5,0,Math.PI*2);ctx.fill();
+
+  // دروازه (عرض ≈22% ارتفاع، عمق ≈4% عرض)
+  var gH=fh*0.22,gD=Math.max(fw*0.04,8),gY=cy-fh*0.11;
+  ctx.fillStyle='rgba(255,255,255,0.10)';
+  ctx.fillRect(fx-gD,gY,gD,gH);
+  ctx.fillRect(fx+fw,gY,gD,gH);
+  ctx.strokeStyle='rgba(255,255,255,0.85)';ctx.lineWidth=1.5;
+  ctx.strokeRect(fx-gD,gY,gD,gH);
+  ctx.strokeRect(fx+fw,gY,gD,gH);
+
+  // قوس گوشه‌ها (r≈1.5%)
+  ctx.strokeStyle='rgba(255,255,255,0.8)';ctx.lineWidth=1.5;
+  var ca=fw*0.015;
   [[fx,fy,0,Math.PI*.5],[fx+fw,fy,.5*Math.PI,Math.PI],
    [fx+fw,fy+fh,Math.PI,1.5*Math.PI],[fx,fy+fh,1.5*Math.PI,2*Math.PI]].forEach(function(a){
-    ctx.beginPath();ctx.arc(a[0],a[1],ar,a[2],a[3]);ctx.stroke();
+    ctx.beginPath();ctx.arc(a[0],a[1],ca,a[2],a[3]);ctx.stroke();
+  });
+
+  // تیک‌های منطقه تعویض (5m=12.5%fh هر طرف از مرکز)
+  ctx.strokeStyle='rgba(255,255,255,0.6)';ctx.lineWidth=1.5;
+  var tk=fh*0.125,td=8;
+  [[cx-tk,fy],[cx+tk,fy],[cx-tk,fy+fh],[cx+tk,fy+fh]].forEach(function(p){
+    var dir=p[1]===fy?1:-1;
+    ctx.beginPath();ctx.moveTo(p[0],p[1]);ctx.lineTo(p[0],p[1]+dir*td);ctx.stroke();
   });
 }
 
