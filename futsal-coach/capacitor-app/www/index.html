@@ -358,7 +358,10 @@ function redraw(){
   drawField();
   paths.forEach(function(p){drawPath(p);});
   if(curPath) drawPath(curPath);
-  equipment.forEach(function(eq){drawEquipItem(eq);});
+  equipment.forEach(function(eq){
+    if(eq.type==='eq_text'&&typeof eq.frame==='number'&&eq.frame>curFrame) return;
+    drawEquipItem(eq);
+  });
   players.forEach(function(p){drawPlayer(p);});
 }
 
@@ -588,7 +591,13 @@ function drawEquipItem(item){
       ctx.shadowColor='rgba(0,0,0,0.7)';ctx.shadowBlur=5;
       ctx.font='bold '+fs+'px system-ui';
       ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText(item.text||'',0,0);
+      var words=(item.text||'').split(/\s+/).filter(Boolean);
+      var lines=[];
+      for(var wi=0;wi<words.length;wi+=5){lines.push(words.slice(wi,wi+5).join(' '));}
+      if(!lines.length) lines=[''];
+      var lh=fs*1.25;
+      var startY=-((lines.length-1)*lh)/2;
+      lines.forEach(function(ln,li){ctx.fillText(ln,0,startY+li*lh);});
       ctx.shadowBlur=0;
       break;
   }
@@ -833,6 +842,7 @@ function togglePlay(){
 function animStep(ts,myId){
   if(!playing||myId!==animId) return;
   if(!animStart) animStart=ts;
+  curFrame=animFrom;
   var dur=speeds[sIdx];
   var t=Math.min((ts-animStart)/dur, 1);
   var e=t<0.5 ? 2*t*t : -1+(4-2*t)*t;
@@ -1340,7 +1350,7 @@ function confirmText(){
   document.getElementById('txtOv').style.display='none';
   if(txt&&pendingTextPos){
     equipment.push({id:'eq'+Date.now(),type:'eq_text',x:pendingTextPos.x,y:pendingTextPos.y,
-      rot:0,text:txt,textColor:color,textSize:textSizes[lw]||14});
+      rot:0,text:txt,textColor:color,textSize:textSizes[lw]||14,frame:curFrame});
     redraw();toast('متن اضافه شد');
   }
   pendingTextPos=null;
