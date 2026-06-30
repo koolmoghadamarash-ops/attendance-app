@@ -1,0 +1,9 @@
+{
+  "appId": "com.daybank.futsalcoach",
+  "appName": "Futsal Coach Pro",
+  "webDir": "www",
+  "backgroundColor": "#0a0a1a",
+  "android": {
+    "backgroundColor": "#0a0a1a"
+  }
+}
